@@ -1,7 +1,6 @@
 CC=gcc
 
-# Every warning possible, safety first
-CFLAGS=-g -D_GNU_SOURCE=1 -D_REENTRANT -Wall -W -Wfloat-equal -Wundef -Wshadow -Wpointer-arith -Wstrict-prototypes -Wswitch-default -Wconversion -Wunreachable-code
+CFLAGS=-g -D_GNU_SOURCE=1 -D_REENTRANT -Wall -W -Wfloat-equal -Wundef -Wshadow -Wpointer-arith -Wstrict-prototypes -Wswitch-default -Wconversion -Wunreachable-code -pedantic
 
 IMAGE_FLAGS=-lSDL2_image
 SFLAGS=-lSDL2

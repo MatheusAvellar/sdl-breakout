@@ -1,31 +1,30 @@
+/*
+ *  Simple Breakout game in SDL
+ *
+ *    by the great minds of
+ *       Matheus Avellar
+ *         Pedro Dias
+ *        Pedro Possato
+ *
+ *         (C) 2017.1
+ */
+
 #ifndef SDL_MAIN_HANDLED
-#define SDL_MAIN_HANDLED //prevents SDL's main() function conflict
+#define SDL_MAIN_HANDLED
 #endif
- 
-//Using SDL, SDL_image, standard IO, and strings
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 
+
 /*
- * Constants
+ * Type definitions
  */
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
-
-const int false = 0;
-const int true = 1;
-
-const int IMAGE_WIDTH = 81;
-const int IMAGE_HEIGHT = 81;
-
-typedef struct _NPC 
-{
+typedef struct _NPC {
     int posX;
     int posY;
     int stepX;
@@ -35,165 +34,222 @@ typedef struct _NPC
     int imgH;
 } NPC;
 
-int temp;
+
+/*
+ * Constants
+ */
+
+// Screen dimension constants
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 480;
+
+const int false = 0;
+const int true = 1;
+
+const int IMAGE_WIDTH = 81;
+const int IMAGE_HEIGHT = 81;
+
+/* Fixed framerate
+ * ---------------
+ * Formula: 1000 / (desired fps)
+ * TICK_INTERVAL = 16 (~62 fps)
+ * TICK_INTERVAL = 17 (~58 fps)
+ * TICK_INTERVAL = 33 (~30 fps)
+ */
+const unsigned int TICK_INTERVAL = 17;
+
+// Speed multiplier
+const int BALL_SPEED = 2;
+
+// Amount of balls on screen
+#define LEN 5
+
 
 /*
  * Global Variables
  */
 
-//The window we'll be rendering to
+// The window to render to
 SDL_Window* gWindow = NULL;
 
-//The imagem character
-#define LEN 2
-int i, j;
+// The image character
 NPC ball[LEN];
-  
-//The surface contained by the window
+
+// The surface contained by the window
 SDL_Surface* gScreenSurface = NULL;
 
-//Current displayed PNG image
-SDL_Surface* gJPGSurface = NULL;
+// Image that will be drawn
+SDL_Surface* gImage = NULL;
+
+// Control variable for optimal FPS handling
+static Uint32 next_time;
+
 
 /*
- * function prototypes
+ * Function Prototypes
  */
 
-//Starts up SDL and creates window
-int init();
+// Starts up SDL and creates window
+int init(void);
 
-//Loads media
-int loadMedia();
+// Loads media
+int loadMedia(void);
 
-//Frees media and shuts down SDL
-void closing();
+// Frees media and shuts down SDL
+void close(void);
 
-//Loads individual image
-SDL_Surface* loadSurface( char *path );
+// Loads individual image
+SDL_Surface* loadSurface(char *path);
 
-//Create NPC
-NPC createNPC( int posX, int posY, int stepX, int stepY, SDL_Surface *image);
+// Returns NPC struct with given values
+NPC createNPC(int posX, int posY, int stepX, int stepY, SDL_Surface *image);
 
-//Move NPC
+// Updates NPC position via stepX and stepY
 void moveNPC(NPC *p);
 
+// Draws image on gScreenSurface
+int drawOnScreen(SDL_Surface* image,
+                int srcX, int srcY,
+                int srcW, int srcH,
+                int dstX, int dstY);
 
-int main( int argc, char* args[] ) {
-    SDL_Rect srcRect, dstRect;
-    
-    //Start up SDL and create window
-    if( !init() ) {
-        printf( "Failed to initialize!\n" );
+// Returns the time left until next tick
+unsigned time_left(void);
+
+
+int main(int argc, char* args[]) {
+    // Main loop flag
+    int quit = false;
+
+    // Iteration variables
+    int i, j;
+
+    // Temporary variable for 2 way value swapping
+    int temp;
+
+    // Event handler
+    SDL_Event e;
+
+    // Start up SDL and create window
+    if(!init() || !loadMedia()) {
+        printf("Failed to initialize!\n");
+        return 1;
     }
-    else {
-        //Load media
-        if( !loadMedia() ) {
-            printf( "Failed to load media!\n" );
-        }
-        else {   
-            //Create NPC
-			for (i= 0; i < LEN; i++) {
-				ball[i] = createNPC((rand() % (SCREEN_WIDTH/LEN - IMAGE_WIDTH)) + SCREEN_WIDTH*i/LEN, 
-                             rand() % (SCREEN_HEIGHT - IMAGE_HEIGHT), 
-                             rand() % 2 ? -1-(i%2): 1+(i%2), 
-                             rand() % 2 ? -1-(i%2): 1+(i%2), 
-                             gJPGSurface);
-			}
-			
-            //Main loop flag
-            int quit = false;
 
-            //Event handler
-            SDL_Event e;
+    // Create NPC
+    for (i= 0; i < LEN; i++) {
+        ball[i] = createNPC((rand() % (SCREEN_WIDTH/LEN - IMAGE_WIDTH))
+                            + SCREEN_WIDTH * i / LEN,
+                     rand() % (SCREEN_HEIGHT - IMAGE_HEIGHT),
+                     rand() % 2 ? -1 - (i%2): 1 + (i%2),
+                     rand() % 2 ? -1 - (i%2): 1 + (i%2),
+                     gImage);
+    }
 
-            //While application is running
-            while( !quit ) {
-                while( SDL_PollEvent( &e ) != 0 ) {
-                    switch (e.type) {
-                        case SDL_QUIT:
-                            quit = true;
-                            break;
-                        case SDL_KEYDOWN:
-                            if (e.key.keysym.sym == SDLK_ESCAPE) {
-                                quit = true;
-                            }
-                        break;
-                    }
-                }
-				
-            
-                //Fill the surface white
-                SDL_FillRect( gScreenSurface, NULL, 
-                              SDL_MapRGB( gScreenSurface->format, 
-                              0x00, 0xFF, 0x00 ) );
-							  
-				for (i= 0; i < LEN; i++) {
-					moveNPC(&ball[i]);
-				}
-
-                srcRect.x = 0; srcRect.y = 0;
-                srcRect.w = IMAGE_WIDTH;
-                srcRect.h = IMAGE_HEIGHT;
-				
-				for (i= 0; i < LEN; i++) {
-					dstRect.x = ball[i].posX;
-					dstRect.y = ball[i].posY;
-            
-					if( SDL_BlitSurface( ball[i].image, &srcRect, 
-										 gScreenSurface, &dstRect ) < 0 ) {
-						printf( "SDL could not blit! SDL Error: %s\n", SDL_GetError() );
-						quit = true;
-					}
-				}
-				
-				//Collision between balls
-				for (i= 0; i < LEN; i++) {
-					for (j = i + 1; j < LEN; j++) {
-						if ((ball[i].posX - ball[j].posX)*(ball[i].posX - ball[j].posX) + (ball[i].posY - ball[j].posY)*(ball[i].posY - ball[j].posY) < IMAGE_WIDTH*IMAGE_WIDTH) {
-							temp = ball[i].stepX; ball[i].stepX = ball[j].stepX; ball[j].stepX = temp;
-							temp = ball[i].stepY; ball[i].stepY = ball[j].stepY; ball[j].stepY = temp;
-						}
-					}
-				}
-            
-                //Update the surface
-                SDL_UpdateWindowSurface( gWindow );
-                
-                // Not so good solution, depends on your computer
-                SDL_Delay(5);
+    // While application is running
+    while (!quit) {
+        while (SDL_PollEvent(&e) != 0) {
+            switch (e.type) {
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN:
+                    if (e.key.keysym.sym == SDLK_ESCAPE)
+                        quit = true;
+                    break;
+                default:
+                    // Supress warnings from [-Wswitch-default] flag
+                    break;
             }
         }
+
+        // Fill the surface with #99d9ea (light blue)
+        SDL_FillRect(gScreenSurface, NULL,
+                      SDL_MapRGB(gScreenSurface->format,
+                                  0x99, 0xD9, 0xEA));
+
+        for (i= 0; i < LEN; i++) {
+            moveNPC(&ball[i]);
+
+            if (drawOnScreen(ball[i].image, 0, 0,
+                        IMAGE_WIDTH,
+                        IMAGE_HEIGHT,
+                        ball[i].posX,
+                        ball[i].posY) < 0) {
+                printf("SDL could not blit! SDL Error: %s\n",
+                      SDL_GetError());
+                quit = true;
+            }
+        }
+
+        // Collision between balls
+        for (i= 0; i < LEN; i++) {
+            for (j = i + 1; j < LEN; j++) {
+                int _dX = ball[i].posX - ball[j].posX;
+                int _dY = ball[i].posY - ball[j].posY;
+
+                if (_dX * _dX + _dY * _dY < IMAGE_WIDTH * IMAGE_WIDTH) {
+                    temp = ball[i].stepX;
+                    ball[i].stepX = ball[j].stepX;
+                    ball[j].stepX = temp;
+
+                    temp = ball[i].stepY;
+                    ball[i].stepY = ball[j].stepY;
+                    ball[j].stepY = temp;
+                }
+            }
+        }
+
+        // Update the surface
+        SDL_UpdateWindowSurface(gWindow);
+
+        // Normalize framerate
+        SDL_Delay(time_left());
+        next_time += TICK_INTERVAL;
     }
 
-    //Free resources and closing SDL
-    closing();
+    // Frees resources and closes SDL
+    close();
+
+    // Supress warnings from [-Wunused-parameter] flag
+    (void)argc;
+    (void)args;
 
     return 0;
 }
 
 
 void moveNPC(NPC *p) {
-    p->posX += p->stepX;
-    p->posY += p->stepY;
-    
-    if ( (p->posX + IMAGE_WIDTH > SCREEN_WIDTH) ||
-         (p->posX < 0) ) {
-        p->stepX = -p->stepX;
-        p->posX += p->stepX; 
+    p->posX += p->stepX * BALL_SPEED;
+    p->posY += p->stepY * BALL_SPEED;
+
+    // If the image is out of bounds on the X axis,
+    // invert the direction and reset the position to a valid one
+    if (p->posX + IMAGE_WIDTH > SCREEN_WIDTH) {
+        p->stepX *= -1;
+        p->posX = SCREEN_WIDTH - IMAGE_WIDTH;
+    } else if (p->posX < 0) {
+        p->stepX *= -1;
+        p->posX = 0;
     }
-    if ( (p->posY + IMAGE_HEIGHT > SCREEN_HEIGHT) ||
-         (p->posY < 0) ) {
-        p->stepY = -p->stepY;
-        p->posY += p->stepY;
-    }   
+
+    // If the image is out of bounds on the Y axis,
+    // invert the direction and reset the position to a valid one
+    if (p->posY + IMAGE_HEIGHT > SCREEN_HEIGHT) {
+        p->stepY *= -1;
+        p->posY = SCREEN_HEIGHT - IMAGE_HEIGHT;
+    } else if (p->posY < 0) {
+        p->stepY *= -1;
+        p->posY = 0;
+    }
 }
 
-
-//Create NPC
-NPC createNPC( int posX, int posY, int stepX, int stepY, 
-               SDL_Surface *image) {
+// Create NPC
+NPC createNPC(int posX, int posY,
+            int stepX, int stepY,
+            SDL_Surface *image) {
     NPC p;
-    
+
     p.posX = posX;
     p.posY = posY;
     p.stepX = stepX;
@@ -202,95 +258,124 @@ NPC createNPC( int posX, int posY, int stepX, int stepY,
     return p;
 }
 
-int init() {
-    //Initialization flag
-    int success = true;
+int init(void) {
+    // Generate unique seed for the random function
+    srand((unsigned)time(NULL));
 
-    srand(time(NULL));
-
-    //Initialize SDL
-    if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
-        printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
-        success = false;
-    }
-    else {
-        //Create window
-        gWindow = SDL_CreateWindow( "SDL Tutorial: 06_moving_images", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-        if( gWindow == NULL ) {
-            printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
-            success = false;
-        }
-        else
-        {
-            //Initialize JPG and PNG loading 
-            int imgFlags = IMG_INIT_JPG | IMG_INIT_PNG;
-            if( !( IMG_Init( imgFlags ) & imgFlags ) ) {
-                printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
-                success = false;
-            }
-            else {
-                //Get window surface
-                gScreenSurface = SDL_GetWindowSurface( gWindow );
-            }
-        }
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL Error: %s\n",
+              SDL_GetError());
+        return false;
     }
 
-   
+    // Create window
+    gWindow = SDL_CreateWindow("SDL Game",
+                            SDL_WINDOWPOS_UNDEFINED,
+                            SDL_WINDOWPOS_UNDEFINED,
+                            SCREEN_WIDTH,
+                            SCREEN_HEIGHT,
+                            SDL_WINDOW_SHOWN);
+    if (gWindow == NULL) {
+        printf("Window could not be created! SDL Error: %s\n",
+              SDL_GetError());
+        return false;
+    }
 
-    return success;
+    // Initialize PNG loading 
+    int imgFlags = IMG_INIT_PNG;
+    if(!(IMG_Init(imgFlags) & imgFlags)) {
+        printf("SDL_image could not initialize! SDL_image Error: %s\n",
+            IMG_GetError());
+        return false;
+    }
+
+    // Get window surface
+    gScreenSurface = SDL_GetWindowSurface(gWindow);
+
+    return true;
 }
 
-int loadMedia() {
-    //Loading success flag
-    int success = true;
-    //uint32_t colorKey;
-    
-    //Load PNG surface
-    gJPGSurface = loadSurface( "./redCircle.png" );
-    if( gJPGSurface == NULL ) {
-        printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
-        success = false;
-    } 
-		
-	//Color key
-	SDL_SetColorKey(gJPGSurface, SDL_TRUE, SDL_MapRGB(gJPGSurface->format, 0x00, 0x00, 0x00));
-	
-    return success;
+int loadMedia(void) {
+    // Load PNG surface
+    gImage = loadSurface("./images/circle.png");
+    if(gImage == NULL) {
+        printf("Failed to load image! SDL Error: %s\n",
+              SDL_GetError());
+        return false;
+    }
+
+    // Color key
+    SDL_SetColorKey(gImage,
+                    SDL_TRUE,
+                    SDL_MapRGB(gImage->format,
+                            0x00, 0x00, 0x00));
+
+    return true;
 }
 
-void closing() {
-    //Free loaded image
-    SDL_FreeSurface( gJPGSurface );
-    gJPGSurface = NULL;
+void close() {
+    // Free loaded image
+    SDL_FreeSurface(gImage);
+    gImage = NULL;
 
-    //Destroy window
-    SDL_DestroyWindow( gWindow );
+    // Destroy window
+    SDL_DestroyWindow(gWindow);
     gWindow = NULL;
 
-    //Quit SDL subsystems
+    // Quit SDL subsystems
     IMG_Quit();
     SDL_Quit();
 }
 
-SDL_Surface* loadSurface( char *path ) {
-    //The final optimized image
+SDL_Surface* loadSurface(char *path) {
+    // The final optimized image
     SDL_Surface* optimizedSurface = NULL;
 
-    //Load image at specified path
-    SDL_Surface* loadedSurface = IMG_Load( path );
-    if( loadedSurface == NULL ) {
-        printf( "Unable to load image %s! SDL_image Error: %s\n", path, IMG_GetError() );
-	}
-    else {
-        //Convert surface to screen format
-        optimizedSurface = SDL_ConvertSurface( loadedSurface, gScreenSurface->format, 0 );
-        if( optimizedSurface == NULL ) {
-            printf( "Unable to optimize image %s! SDL Error: %s\n", path, SDL_GetError() );
-        }
+    // Load image at specified path
+    SDL_Surface* loadedSurface = IMG_Load(path);
 
-        //Get rid of old loaded surface
-        SDL_FreeSurface( loadedSurface );	
+    if (loadedSurface == NULL) {
+        printf("Unable to load image %s! SDL_image Error: %s\n", path,
+            IMG_GetError());
+        return NULL;
     }
+
+    // Convert surface to screen format
+    optimizedSurface = SDL_ConvertSurface(loadedSurface,
+                                        gScreenSurface->format, 0);
+
+    if (optimizedSurface == NULL) {
+        printf("Unable to optimize image %s! SDL Error: %s\n", path,
+            SDL_GetError());
+        return NULL;
+    }
+
+    // Get rid of old loaded surface
+    SDL_FreeSurface(loadedSurface);
     return optimizedSurface;
 }
 
+// Draws to gScreenSurface
+int drawOnScreen(SDL_Surface* image,
+                int srcX, int srcY,
+                int srcW, int srcH,
+                int dstX, int dstY) {
+
+    SDL_Rect srcRect, dstRect;
+
+    srcRect.x = srcX;
+    srcRect.y = srcY;
+    srcRect.w = srcW;
+    srcRect.h = srcH;
+    dstRect.x = dstX;
+    dstRect.y = dstY;
+
+    return SDL_BlitSurface(image, &srcRect, gScreenSurface, &dstRect);
+}
+
+// Time left until next tick
+unsigned time_left(void) {
+    unsigned now = SDL_GetTicks();
+    return (next_time <= now) ? 0 : next_time - now;
+}
