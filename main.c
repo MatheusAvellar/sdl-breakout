@@ -209,6 +209,7 @@ int main(int argc, char* args[]) {
 
 				for (i= 0; i < CLOUMNS; i++) {
           for (j = 0; j < LINES; j++) {
+            if (brick[i][j].resist){
             if (drawOnScreen(brick[i][j].image, 0, 0,
                         BLOCK_WIDTH,
                         BLOCK_HEIGHT,
@@ -217,6 +218,7 @@ int main(int argc, char* args[]) {
                 printf("SDL could not blit! SDL Error: %s\n",
                       SDL_GetError());
                 quit = true;
+            }
             }
           }
 				}
