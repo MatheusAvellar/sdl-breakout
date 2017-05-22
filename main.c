@@ -35,9 +35,9 @@ typedef struct _NPC {
 } NPC;
 
 typedef struct _BLOCK {
-	int posX;
-	int posY;
-	int resist;
+    int posX;
+    int posY;
+    int resist;
     SDL_Surface* image;
 } BLOCK;
 
@@ -52,8 +52,8 @@ const int SCREEN_HEIGHT = 600;
 const int false = 0;
 const int true = 1;
 
-const int IMAGE_WIDTH = 49;
-const int IMAGE_HEIGHT = 49;
+const int BALL_WIDTH = 49;
+const int BALL_HEIGHT = 49;
 
 const int BLOCK_WIDTH = 160;
 const int BLOCK_HEIGHT = 80;
@@ -73,8 +73,16 @@ const int BALL_SPEED = 2;
 // Amount of balls on screen
 #define LEN 1
 // Amount of brick on screen
-#define CLOUMNS 5
+#define COLUMNS 5
 #define LINES 1
+
+// Error codes
+#define ERR_INIT 0
+#define ERR_WINDOW_CREATE 1
+#define ERR_BLIT 2
+#define ERR_OPTIMIZE 3
+#define ERR_IMG_LOAD 4
+
 
 /*
  * Global Variables
@@ -86,17 +94,19 @@ int gameScreen = 1;
 // The window to render to
 SDL_Window* gWindow = NULL;
 
-// The image character
+// The ball
 NPC ball[LEN];
-BLOCK brick[CLOUMNS][LINES];
+
+// The bricks vector
+BLOCK brick[COLUMNS][LINES];
 
 // The surface contained by the window
 SDL_Surface* gScreenSurface = NULL;
 
 // Image that will be drawn
-SDL_Surface* gImage = NULL;
+SDL_Surface* gBall = NULL;
 
-//Current displayed PNG image
+// Current displayed PNG image
 SDL_Surface* gBRICKSurface = NULL;
 
 // Control variable for optimal FPS handling
@@ -116,7 +126,7 @@ int loadMedia(void);
 // Frees media and shuts down SDL
 void close(void);
 
-//functions
+// Game states
 void menu(void);
 void game(void);
 
@@ -125,13 +135,14 @@ SDL_Surface* loadSurface(char *path);
 
 // Returns NPC struct with given values
 NPC createNPC(int posX, int posY, int stepX, int stepY, SDL_Surface *image);
-//Create BLOCK
-BLOCK createBLOCK( int posX, int posY, int resist, SDL_Surface *image);
+
+// Create BLOCK
+BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image);
 
 // Updates NPC position via stepX and stepY
 void moveNPC(NPC *p);
 
-// Draws image on gScreenSurface
+// Draws an image on gScreenSurface
 int drawOnScreen(SDL_Surface* image,
                 int srcX, int srcY,
                 int srcW, int srcH,
@@ -140,11 +151,13 @@ int drawOnScreen(SDL_Surface* image,
 // Returns the time left until next tick
 unsigned time_left(void);
 
-//Collision
+// Updates ball collisions
 void collisionBalls(void);
 
-int main(int argc, char* args[]) {
+void error(int code);
 
+
+int main(int argc, char* args[]) {
     // Start up SDL and create window
     if(!init() || !loadMedia()) {
         printf("Failed to initialize!\n");
@@ -152,12 +165,13 @@ int main(int argc, char* args[]) {
     }
 
     if (gameScreen == 0) {
-      menu();
+        menu();
+    } else if (gameScreen == 1) {
+        game();
+    } else {
+        printf("Error: gameScreen is invalid\n");
+        return 1;
     }
-    else if (gameScreen == 1) {
-      game();
-    }
-
 
     // Frees resources and closes SDL
     close();
@@ -170,173 +184,175 @@ int main(int argc, char* args[]) {
 }
 
 void menu(void) {
-  // Main loop flag
-  int quit = false;
+    // Main loop flag
+    int quit = false;
 
-  // Event handler
-  SDL_Event e;
+    // Event handler
+    SDL_Event e;
 
-  while (!quit) {
-      while (SDL_PollEvent(&e) != 0) {
-          switch (e.type) {
-              case SDL_QUIT:
-                  quit = true;
-                  break;
-              case SDL_KEYDOWN:
-                  if (e.key.keysym.sym == SDLK_ESCAPE)
-                      quit = true;
-                  break;
-              default:
-                  // Supress warnings from [-Wswitch-default] flag
-                  break;
-          }
-      }
-      // Fill the surface with #000000 (black)
-      SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
-        0x00, 0x00, 0x00));
+    while (!quit) {
+        while (SDL_PollEvent(&e) != 0) {
+            switch (e.type) {
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN:
+                    if (e.key.keysym.sym == SDLK_ESCAPE)
+                        quit = true;
+                    break;
+                default:
+                    // Supress warnings from [-Wswitch-default] flag
+                    break;
+            }
+        }
+        // Fill the surface with #000000 (black)
+        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
+                                                        0x00, 0x00, 0x00));
 
-      // Update the surface
-      SDL_UpdateWindowSurface(gWindow);
+        // Update the surface
+        SDL_UpdateWindowSurface(gWindow);
 
-      // Normalize framerate
-      SDL_Delay(time_left());
-      next_time += TICK_INTERVAL;
-  }
+        // Normalize framerate
+        SDL_Delay(time_left());
+        next_time += TICK_INTERVAL;
+    }
 }
 
 void game(void) {
+    // Iteration variables
+    int i, j, k;
 
-// Iteration variables
-int i, j, k;
+    // Event handler
+    SDL_Event e;
 
-// Event handler
-SDL_Event e;
+    // Main loop flag
+    int quit = false;
 
-// Main loop flag
-int quit = false;
-
-  // Create NPC
-  for (i= 0; i < LEN; i++) {
-      ball[i] = createNPC((rand() % (SCREEN_WIDTH/LEN - IMAGE_WIDTH))
-                          + SCREEN_WIDTH * i / LEN,
-                   rand() % (SCREEN_HEIGHT - IMAGE_HEIGHT),
-                   rand() % 2 ? -1 - (i%2): 1 + (i%2),
-                   rand() % 2 ? -1 - (i%2): 1 + (i%2),
-                   gImage);
-  }
-
-  //Create BRICKS
-  for (i = 0; i < CLOUMNS; i++) {
-    for (j = 0; j < LINES; j++) {
-         brick[i][j] = createBLOCK(BLOCK_WIDTH*i, BLOCK_HEIGHT*j, 1,
-         gBRICKSurface);
+    // Create NPC
+    for (i= 0; i < LEN; i++) {
+        ball[i] = createNPC(rand() % (SCREEN_WIDTH/LEN - BALL_WIDTH)
+                              + SCREEN_WIDTH * i / LEN,
+                           rand() % (SCREEN_HEIGHT - BALL_HEIGHT),
+                           rand() % 2 ? -1 - (i%2): 1 + (i%2),
+                           rand() % 2 ? -1 - (i%2): 1 + (i%2),
+                           gBall);
     }
-  }
-  // While application is running
-  while (!quit) {
-      while (SDL_PollEvent(&e) != 0) {
-          switch (e.type) {
-              case SDL_QUIT:
-                  quit = true;
-                  break;
-              case SDL_KEYDOWN:
-                  if (e.key.keysym.sym == SDLK_ESCAPE)
-                      quit = true;
-                  break;
-              default:
-                  // Supress warnings from [-Wswitch-default] flag
-                  break;
-          }
-      }
 
-      // Fill the surface with #99d9ea (light blue)
-      SDL_FillRect(gScreenSurface, NULL,
-                    SDL_MapRGB(gScreenSurface->format,
-                                0x99, 0xD9, 0xEA));
-
-      for (i= 0; i < LEN; i++) {
-          moveNPC(&ball[i]);
-
-          if (drawOnScreen(ball[i].image, 0, 0,
-                      IMAGE_WIDTH,
-                      IMAGE_HEIGHT,
-                      ball[i].posX,
-                      ball[i].posY) < 0) {
-              printf("SDL could not blit! SDL Error: %s\n",
-                    SDL_GetError());
-              quit = true;
-          }
-      }
-
-      //draw bricks
-
-      for (i= 0; i < CLOUMNS; i++) {
+    // Create BRICKS
+    for (i = 0; i < COLUMNS; i++) {
         for (j = 0; j < LINES; j++) {
-          if (brick[i][j].resist){
-          if (drawOnScreen(brick[i][j].image, 0, 0,
-                      BLOCK_WIDTH,
-                      BLOCK_HEIGHT,
-                      brick[i][j].posX,
-                      brick[i][j].posY) < 0) {
-              printf("SDL could not blit! SDL Error: %s\n",
-                    SDL_GetError());
-              quit = true;
-          }
-          }
+             brick[i][j] = createBLOCK(BLOCK_WIDTH * i,
+                                       BLOCK_HEIGHT * j,
+                                       1, gBRICKSurface);
         }
-      }
+    }
 
-      //Collision between balls
-      collisionBalls();
+    // While application is running
+    while (!quit) {
+        while (SDL_PollEvent(&e) != 0) {
+            switch (e.type) {
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN:
+                    if (e.key.keysym.sym == SDLK_ESCAPE)
+                        quit = true;
+                    break;
+                default:
+                    // Supress warnings from [-Wswitch-default] flag
+                    break;
+            }
+        }
 
-      //Collision between ball and brick
-      for (i= 0; i < LEN; i++) {
-        for (j = 0; j < CLOUMNS; j++) {
-            for (k = 0; k < LINES; k++) {
-              //Collision up
-              if ((ball[i].posY < brick[j][k].posY + BLOCK_HEIGHT)&&
-                (((ball[i].posX + IMAGE_WIDTH < brick[j][k].posX +
-                  BLOCK_WIDTH)&&
-                (ball[i].posX + IMAGE_WIDTH > brick[j][k].posX))||
-                ((ball[i].posX  > brick[j][k].posX)&&
-                (ball[i].posX < brick[j][k].posX + BLOCK_WIDTH)))&&
-                (brick[j][k].resist)) {
-                  ball[i].stepY = -ball[i].stepY;
-                  brick[j][k].resist--;
+        // Fill the surface with #99d9ea (light blue)
+        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
+                                                        0x99, 0xD9, 0xEA));
+
+        for (i = 0; i < LEN; i++) {
+            moveNPC(&ball[i]);
+
+            if (drawOnScreen(ball[i].image, 0, 0,
+                        BALL_WIDTH,
+                        BALL_HEIGHT,
+                        ball[i].posX,
+                        ball[i].posY) < 0) {
+                error(ERR_BLIT);
+                quit = true;
+            }
+        }
+
+        // Draw bricks
+        for (i = 0; i < COLUMNS; i++) {
+            for (j = 0; j < LINES; j++) {
+                if (brick[i][j].resist
+                && drawOnScreen(brick[i][j].image, 0, 0,
+                                BLOCK_WIDTH,
+                                BLOCK_HEIGHT,
+                                brick[i][j].posX,
+                                brick[i][j].posY) < 0) {
+                    error(ERR_BLIT);
+                    quit = true;
                 }
             }
-          }
-      }
+        }
 
-      // Update the surface
-      SDL_UpdateWindowSurface(gWindow);
+        // Collision between balls
+        collisionBalls();
 
-      // Normalize framerate
-      SDL_Delay(time_left());
-      next_time += TICK_INTERVAL;
-  }
+        // Collision between ball and brick
+        for (i= 0; i < LEN; i++) {
+            for (j = 0; j < COLUMNS; j++) {
+                for (k = 0; k < LINES; k++) {
+                    BLOCK current = brick[j][k];
+
+                    int over = ball[i].posY + BALL_HEIGHT >= current.posY;
+                    int under = ball[i].posY <= current.posY + BLOCK_HEIGHT;
+                    int left = ball[i].posX <= current.posX + BLOCK_WIDTH;
+                    int right = ball[i].posX + BALL_WIDTH >= current.posX;
+
+                    // Collision up
+                    if (current.resist && over && under && left && right) {
+                        ball[i].stepY *= -1;
+                        brick[j][k].resist--;
+
+                        /* TODO: Add stepX *= -1
+                         * if ball hits brick on the side
+                         */
+                    }
+                }
+            }
+        }
+
+        // Update the surface
+        SDL_UpdateWindowSurface(gWindow);
+
+        // Normalize framerate
+        SDL_Delay(time_left());
+        next_time += TICK_INTERVAL;
+    }
 }
 
 void collisionBalls(void) {
-  int i, j;
+    int i, j;
 
-  // Temporary variable for 2 way value swapping
-  int temp;
+    // Temporary variable for 2 way value swapping
+    int temp;
 
-  for (i= 0; i < LEN; i++) {
-    for (j = i + 1; j < LEN; j++) {
-      if ((ball[i].posX - ball[j].posX)*(ball[i].posX - ball[j].posX) +
-        (ball[i].posY - ball[j].posY)*(ball[i].posY - ball[j].posY) <
-        IMAGE_WIDTH*IMAGE_WIDTH) {
-                 temp = ball[i].stepX;
-                 ball[i].stepX = ball[j].stepX;
-                 ball[j].stepX = temp;
-                 temp = ball[i].stepY;
-                 ball[i].stepY = ball[j].stepY;
-                 ball[j].stepY = temp;
-      }
+    for (i= 0; i < LEN; i++) {
+        for (j = i + 1; j < LEN; j++) {
+            int deltaX = ball[i].posX - ball[j].posX;
+            int deltaY = ball[i].posY - ball[j].posY;
+
+            if (deltaX * deltaX + deltaY * deltaY < BALL_WIDTH * BALL_WIDTH) {
+                temp = ball[i].stepX;
+                ball[i].stepX = ball[j].stepX;
+                ball[j].stepX = temp;
+                temp = ball[i].stepY;
+                ball[i].stepY = ball[j].stepY;
+                ball[j].stepY = temp;
+            }
+        }
     }
-  }
 }
 
 void moveNPC(NPC *p) {
@@ -345,9 +361,9 @@ void moveNPC(NPC *p) {
 
     // If the image is out of bounds on the X axis,
     // invert the direction and reset the position to a valid one
-    if (p->posX + IMAGE_WIDTH > SCREEN_WIDTH) {
+    if (p->posX + BALL_WIDTH > SCREEN_WIDTH) {
         p->stepX *= -1;
-        p->posX = SCREEN_WIDTH - IMAGE_WIDTH;
+        p->posX = SCREEN_WIDTH - BALL_WIDTH;
     } else if (p->posX < 0) {
         p->stepX *= -1;
         p->posX = 0;
@@ -355,9 +371,9 @@ void moveNPC(NPC *p) {
 
     // If the image is out of bounds on the Y axis,
     // invert the direction and reset the position to a valid one
-    if (p->posY + IMAGE_HEIGHT > SCREEN_HEIGHT) {
+    if (p->posY + BALL_HEIGHT > SCREEN_HEIGHT) {
         p->stepY *= -1;
-        p->posY = SCREEN_HEIGHT - IMAGE_HEIGHT;
+        p->posY = SCREEN_HEIGHT - BALL_HEIGHT;
     } else if (p->posY < 0) {
         p->stepY *= -1;
         p->posY = 0;
@@ -378,8 +394,8 @@ NPC createNPC(int posX, int posY,
     return p;
 }
 
-//Create BLOCK
-BLOCK createBLOCK( int posX, int posY, int resist, SDL_Surface *image) {
+// Create BLOCK
+BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image) {
     BLOCK p;
 
     p.posX = posX;
@@ -395,21 +411,19 @@ int init(void) {
 
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initialize! SDL Error: %s\n",
-              SDL_GetError());
+        error(ERR_INIT);
         return false;
     }
 
     // Create window
-    gWindow = SDL_CreateWindow("SDL Game",
+    gWindow = SDL_CreateWindow("SDL Breakout",
                             SDL_WINDOWPOS_UNDEFINED,
                             SDL_WINDOWPOS_UNDEFINED,
                             SCREEN_WIDTH,
                             SCREEN_HEIGHT,
                             SDL_WINDOW_SHOWN);
     if (gWindow == NULL) {
-        printf("Window could not be created! SDL Error: %s\n",
-              SDL_GetError());
+        error(ERR_WINDOW_CREATE);
         return false;
     }
 
@@ -429,33 +443,33 @@ int init(void) {
 
 int loadMedia(void) {
     // Load PNG surface
-    gImage = loadSurface("./images/circle.png");
-    if(gImage == NULL) {
-        printf("Failed to load image! SDL Error: %s\n",
-              SDL_GetError());
+    gBall = loadSurface("./images/circle.png");
+    if(gBall == NULL) {
+        error(ERR_IMG_LOAD);
         return false;
     }
 
-    gBRICKSurface = loadSurface( "./images/brick.png" );
-    if( gBRICKSurface == NULL ) {
-        printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
+    gBRICKSurface = loadSurface("./images/brick.png");
+    if(gBRICKSurface == NULL) {
+        error(ERR_IMG_LOAD);
         return false;
     }
 
     // Color key
-    SDL_SetColorKey(gImage,
+    SDL_SetColorKey(gBall,
                     SDL_TRUE,
-                    SDL_MapRGB(gImage->format,
+                    SDL_MapRGB(gBall->format,
                             0xff, 0xAE, 0xC9));
 
     return true;
 }
 
 void close() {
-    // Free loaded image
-    SDL_FreeSurface(gImage);
-    gImage = NULL;
-    SDL_FreeSurface( gBRICKSurface );
+    // Free loaded images
+    SDL_FreeSurface(gBall);
+    gBall = NULL;
+
+    SDL_FreeSurface(gBRICKSurface);
     gBRICKSurface = NULL;
 
     // Destroy window
@@ -475,8 +489,7 @@ SDL_Surface* loadSurface(char *path) {
     SDL_Surface* loadedSurface = IMG_Load(path);
 
     if (loadedSurface == NULL) {
-        printf("Unable to load image %s! SDL_image Error: %s\n", path,
-            IMG_GetError());
+        error(ERR_IMG_LOAD);
         return NULL;
     }
 
@@ -485,8 +498,7 @@ SDL_Surface* loadSurface(char *path) {
                                         gScreenSurface->format, 0);
 
     if (optimizedSurface == NULL) {
-        printf("Unable to optimize image %s! SDL Error: %s\n", path,
-            SDL_GetError());
+        error(ERR_OPTIMIZE);
         return NULL;
     }
 
@@ -517,4 +529,25 @@ int drawOnScreen(SDL_Surface* image,
 unsigned time_left(void) {
     unsigned now = SDL_GetTicks();
     return (next_time <= now) ? 0 : next_time - now;
+}
+
+void error(int code) {
+    switch(code) {
+        case ERR_INIT:
+            printf("SDL could not initialize!");
+        case ERR_WINDOW_CREATE:
+            printf("Window could not be created!");
+            break;
+        case ERR_BLIT:
+            printf("SDL could not blit!");
+            break;
+        case ERR_OPTIMIZE:
+            printf("Unable to optimize image %s!");
+        case ERR_IMG_LOAD:
+            printf("Unable to load image %s!");
+        default:
+            printf("Unspecified error!");
+            break;
+    }
+    printf(" SDL Error: %s\n", SDL_GetError());
 }
