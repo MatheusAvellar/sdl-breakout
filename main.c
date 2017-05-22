@@ -34,6 +34,12 @@ typedef struct _NPC {
     int imgH;
 } NPC;
 
+typedef struct _BLOCK {
+	int posX;
+	int posY;
+	int resist;
+    SDL_Surface* image;
+} BLOCK;
 
 /*
  * Constants
@@ -46,8 +52,11 @@ const int SCREEN_HEIGHT = 480;
 const int false = 0;
 const int true = 1;
 
-const int IMAGE_WIDTH = 81;
-const int IMAGE_HEIGHT = 81;
+const int IMAGE_WIDTH = 49;
+const int IMAGE_HEIGHT = 49;
+
+const int BLOCK_WIDTH = 128;
+const int BLOCK_HEIGHT = 64;
 
 /* Fixed framerate
  * ---------------
@@ -63,7 +72,9 @@ const int BALL_SPEED = 2;
 
 // Amount of balls on screen
 #define LEN 5
-
+// Amount of brick on screen
+#define CLOUMNS 5
+#define LINES 1
 
 /*
  * Global Variables
@@ -74,12 +85,16 @@ SDL_Window* gWindow = NULL;
 
 // The image character
 NPC ball[LEN];
+BLOCK brick[CLOUMNS][LINES];
 
 // The surface contained by the window
 SDL_Surface* gScreenSurface = NULL;
 
 // Image that will be drawn
 SDL_Surface* gImage = NULL;
+
+//Current displayed PNG image
+SDL_Surface* gBRICKSurface = NULL;
 
 // Control variable for optimal FPS handling
 static Uint32 next_time;
@@ -103,6 +118,8 @@ SDL_Surface* loadSurface(char *path);
 
 // Returns NPC struct with given values
 NPC createNPC(int posX, int posY, int stepX, int stepY, SDL_Surface *image);
+//Create BLOCK
+BLOCK createBLOCK( int posX, int posY, int resist, SDL_Surface *image);
 
 // Updates NPC position via stepX and stepY
 void moveNPC(NPC *p);
@@ -116,16 +133,15 @@ int drawOnScreen(SDL_Surface* image,
 // Returns the time left until next tick
 unsigned time_left(void);
 
+//Collision
+void collisionBalls(void);
 
 int main(int argc, char* args[]) {
     // Main loop flag
     int quit = false;
 
     // Iteration variables
-    int i, j;
-
-    // Temporary variable for 2 way value swapping
-    int temp;
+    int i, j, k;
 
     // Event handler
     SDL_Event e;
@@ -146,6 +162,13 @@ int main(int argc, char* args[]) {
                      gImage);
     }
 
+    //Create BRICKS
+    for (i = 0; i < CLOUMNS; i++) {
+      for (j = 0; j < LINES; j++) {
+    			 brick[i][j] = createBLOCK(BLOCK_WIDTH*i, BLOCK_HEIGHT*j, 1,
+           gBRICKSurface);
+      }
+    }
     // While application is running
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
@@ -182,23 +205,43 @@ int main(int argc, char* args[]) {
             }
         }
 
-        // Collision between balls
-        for (i= 0; i < LEN; i++) {
-            for (j = i + 1; j < LEN; j++) {
-                int _dX = ball[i].posX - ball[j].posX;
-                int _dY = ball[i].posY - ball[j].posY;
+        //draw bricks
 
-                if (_dX * _dX + _dY * _dY < IMAGE_WIDTH * IMAGE_WIDTH) {
-                    temp = ball[i].stepX;
-                    ball[i].stepX = ball[j].stepX;
-                    ball[j].stepX = temp;
-
-                    temp = ball[i].stepY;
-                    ball[i].stepY = ball[j].stepY;
-                    ball[j].stepY = temp;
-                }
+				for (i= 0; i < CLOUMNS; i++) {
+          for (j = 0; j < LINES; j++) {
+            if (drawOnScreen(brick[i][j].image, 0, 0,
+                        BLOCK_WIDTH,
+                        BLOCK_HEIGHT,
+                        brick[i][j].posX,
+                        brick[i][j].posY) < 0) {
+                printf("SDL could not blit! SDL Error: %s\n",
+                      SDL_GetError());
+                quit = true;
             }
-        }
+          }
+				}
+
+        //Collision between balls
+        collisionBalls();
+
+				//Collision between ball and brick
+				for (i= 0; i < LEN; i++) {
+					for (j = 0; j < CLOUMNS; j++) {
+              for (k = 0; k < LINES; k++) {
+                //Collision up
+    						if ((ball[i].posY < brick[j][k].posY + BLOCK_HEIGHT)&&
+    							(((ball[i].posX + IMAGE_WIDTH < brick[j][k].posX +
+                    BLOCK_WIDTH)&&
+                  (ball[i].posX + IMAGE_WIDTH > brick[j][k].posX))||
+    							((ball[i].posX  > brick[j][k].posX)&&
+                  (ball[i].posX < brick[j][k].posX + BLOCK_WIDTH)))&&
+                  (brick[j][k].resist)) {
+    								ball[i].stepY = -ball[i].stepY;
+    								brick[j][k].resist--;
+    							}
+    					}
+            }
+				}
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -218,6 +261,28 @@ int main(int argc, char* args[]) {
     return 0;
 }
 
+
+void collisionBalls(void) {
+  int i, j;
+
+  // Temporary variable for 2 way value swapping
+  int temp;
+
+  for (i= 0; i < LEN; i++) {
+    for (j = i + 1; j < LEN; j++) {
+      if ((ball[i].posX - ball[j].posX)*(ball[i].posX - ball[j].posX) +
+        (ball[i].posY - ball[j].posY)*(ball[i].posY - ball[j].posY) <
+        IMAGE_WIDTH*IMAGE_WIDTH) {
+                 temp = ball[i].stepX;
+                 ball[i].stepX = ball[j].stepX;
+                 ball[j].stepX = temp;
+                 temp = ball[i].stepY;
+                 ball[i].stepY = ball[j].stepY;
+                 ball[j].stepY = temp;
+      }
+    }
+  }
+}
 
 void moveNPC(NPC *p) {
     p->posX += p->stepX * BALL_SPEED;
@@ -258,6 +323,17 @@ NPC createNPC(int posX, int posY,
     return p;
 }
 
+//Create BLOCK
+BLOCK createBLOCK( int posX, int posY, int resist, SDL_Surface *image) {
+    BLOCK p;
+
+    p.posX = posX;
+    p.posY = posY;
+    p.resist = resist;
+    p.image = image;
+    return p;
+}
+
 int init(void) {
     // Generate unique seed for the random function
     srand((unsigned)time(NULL));
@@ -282,7 +358,7 @@ int init(void) {
         return false;
     }
 
-    // Initialize PNG loading 
+    // Initialize PNG loading
     int imgFlags = IMG_INIT_PNG;
     if(!(IMG_Init(imgFlags) & imgFlags)) {
         printf("SDL_image could not initialize! SDL_image Error: %s\n",
@@ -305,11 +381,17 @@ int loadMedia(void) {
         return false;
     }
 
+    gBRICKSurface = loadSurface( "./images/brick.png" );
+    if( gBRICKSurface == NULL ) {
+        printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
+        return false;
+    }
+
     // Color key
     SDL_SetColorKey(gImage,
                     SDL_TRUE,
                     SDL_MapRGB(gImage->format,
-                            0x00, 0x00, 0x00));
+                            0xff, 0xAE, 0xC9));
 
     return true;
 }
@@ -318,6 +400,8 @@ void close() {
     // Free loaded image
     SDL_FreeSurface(gImage);
     gImage = NULL;
+    SDL_FreeSurface( gBRICKSurface );
+    gBRICKSurface = NULL;
 
     // Destroy window
     SDL_DestroyWindow(gWindow);
