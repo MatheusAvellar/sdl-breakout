@@ -45,10 +45,11 @@ typedef struct _RACKET {
     int posX;
     int posY;
     int stepX;
-    int stepY;
     SDL_Surface* image;
     int imgW;
     int imgH;
+    int _left;
+    int _right;
 } RACKET;
 
 
@@ -156,7 +157,7 @@ NPC createNPC(int posX, int posY, int stepX, int stepY, SDL_Surface *image);
 BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image);
 
 // Create RACKET
-RACKET createRACKET(int posX, int posY, SDL_Surface *image);
+RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image);
 
 // Updates NPC position via stepX and stepY
 void moveNPC(NPC *p);
@@ -181,6 +182,7 @@ void error(int code);
 
 
 int main(int argc, char* args[]) {
+
 
     // Start up SDL and create window
     if(!init() || !loadMedia()) {
@@ -277,8 +279,9 @@ void game(void) {
     m = 26;
     player = createRACKET(RACKET_WIDTH * l - 58,
                         // 58 = 42 + 4² -> magic number
-                        RACKET_HEIGHT * m,
-                        gPLAYERSurface);
+                        RACKET_HEIGHT * m, 5, gPLAYERSurface);
+    player._left = false;
+    player._right = false;
 
     // While application is running
     while (!quit) {
@@ -288,8 +291,17 @@ void game(void) {
                     quit = true;
                     break;
                 case SDL_KEYDOWN:
-                    if (e.key.keysym.sym == SDLK_ESCAPE)
-                        quit = true;
+                    if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+
+                    player._left = player._left
+                                || e.key.keysym.sym == SDLK_LEFT;
+
+                    player._right = player._right
+                                || e.key.keysym.sym == SDLK_RIGHT;
+                    break;
+                case SDL_KEYUP:
+                    if (e.key.keysym.sym == SDLK_LEFT) player._left = false;
+                    if (e.key.keysym.sym == SDLK_RIGHT) player._right = false;
                     break;
                 default:
                     // Supress warnings from [-Wswitch-default] flag
@@ -324,6 +336,20 @@ void game(void) {
                     quit = true;
                 }
             }
+        }
+
+        if (player._left) {
+            if (player.stepX > 0) player.stepX *= -1;
+
+            player.posX = player.posX > 0
+                        ? player.posX + player.stepX
+                        : 0;
+        } else if (player._right) {
+            if (player.stepX < 0) player.stepX *= -1;
+
+            player.posX = player.posX < SCREEN_WIDTH - RACKET_WIDTH
+                        ? player.posX + player.stepX
+                        : SCREEN_WIDTH - RACKET_WIDTH;
         }
 
         // Draw pad
@@ -437,12 +463,14 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image) {
     p.image = image;
     return p;
 }
+
 // Create RACKET
-RACKET createRACKET( int posX, int posY, SDL_Surface *image) {
+RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image) {
     RACKET p;
 
     p.posX = posX;
     p.posY = posY;
+    p.stepX = stepX;
     p.image = image;
     return p;
 }
@@ -483,6 +511,7 @@ int init(void) {
 }
 
 int loadMedia(void) {
+
     // Load PNG surface
     if((gBall = loadSurface("./images/circle.png")) == NULL) {
         error(ERR_IMG_LOAD);
@@ -500,8 +529,10 @@ int loadMedia(void) {
     }
 
     // Color key
-    SDL_SetColorKey(gBall, SDL_TRUE, SDL_MapRGB(gBall->format,
-                                                0xff, 0xAE, 0xC9));
+    SDL_SetColorKey(gBall, SDL_TRUE,
+                    SDL_MapRGB(gBall->format, 0xff, 0xAE, 0xC9));
+    SDL_SetColorKey(gPLAYERSurface, SDL_TRUE,
+                    SDL_MapRGB(gPLAYERSurface->format, 0xff, 0xAE, 0xC9));
 
     return true;
 }
