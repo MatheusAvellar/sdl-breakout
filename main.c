@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -45,10 +45,11 @@ typedef struct _RACKET {
     int posX;
     int posY;
     int stepX;
-    int stepY;
     SDL_Surface* image;
     int imgW;
     int imgH;
+    int _left;
+    int _right;
     int score;
     int lives;
 } RACKET;
@@ -58,26 +59,26 @@ typedef struct _RACKET {
  * Constants
  */
 
- //Constants of proportion
- //Default prop = 10
- //In order to utilize 640 x 480 screen, set prop to 8
-#define prop 10
+// Constants of proportion
+// Default PROP = 10
+// In order to utilize 640 x 480 screen, set PROP to 8
+#define PROP 10
 
 // Screen dimension constants
-const int SCREEN_WIDTH = 80*prop;
-const int SCREEN_HEIGHT = 60*prop;
+const int SCREEN_WIDTH = 80 * PROP;
+const int SCREEN_HEIGHT = 60 * PROP;
 
 const int false = 0;
 const int true = 1;
 
-const int BALL_WIDTH = 3*prop;
-const int BALL_HEIGHT = 3*prop;
+const int BALL_WIDTH = 3 * PROP;
+const int BALL_HEIGHT = 3 * PROP;
 
-const int BLOCK_WIDTH = 10*prop;
-const int BLOCK_HEIGHT = 5*prop;
+const int BLOCK_WIDTH = 10 * PROP;
+const int BLOCK_HEIGHT = 5 * PROP;
 
-const int RACKET_WIDTH = 18*prop;
-const int RACKET_HEIGHT = 2*prop;
+const int RACKET_WIDTH = 18 * PROP;
+const int RACKET_HEIGHT = 2 * PROP;
 
 /* Fixed framerate
  * ---------------
@@ -163,8 +164,13 @@ NPC createNPC(int posX, int posY, int stepX, int stepY, SDL_Surface *image);
 BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image);
 
 // Create RACKET
+<<<<<<< HEAD
 RACKET createRACKET(int posX, int posY, SDL_Surface *image, int score,
   int lives);
+=======
+RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
+                    int score, int lives);
+>>>>>>> 9081176ed4937d4e546812681ea1da23303fa940
 
 // Updates NPC position via stepX and stepY
 void moveNPC(NPC *p);
@@ -192,6 +198,7 @@ void error(int code);
 
 
 int main(int argc, char* args[]) {
+
 
     // Start up SDL and create window
     if(!init() || !loadMedia()) {
@@ -288,8 +295,9 @@ void game(void) {
     m = 26;
     player = createRACKET(RACKET_WIDTH * l - 58,
                         // 58 = 42 + 4² -> magic number
-                        RACKET_HEIGHT * m,
-                        gPLAYERSurface, 0, 3);
+                        RACKET_HEIGHT * m, 5, gPLAYERSurface, 0, 3);
+    player._left = false;
+    player._right = false;
 
     // While application is running
     while (!quit) {
@@ -299,8 +307,17 @@ void game(void) {
                     quit = true;
                     break;
                 case SDL_KEYDOWN:
-                    if (e.key.keysym.sym == SDLK_ESCAPE)
-                        quit = true;
+                    if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+
+                    player._left = player._left
+                                || e.key.keysym.sym == SDLK_LEFT;
+
+                    player._right = player._right
+                                || e.key.keysym.sym == SDLK_RIGHT;
+                    break;
+                case SDL_KEYUP:
+                    if (e.key.keysym.sym == SDLK_LEFT) player._left = false;
+                    if (e.key.keysym.sym == SDLK_RIGHT) player._right = false;
                     break;
                 default:
                     // Supress warnings from [-Wswitch-default] flag
@@ -335,6 +352,20 @@ void game(void) {
                     quit = true;
                 }
             }
+        }
+
+        if (player._left) {
+            if (player.stepX > 0) player.stepX *= -1;
+
+            player.posX = player.posX > 0
+                        ? player.posX + player.stepX
+                        : 0;
+        } else if (player._right) {
+            if (player.stepX < 0) player.stepX *= -1;
+
+            player.posX = player.posX < SCREEN_WIDTH - RACKET_WIDTH
+                        ? player.posX + player.stepX
+                        : SCREEN_WIDTH - RACKET_WIDTH;
         }
 
         // Draw pad
@@ -374,15 +405,20 @@ void game(void) {
 
         for (j = 0; j < COLUMNS; j++) {
             for (k = 0; k < LINES; k++) {
-              if (brick[j][k].resist) {
-                levelClear = false;
-              }
+                if (brick[j][k].resist) {
+                    levelClear = false;
+                }
             }
         }
 
         if (levelClear == true) {
+<<<<<<< HEAD
           player.score += 1000;
           levelClear = false;
+=======
+            player.score += 1000;
+            levelClear = false;
+>>>>>>> 9081176ed4937d4e546812681ea1da23303fa940
         }
 
         //Testing purposes only
@@ -467,13 +503,20 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image) {
     p.image = image;
     return p;
 }
+
 // Create RACKET
+<<<<<<< HEAD
 RACKET createRACKET( int posX, int posY, SDL_Surface *image, int score,
   int lives) {
+=======
+RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
+                    int score, int lives) {
+>>>>>>> 9081176ed4937d4e546812681ea1da23303fa940
     RACKET p;
 
     p.posX = posX;
     p.posY = posY;
+    p.stepX = stepX;
     p.image = image;
     p.score = score;
     p.lives = lives;
@@ -516,6 +559,7 @@ int init(void) {
 }
 
 int loadMedia(void) {
+
     // Load PNG surface
     if((gBall = loadSurface("./images/circle.png")) == NULL) {
         error(ERR_IMG_LOAD);
@@ -533,8 +577,10 @@ int loadMedia(void) {
     }
 
     // Color key
-    SDL_SetColorKey(gBall, SDL_TRUE, SDL_MapRGB(gBall->format,
-                                                0xff, 0xAE, 0xC9));
+    SDL_SetColorKey(gBall, SDL_TRUE,
+                    SDL_MapRGB(gBall->format, 0xff, 0xAE, 0xC9));
+    SDL_SetColorKey(gPLAYERSurface, SDL_TRUE,
+                    SDL_MapRGB(gPLAYERSurface->format, 0xff, 0xAE, 0xC9));
 
     return true;
 }
