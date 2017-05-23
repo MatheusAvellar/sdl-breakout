@@ -50,7 +50,7 @@ typedef struct _RACKET {
     int imgW;
     int imgH;
     int score;
-    int lifes;
+    int lives;
 } RACKET;
 
 
@@ -164,7 +164,7 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image);
 
 // Create RACKET
 RACKET createRACKET(int posX, int posY, SDL_Surface *image, int score,
-  int lifes);
+  int lives);
 
 // Updates NPC position via stepX and stepY
 void moveNPC(NPC *p);
@@ -382,7 +382,7 @@ void game(void) {
 
         if (levelClear == true) {
           player.score += 1000;
-          levelClear == false;
+          levelClear = false;
         }
 
         //Testing purposes only
@@ -469,14 +469,14 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image) {
 }
 // Create RACKET
 RACKET createRACKET( int posX, int posY, SDL_Surface *image, int score,
-  int lifes) {
+  int lives) {
     RACKET p;
 
     p.posX = posX;
     p.posY = posY;
     p.image = image;
     p.score = score;
-    p.lifes = lifes;
+    p.lives = lives;
     return p;
 }
 
