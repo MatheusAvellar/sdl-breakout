@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -56,21 +56,26 @@ typedef struct _RACKET {
  * Constants
  */
 
+ //Constants of proportion
+ //Default prop = 10
+ //In order to utilize 640 x 480 screen, set prop to 8
+#define prop 10
+
 // Screen dimension constants
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 80*prop;
+const int SCREEN_HEIGHT = 60*prop;
 
 const int false = 0;
 const int true = 1;
 
-const int BALL_WIDTH = 30;
-const int BALL_HEIGHT = 30;
+const int BALL_WIDTH = 3*prop;
+const int BALL_HEIGHT = 3*prop;
 
-const int BLOCK_WIDTH = 100;
-const int BLOCK_HEIGHT = 50;
+const int BLOCK_WIDTH = 10*prop;
+const int BLOCK_HEIGHT = 5*prop;
 
-const int RACKET_WIDTH = 180;
-const int RACKET_HEIGHT = 21;
+const int RACKET_WIDTH = 18*prop;
+const int RACKET_HEIGHT = 2*prop;
 
 /* Fixed framerate
  * ---------------
