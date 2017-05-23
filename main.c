@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -164,13 +164,8 @@ NPC createNPC(int posX, int posY, int stepX, int stepY, SDL_Surface *image);
 BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image);
 
 // Create RACKET
-<<<<<<< HEAD
-RACKET createRACKET(int posX, int posY, SDL_Surface *image, int score,
-  int lives);
-=======
 RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
                     int score, int lives);
->>>>>>> 9081176ed4937d4e546812681ea1da23303fa940
 
 // Updates NPC position via stepX and stepY
 void moveNPC(NPC *p);
@@ -292,7 +287,7 @@ void game(void) {
 
     // Create RACKET
     l = 2;
-    m = 26;
+    m = 28;
     player = createRACKET(RACKET_WIDTH * l - 58,
                         // 58 = 42 + 4² -> magic number
                         RACKET_HEIGHT * m, 5, gPLAYERSurface, 0, 3);
@@ -412,13 +407,8 @@ void game(void) {
         }
 
         if (levelClear == true) {
-<<<<<<< HEAD
-          player.score += 1000;
-          levelClear = false;
-=======
             player.score += 1000;
             levelClear = false;
->>>>>>> 9081176ed4937d4e546812681ea1da23303fa940
         }
 
         //Testing purposes only
@@ -505,13 +495,8 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image) {
 }
 
 // Create RACKET
-<<<<<<< HEAD
-RACKET createRACKET( int posX, int posY, SDL_Surface *image, int score,
-  int lives) {
-=======
 RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
                     int score, int lives) {
->>>>>>> 9081176ed4937d4e546812681ea1da23303fa940
     RACKET p;
 
     p.posX = posX;
