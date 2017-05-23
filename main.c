@@ -62,11 +62,11 @@ const int SCREEN_HEIGHT = 600;
 const int false = 0;
 const int true = 1;
 
-const int IMAGE_WIDTH = 49;
-const int IMAGE_HEIGHT = 49;
+const int IMAGE_WIDTH = 30;
+const int IMAGE_HEIGHT = 30;
 
-const int BLOCK_WIDTH = 160;
-const int BLOCK_HEIGHT = 80;
+const int BLOCK_WIDTH = 100;
+const int BLOCK_HEIGHT = 50;
 
 const int RACKET_WIDTH = 180;
 const int RACKET_HEIGHT = 21;
@@ -86,7 +86,7 @@ const int BALL_SPEED = 2;
 // Amount of balls on screen
 #define LEN 1
 // Amount of brick on screen
-#define COLUMNS 5
+#define COLUMNS 8
 #define LINES 1
 
 // Error codes
@@ -488,21 +488,21 @@ int init(void) {
 
 int loadMedia(void) {
     // Load PNG surface
-    gImage = loadSurface("./circle.png");
+    gImage = loadSurface("./images/circle.png");
     if(gImage == NULL) {
         error(ERR_IMG_LOAD);
 
         return false;
     }
 
-    gBRICKSurface = loadSurface( "./brick.png" );
+    gBRICKSurface = loadSurface( "./images/brick.png" );
     if( gBRICKSurface == NULL ) {
         error(ERR_IMG_LOAD);
 
         return false;
     }
 
-    gPLAYERSurface = loadSurface( "./racket.png" );
+    gPLAYERSurface = loadSurface( "./images/racket.png" );
     if( gPLAYERSurface == NULL ) {
         error(ERR_IMG_LOAD);
 
