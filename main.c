@@ -49,6 +49,8 @@ typedef struct _RACKET {
     SDL_Surface* image;
     int imgW;
     int imgH;
+    int score;
+    int lifes;
 } RACKET;
 
 
@@ -161,7 +163,8 @@ NPC createNPC(int posX, int posY, int stepX, int stepY, SDL_Surface *image);
 BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image);
 
 // Create RACKET
-RACKET createRACKET(int posX, int posY, SDL_Surface *image);
+RACKET createRACKET(int posX, int posY, SDL_Surface *image, int score,
+  int lifes);
 
 // Updates NPC position via stepX and stepY
 void moveNPC(NPC *p);
@@ -180,6 +183,9 @@ unsigned time_left(void);
 
 // Collision
 void collisionBalls(void);
+
+// Check Level Clearance
+int levelClear;
 
 // Print errors
 void error(int code);
@@ -283,7 +289,7 @@ void game(void) {
     player = createRACKET(RACKET_WIDTH * l - 58,
                         // 58 = 42 + 4² -> magic number
                         RACKET_HEIGHT * m,
-                        gPLAYERSurface);
+                        gPLAYERSurface, 0, 3);
 
     // While application is running
     while (!quit) {
@@ -353,6 +359,7 @@ void game(void) {
                 int right = ball[0].posX + BALL_WIDTH >= current.posX;
 
                 if (current.resist && over && under && left && right) {
+                    player.score += 100;
                     ball[0].stepY *= -1;
                     brick[j][k].resist--;
 
@@ -362,6 +369,24 @@ void game(void) {
                 }
             }
         }
+
+        levelClear = true;
+
+        for (j = 0; j < COLUMNS; j++) {
+            for (k = 0; k < LINES; k++) {
+              if (brick[j][k].resist) {
+                levelClear = false;
+              }
+            }
+        }
+
+        if (levelClear == true) {
+          player.score += 1000;
+          levelClear == false;
+        }
+
+        //Testing purposes only
+        //printf("%d", player.score);
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -443,12 +468,15 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image) {
     return p;
 }
 // Create RACKET
-RACKET createRACKET( int posX, int posY, SDL_Surface *image) {
+RACKET createRACKET( int posX, int posY, SDL_Surface *image, int score,
+  int lifes) {
     RACKET p;
 
     p.posX = posX;
     p.posY = posY;
     p.image = image;
+    p.score = score;
+    p.lifes = lifes;
     return p;
 }
 
