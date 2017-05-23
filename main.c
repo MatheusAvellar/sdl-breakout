@@ -86,8 +86,9 @@ const int BALL_SPEED = 2;
 
 // Amount of balls on screen
 #define LEN 1
+
 // Amount of brick on screen
-#define COLUMNS 5
+#define COLUMNS 8
 #define LINES 1
 
 // Error codes
