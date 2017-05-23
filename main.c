@@ -50,6 +50,8 @@ typedef struct _RACKET {
     int imgH;
     int _left;
     int _right;
+    int score;
+    int lives;
 } RACKET;
 
 
@@ -57,21 +59,26 @@ typedef struct _RACKET {
  * Constants
  */
 
+// Constants of proportion
+// Default PROP = 10
+// In order to utilize 640 x 480 screen, set PROP to 8
+#define PROP 10
+
 // Screen dimension constants
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 80 * PROP;
+const int SCREEN_HEIGHT = 60 * PROP;
 
 const int false = 0;
 const int true = 1;
 
-const int BALL_WIDTH = 30;
-const int BALL_HEIGHT = 30;
+const int BALL_WIDTH = 3 * PROP;
+const int BALL_HEIGHT = 3 * PROP;
 
-const int BLOCK_WIDTH = 100;
-const int BLOCK_HEIGHT = 50;
+const int BLOCK_WIDTH = 10 * PROP;
+const int BLOCK_HEIGHT = 5 * PROP;
 
-const int RACKET_WIDTH = 180;
-const int RACKET_HEIGHT = 21;
+const int RACKET_WIDTH = 18 * PROP;
+const int RACKET_HEIGHT = 2 * PROP;
 
 /* Fixed framerate
  * ---------------
@@ -157,7 +164,8 @@ NPC createNPC(int posX, int posY, int stepX, int stepY, SDL_Surface *image);
 BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image);
 
 // Create RACKET
-RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image);
+RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
+                    int score, int lives);
 
 // Updates NPC position via stepX and stepY
 void moveNPC(NPC *p);
@@ -176,6 +184,9 @@ unsigned time_left(void);
 
 // Collision
 void collisionBalls(void);
+
+// Check Level Clearance
+int levelClear;
 
 // Print errors
 void error(int code);
@@ -279,7 +290,7 @@ void game(void) {
     m = 26;
     player = createRACKET(RACKET_WIDTH * l - 58,
                         // 58 = 42 + 4² -> magic number
-                        RACKET_HEIGHT * m, 5, gPLAYERSurface);
+                        RACKET_HEIGHT * m, 5, gPLAYERSurface, 0, 3);
     player._left = false;
     player._right = false;
 
@@ -374,6 +385,7 @@ void game(void) {
                 int right = ball[0].posX + BALL_WIDTH >= current.posX;
 
                 if (current.resist && over && under && left && right) {
+                    player.score += 100;
                     ball[0].stepY *= -1;
                     brick[j][k].resist--;
 
@@ -383,6 +395,24 @@ void game(void) {
                 }
             }
         }
+
+        levelClear = true;
+
+        for (j = 0; j < COLUMNS; j++) {
+            for (k = 0; k < LINES; k++) {
+                if (brick[j][k].resist) {
+                    levelClear = false;
+                }
+            }
+        }
+
+        if (levelClear == true) {
+            player.score += 1000;
+            levelClear = false;
+        }
+
+        //Testing purposes only
+        //printf("%d", player.score);
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -465,13 +495,16 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image) {
 }
 
 // Create RACKET
-RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image) {
+RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
+                    int score, int lives) {
     RACKET p;
 
     p.posX = posX;
     p.posY = posY;
     p.stepX = stepX;
     p.image = image;
+    p.score = score;
+    p.lives = lives;
     return p;
 }
 
