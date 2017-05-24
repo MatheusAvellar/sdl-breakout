@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -97,7 +97,7 @@ const int BALL_SPEED = 2;
 
 // Amount of brick on screen
 #define COLUMNS 8
-#define LINES 1
+#define LINES 3
 
 // Error codes
 #define ERR_INIT 0
@@ -184,6 +184,8 @@ unsigned time_left(void);
 
 // Collision
 void collisionBalls(void);
+void collisionBrick(void);
+void collisionRacket(void);
 
 // Check Level Clearance
 int levelClear;
@@ -375,26 +377,10 @@ void game(void) {
         collisionBalls();
 
         // Collision between ball and brick
-        for (j = 0; j < COLUMNS; j++) {
-            for (k = 0; k < LINES; k++) {
-                BLOCK current = brick[j][k];
+        collisionBrick();
 
-                int over = ball[0].posY + BALL_HEIGHT >= current.posY;
-                int under = ball[0].posY <= current.posY + BLOCK_HEIGHT;
-                int left = ball[0].posX <= current.posX + BLOCK_WIDTH;
-                int right = ball[0].posX + BALL_WIDTH >= current.posX;
-
-                if (current.resist && over && under && left && right) {
-                    player.score += 100;
-                    ball[0].stepY *= -1;
-                    brick[j][k].resist--;
-
-                    /* TODO: Add stepX *= -1
-                     * if ball hits brick on the side
-                     */
-                }
-            }
-        }
+        // Collision between ball and racket
+        collisionRacket();
 
         levelClear = true;
 
@@ -424,6 +410,7 @@ void game(void) {
 }
 
 void collisionBalls(void) {
+    // Iteraion variables
     int i, j;
 
     // Temporary variable for 2 way value swapping
@@ -444,6 +431,53 @@ void collisionBalls(void) {
             }
         }
     }
+}
+
+void collisionBrick(void) {
+  // Iteraion variables
+  int j, k;
+
+  for (j = 0; j < COLUMNS; j++) {
+      for (k = 0; k < LINES; k++) {
+          BLOCK current = brick[j][k];
+
+          int over = ball[0].posY + BALL_HEIGHT >= current.posY;
+          int under = ball[0].posY <= current.posY + BLOCK_HEIGHT;
+          int left = ball[0].posX <= current.posX + BLOCK_WIDTH;
+          int right = ball[0].posX + BALL_WIDTH >= current.posX;
+
+          if (current.resist && over && under && left && right) {
+              player.score += 100;
+              ball[0].stepY *= -1;
+              brick[j][k].resist--;
+
+              /* TODO: Add stepX *= -1
+               * if ball hits brick on the side
+               */
+          }
+      }
+  }
+}
+
+
+void collisionRacket(void) {
+  // Iteraion variables
+  int i;
+
+  for (i = 0; i < LEN; i++) {
+    int vertical = ball[i].posY + BALL_HEIGHT > player.posY;
+    int left_limit = ball[i].posX > player.posX;
+    int right_limit = ball[i].posX + BALL_WIDTH < player.posX + RACKET_WIDTH;
+
+    if (vertical && left_limit && right_limit){
+      ball[i].stepY *= -1;
+    }
+    else if (vertical && !(left_limit && right_limit)){
+      player.lives -= 1;
+      ball[i].posY = player.posY - BALL_HEIGHT;
+      ball[i].posX = player.posX + (RACKET_WIDTH/2) - (BALL_WIDTH/2);
+    }
+  }
 }
 
 void moveNPC(NPC *p) {
