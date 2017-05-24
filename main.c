@@ -97,7 +97,7 @@ const int BALL_SPEED = 2;
 
 // Amount of brick on screen
 #define COLUMNS 8
-#define LINES 3
+#define LINES 4
 
 // Error codes
 #define ERR_INIT 0
@@ -339,10 +339,31 @@ void game(void) {
         }
 
         // Draw bricks
+
+        int blockX, blockY;
+
         for (i= 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
+              
+                if (j == 0) {
+                  blockX = 0;
+                  blockY = BLOCK_HEIGHT;
+                }
+                else if (j == 1) {
+                  blockX = BLOCK_WIDTH;
+                  blockY = 0;
+                }
+                else if (j == 2) {
+                  blockX = 0;
+                  blockY = 0;
+                }
+                else if (j == 3) {
+                  blockX = BLOCK_WIDTH;
+                  blockY = BLOCK_HEIGHT;
+                }
+
                 if (brick[i][j].resist
-                 && drawOnScreen(brick[i][j].image, 0, 0,
+                 && drawOnScreen(brick[i][j].image, blockX, blockY,
                                BLOCK_WIDTH, BLOCK_HEIGHT,
                                brick[i][j].posX, brick[i][j].posY) < 0) {
                     error(ERR_BLIT);
