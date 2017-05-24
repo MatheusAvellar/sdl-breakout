@@ -90,7 +90,7 @@ const int RACKET_HEIGHT = 2 * PROP;
 const unsigned int TICK_INTERVAL = 17;
 
 // Speed multiplier
-const int BALL_SPEED = 2;
+const int BALL_SPEED = 3;
 
 // Amount of balls on screen
 #define LEN 1
@@ -110,7 +110,7 @@ const int BALL_SPEED = 2;
  * Global Variables
  */
 
-//Define game screen
+// Define game screen
 int gameScreen = 1;
 
 // The window to render to
@@ -136,6 +136,8 @@ SDL_Surface* gPLAYERSurface = NULL;
 // Control variable for optimal FPS handling
 static Uint32 next_time;
 
+// Check Level Clearance
+int levelClear;
 
 /*
  * Function Prototypes
@@ -187,11 +189,11 @@ void collisionBalls(void);
 void collisionBrick(void);
 void collisionRacket(void);
 
-// Check Level Clearance
-int levelClear;
-
 // Print errors
 void error(int code);
+
+// Helper functions
+int absolute(int n);
 
 
 int main(int argc, char* args[]) {
@@ -271,13 +273,15 @@ void game(void) {
     int _posX = SCREEN_WIDTH / 2 - BALL_WIDTH / 2;
     int _posY = SCREEN_HEIGHT / 2 - BALL_HEIGHT / 2;
 
-    ball[0] = createNPC(_posX, _posY,
-                /* TODO: Ball should start over pad and only go when
-                 * user presses the space key
-                 */
-                rand() % 2 ? -1 : 1,
-                rand() % 2 ? -1 : 1,
-                gBall);
+    for (i= 0; i < LEN; i++) {
+        ball[i] = createNPC(_posX, _posY,
+                    /* TODO: Ball should start over pad and only go when
+                     * user presses the space key
+                     */
+                    rand() % 2 ? -1 : 1,
+                    rand() % 2 ? -1 : 1,
+                    gBall);
+    }
 
     //Create BRICKS
     for (i = 0; i < COLUMNS; i++) {
@@ -327,15 +331,17 @@ void game(void) {
                   SDL_MapRGB(gScreenSurface->format,
                               0x99, 0xD9, 0xEA));
 
-        moveNPC(&ball[0]);
+        for (i= 0; i < LEN; i++) {
+            moveNPC(&ball[i]);
 
-        if (drawOnScreen(ball[0].image, 0, 0,
-                    BALL_WIDTH,
-                    BALL_HEIGHT,
-                    ball[0].posX,
-                    ball[0].posY) < 0) {
-            error(ERR_BLIT);
-            quit = true;
+            if (drawOnScreen(ball[i].image, 0, 0,
+                        BALL_WIDTH,
+                        BALL_HEIGHT,
+                        ball[i].posX,
+                        ball[i].posY) < 0) {
+                error(ERR_BLIT);
+                quit = true;
+            }
         }
 
         // Draw bricks
@@ -373,13 +379,13 @@ void game(void) {
         }
 
         if (player._left) {
-            if (player.stepX > 0) player.stepX *= -1;
+            player.stepX = -absolute(player.stepX);
 
             player.posX = player.posX > 0
                         ? player.posX + player.stepX
                         : 0;
         } else if (player._right) {
-            if (player.stepX < 0) player.stepX *= -1;
+            player.stepX = absolute(player.stepX);
 
             player.posX = player.posX < SCREEN_WIDTH - RACKET_WIDTH
                         ? player.posX + player.stepX
@@ -455,50 +461,92 @@ void collisionBalls(void) {
 }
 
 void collisionBrick(void) {
-  // Iteraion variables
-  int j, k;
+    // Iteraion variables
+    int i, j, k;
 
-  for (j = 0; j < COLUMNS; j++) {
-      for (k = 0; k < LINES; k++) {
-          BLOCK current = brick[j][k];
+    for (i = 0; i < LEN; i++) {
+        for (j = 0; j < COLUMNS; j++) {
+            for (k = 0; k < LINES; k++) {
+                BLOCK current = brick[j][k];
 
-          int over = ball[0].posY + BALL_HEIGHT >= current.posY;
-          int under = ball[0].posY <= current.posY + BLOCK_HEIGHT;
-          int left = ball[0].posX <= current.posX + BLOCK_WIDTH;
-          int right = ball[0].posX + BALL_WIDTH >= current.posX;
+                int over = ball[i].posY + BALL_HEIGHT >= current.posY;
+                int under = ball[i].posY <= current.posY + BLOCK_HEIGHT;
+                int left = ball[i].posX <= current.posX + BLOCK_WIDTH;
+                int right = ball[i].posX + BALL_WIDTH >= current.posX;
 
-          if (current.resist && over && under && left && right) {
-              player.score += 100;
-              ball[0].stepY *= -1;
-              brick[j][k].resist--;
+                if (current.resist && over && under && left && right) {
+                    if (current.resist < 0) {
+                        brick[j][k].resist = 0;
+                    } else {
+                        player.score += 100;
+                        brick[j][k].resist = current.resist-1 < 0
+                                    ? 0
+                                    : current.resist-1;
 
-              /* TODO: Add stepX *= -1
-               * if ball hits brick on the side
-               */
-          }
-      }
-  }
+                        // Check collision side
+                        int ball_half_x = ball[i].posX + BALL_WIDTH / 2;
+                        int ball_half_y = ball[i].posY + BLOCK_HEIGHT / 2;
+                        int brick_half_x = current.posX + BLOCK_WIDTH / 2;
+                        int brick_half_y = current.posY + BLOCK_HEIGHT / 2;
+
+                        int center_dist_x = ball_half_x - brick_half_x;
+                        int abs_dist_x = absolute(center_dist_x);
+
+                        int center_dist_y = ball_half_y - brick_half_y;
+                        int abs_dist_y = absolute(center_dist_y);
+
+                        int avg_width = (BALL_WIDTH + BLOCK_WIDTH) / 2;
+                        int avg_height = (BLOCK_HEIGHT + BLOCK_HEIGHT) / 2;
+
+                        int cross_width = avg_width * center_dist_y;
+                        int cross_height = avg_height * center_dist_x;
+
+                        if (abs_dist_x <= avg_width
+                         && abs_dist_y <= avg_height) {
+                            if (cross_width > cross_height) {
+                                if (cross_width > -cross_height) {
+                                    // BOTTOM
+                                    ball[i].stepY = absolute(ball[i].stepY);
+                                } else {
+                                    // LEFT
+                                    ball[i].stepX = -absolute(ball[i].stepX);
+                                }
+                            } else {
+                                if(cross_width > -cross_height) {
+                                    // RIGHT
+                                    ball[i].stepX = absolute(ball[i].stepX);
+                                } else {
+                                    // TOP
+                                    ball[i].stepY = -absolute(ball[i].stepY);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
-
 void collisionRacket(void) {
-  // Iteraion variables
-  int i;
+    // Iteraion variable
+    int i;
 
-  for (i = 0; i < LEN; i++) {
-    int vertical = ball[i].posY + BALL_HEIGHT > player.posY;
-    int left_limit = ball[i].posX > player.posX;
-    int right_limit = ball[i].posX + BALL_WIDTH < player.posX + RACKET_WIDTH;
+    for (i = 0; i < LEN; i++) {
+        int top_limit = ball[i].posY + BALL_HEIGHT >= player.posY;
+        // 2 pixels of tolerance
+        int bottom_limit = ball[i].posY + BALL_HEIGHT <= player.posY + 2;
+        int left_limit = ball[i].posX + BALL_WIDTH >= player.posX;
+        int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
 
-    if (vertical && left_limit && right_limit){
-      ball[i].stepY *= -1;
+        if (top_limit && bottom_limit && left_limit && right_limit) {
+            ball[i].stepY = -absolute(ball[i].stepY);
+        } else if (!top_limit && !bottom_limit) {
+            player.lives -= 1;
+            ball[i].posY = player.posY - BALL_HEIGHT;
+            ball[i].posX = player.posX + (RACKET_WIDTH/2) - (BALL_WIDTH/2);
+        }
     }
-    else if (vertical && !(left_limit && right_limit)){
-      player.lives -= 1;
-      ball[i].posY = player.posY - BALL_HEIGHT;
-      ball[i].posX = player.posX + (RACKET_WIDTH/2) - (BALL_WIDTH/2);
-    }
-  }
 }
 
 void moveNPC(NPC *p) {
@@ -508,20 +556,20 @@ void moveNPC(NPC *p) {
     // If the image is out of bounds on the X axis,
     // invert the direction and reset the position to a valid one
     if (p->posX + BALL_WIDTH > SCREEN_WIDTH) {
-        p->stepX *= -1;
+        p->stepX = -absolute(p->stepX);
         p->posX = SCREEN_WIDTH - BALL_WIDTH;
     } else if (p->posX < 0) {
-        p->stepX *= -1;
+        p->stepX = absolute(p->stepX);
         p->posX = 0;
     }
 
     // If the image is out of bounds on the Y axis,
     // invert the direction and reset the position to a valid one
     if (p->posY + BALL_HEIGHT > SCREEN_HEIGHT) {
-        p->stepY *= -1;
+        p->stepY = -absolute(p->stepY);
         p->posY = SCREEN_HEIGHT - BALL_HEIGHT;
     } else if (p->posY < 0) {
-        p->stepY *= -1;
+        p->stepY = absolute(p->stepY);
         p->posY = 0;
     }
 }
@@ -692,22 +740,28 @@ unsigned time_left(void) {
 }
 
 void error(int code) {
-  switch(code) {
-    case ERR_INIT:
-        printf("SDL could not initialize!");
-    case ERR_WINDOW_CREATE:
-        printf("Window could not be created!");
-        break;
-    case ERR_BLIT:
-        printf("SDL could not blit!");
-        break;
-    case ERR_OPTIMIZE:
-        printf("Unable to optimize image %s!");
-    case ERR_IMG_LOAD:
-        printf("Unable to load image %s!");
-    default:
-        printf("Unspecified error!");
-        break;
-  }
-  printf(" SDL Error: %s\n", SDL_GetError());
+    switch(code) {
+        case ERR_INIT:
+            printf("SDL could not initialize!");
+        case ERR_WINDOW_CREATE:
+            printf("Window could not be created!");
+            break;
+        case ERR_BLIT:
+            printf("SDL could not blit!");
+            break;
+        case ERR_OPTIMIZE:
+            printf("Unable to optimize image!");
+            break;
+        case ERR_IMG_LOAD:
+            printf("Unable to load image!");
+            break;
+        default:
+            printf("Unspecified error!");
+            break;
+    }
+    printf(" SDL Error: %s\n", SDL_GetError());
+}
+
+int absolute(int n) {
+    return n < 0 ? -n : n;
 }
