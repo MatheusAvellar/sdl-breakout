@@ -15,10 +15,10 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+/* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
 
 /*
  * Type definitions
@@ -58,6 +58,9 @@ typedef struct _RACKET {
 /*
  * Constants
  */
+
+// Debug mode
+#define _DEBUG 1
 
 // Constants of proportion
 // Default PROP = 10
@@ -170,7 +173,7 @@ RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
                     int score, int lives);
 
 // Updates NPC position via stepX and stepY
-void moveNPC(NPC *p);
+int moveNPC(NPC *p);
 
 // Updates RACKET position via stepX
 void moveRACKET(RACKET *p);
@@ -197,7 +200,6 @@ int absolute(int n);
 
 
 int main(int argc, char* args[]) {
-
 
     // Start up SDL and create window
     if(!init() || !loadMedia()) {
@@ -261,7 +263,9 @@ void menu(void) {
 
 void game(void) {
     // Iteration variables
-    int i, j, k, l, m;
+    int i, j, l, m;
+
+    int _temp_score = 0;
 
     // Event handler
     SDL_Event e;
@@ -332,48 +336,65 @@ void game(void) {
                               0x99, 0xD9, 0xEA));
 
         for (i= 0; i < LEN; i++) {
-            moveNPC(&ball[i]);
+            if (!levelClear) {
+                // Ball hit bottom of screen
+                if(moveNPC(&ball[i])) {
+                    player.lives -= 1;
+                    if(_DEBUG) printf("Lives - %d\n", player.lives);
 
-            if (drawOnScreen(ball[i].image, 0, 0,
-                        BALL_WIDTH,
-                        BALL_HEIGHT,
-                        ball[i].posX,
-                        ball[i].posY) < 0) {
-                error(ERR_BLIT);
-                quit = true;
+                    ball[i].posY = player.posY - BALL_HEIGHT;
+                    ball[i].posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
+
+                    if(player.lives < 0) {
+                        /* TODO: Player is out of lives -- Game over */
+                    }
+
+                }
+
+                if (drawOnScreen(ball[i].image, 0, 0,
+                            BALL_WIDTH,
+                            BALL_HEIGHT,
+                            ball[i].posX,
+                            ball[i].posY) < 0) {
+                    error(ERR_BLIT);
+                    quit = true;
+                }
             }
         }
 
         // Draw bricks
-
         int blockX, blockY;
 
-        for (i= 0; i < COLUMNS; i++) {
+        levelClear = true;
+        for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
-              
                 if (j == 0) {
-                  blockX = 0;
-                  blockY = BLOCK_HEIGHT;
-                }
-                else if (j == 1) {
-                  blockX = BLOCK_WIDTH;
-                  blockY = 0;
-                }
-                else if (j == 2) {
-                  blockX = 0;
-                  blockY = 0;
-                }
-                else if (j == 3) {
-                  blockX = BLOCK_WIDTH;
-                  blockY = BLOCK_HEIGHT;
+                    blockX = 0;
+                    blockY = BLOCK_HEIGHT;
+                } else if (j == 1) {
+                    blockX = BLOCK_WIDTH;
+                    blockY = 0;
+                } else if (j == 2) {
+                    blockX = 0;
+                    blockY = 0;
+                } else if (j == 3) {
+                    blockX = BLOCK_WIDTH;
+                    blockY = BLOCK_HEIGHT;
                 }
 
                 if (brick[i][j].resist
-                 && drawOnScreen(brick[i][j].image, blockX, blockY,
-                               BLOCK_WIDTH, BLOCK_HEIGHT,
-                               brick[i][j].posX, brick[i][j].posY) < 0) {
+                 && drawOnScreen(brick[i][j].image,
+                                blockX, blockY,
+                                BLOCK_WIDTH, BLOCK_HEIGHT,
+                                brick[i][j].posX, brick[i][j].posY) < 0) {
                     error(ERR_BLIT);
                     quit = true;
+                }
+
+                if (brick[i][j].resist) levelClear = false;
+
+                if (levelClear) {
+                    player.score += 1000;
                 }
             }
         }
@@ -401,7 +422,7 @@ void game(void) {
         }
 
         // Collision between balls
-        collisionBalls();
+        if(LEN > 1) collisionBalls();
 
         // Collision between ball and brick
         collisionBrick();
@@ -409,23 +430,11 @@ void game(void) {
         // Collision between ball and racket
         collisionRacket();
 
-        levelClear = true;
-
-        for (j = 0; j < COLUMNS; j++) {
-            for (k = 0; k < LINES; k++) {
-                if (brick[j][k].resist) {
-                    levelClear = false;
-                }
-            }
+        // For testing purposes only
+        if(player.score > _temp_score) {
+            _temp_score = player.score;
+            if(_DEBUG) printf("[New score: %d]\n", player.score);
         }
-
-        if (levelClear == true) {
-            player.score += 1000;
-            levelClear = false;
-        }
-
-        //Testing purposes only
-        //printf("%d", player.score);
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -478,7 +487,7 @@ void collisionBrick(void) {
                     if (current.resist < 0) {
                         brick[j][k].resist = 0;
                     } else {
-                        player.score += 100;
+                        if(current.resist > 0)player.score += 100;
                         brick[j][k].resist = current.resist-1 < 0
                                     ? 0
                                     : current.resist-1;
@@ -541,15 +550,11 @@ void collisionRacket(void) {
 
         if (top_limit && bottom_limit && left_limit && right_limit) {
             ball[i].stepY = -absolute(ball[i].stepY);
-        } else if (!top_limit && !bottom_limit) {
-            player.lives -= 1;
-            ball[i].posY = player.posY - BALL_HEIGHT;
-            ball[i].posX = player.posX + (RACKET_WIDTH/2) - (BALL_WIDTH/2);
         }
     }
 }
 
-void moveNPC(NPC *p) {
+int moveNPC(NPC *p) {
     p->posX += p->stepX * BALL_SPEED;
     p->posY += p->stepY * BALL_SPEED;
 
@@ -566,12 +571,16 @@ void moveNPC(NPC *p) {
     // If the image is out of bounds on the Y axis,
     // invert the direction and reset the position to a valid one
     if (p->posY + BALL_HEIGHT > SCREEN_HEIGHT) {
-        p->stepY = -absolute(p->stepY);
-        p->posY = SCREEN_HEIGHT - BALL_HEIGHT;
+        return 1;
+        /*
+         * p->stepY = -absolute(p->stepY);
+         * p->posY = SCREEN_HEIGHT - BALL_HEIGHT;
+         */
     } else if (p->posY < 0) {
         p->stepY = absolute(p->stepY);
         p->posY = 0;
     }
+    return 0;
 }
 
 // Create NPC
@@ -639,6 +648,17 @@ int init(void) {
         error(ERR_INIT);
         return false;
     }
+
+    /* TODO: Fix this
+     * main.exe - Entry Point Not Found
+     * The procedure entry point InterlockedCompareExchange@12 could not
+     * be located in the dynamic link library ...\SDL2_ttf.dll
+     *
+     * if(TTF_Init() == -1) {
+     *     error(ERR_INIT);
+     *     return false;
+     * }
+     */
 
     // Get window surface
     gScreenSurface = SDL_GetWindowSurface(gWindow);
