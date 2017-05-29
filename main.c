@@ -198,6 +198,9 @@ void error(int code);
 // Helper functions
 int absolute(int n);
 
+// New Level
+void newLevel(void);
+
 
 int main(int argc, char* args[]) {
 
@@ -391,15 +394,7 @@ void game(void) {
                 }
 
                 if (!levelClear) {
-                    player.score += 1000;
-                    ball[i].posY = player.posY - BALL_HEIGHT;
-                    ball[i].posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
-                    for (i = 0; i < COLUMNS; i++) {
-                        for (j = 0; j < LINES; j++) {
-                            brick[i][j].resist = 1;
-                        }
-                    }
-                    levelClear = COLUMNS*LINES;
+                    newLevel();
                 }
             }
         }
@@ -560,6 +555,23 @@ void collisionRacket(void) {
             ball[i].stepY = -absolute(ball[i].stepY);
         }
     }
+}
+
+void newLevel(void) {
+  //Iteration variables
+  int i, j, k;
+  
+  for (k = 0; k < LEN; k++) {
+    player.score += 1000;
+    ball[k].posY = player.posY - BALL_HEIGHT;
+    ball[k].posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
+    for (i = 0; i < COLUMNS; i++) {
+        for (j = 0; j < LINES; j++) {
+            brick[i][j].resist = 1;
+        }
+    }
+    levelClear = COLUMNS*LINES;
+}
 }
 
 int moveNPC(NPC *p) {
