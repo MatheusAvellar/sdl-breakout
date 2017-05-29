@@ -140,7 +140,7 @@ SDL_Surface* gPLAYERSurface = NULL;
 static Uint32 next_time;
 
 // Check Level Clearance
-int levelClear;
+int levelClear = COLUMNS*LINES;
 
 /*
  * Function Prototypes
@@ -336,7 +336,7 @@ void game(void) {
                               0x99, 0xD9, 0xEA));
 
         for (i= 0; i < LEN; i++) {
-            if (!levelClear) {
+            if (levelClear) {
                 // Ball hit bottom of screen
                 if(moveNPC(&ball[i])) {
                     player.lives -= 1;
@@ -365,7 +365,6 @@ void game(void) {
         // Draw bricks
         int blockX, blockY;
 
-        levelClear = true;
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
                 if (j == 0) {
@@ -391,10 +390,16 @@ void game(void) {
                     quit = true;
                 }
 
-                if (brick[i][j].resist) levelClear = false;
-
-                if (levelClear) {
+                if (!levelClear) {
                     player.score += 1000;
+                    ball[i].posY = player.posY - BALL_HEIGHT;
+                    ball[i].posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
+                    for (i = 0; i < COLUMNS; i++) {
+                        for (j = 0; j < LINES; j++) {
+                            brick[i][j].resist = 1;
+                        }
+                    }
+                    levelClear = COLUMNS*LINES;
                 }
             }
         }
@@ -487,7 +492,10 @@ void collisionBrick(void) {
                     if (current.resist < 0) {
                         brick[j][k].resist = 0;
                     } else {
-                        if(current.resist > 0)player.score += 100;
+                        if(current.resist > 0){
+                          player.score += 100;
+                          levelClear--;
+                        }
                         brick[j][k].resist = current.resist-1 < 0
                                     ? 0
                                     : current.resist-1;
