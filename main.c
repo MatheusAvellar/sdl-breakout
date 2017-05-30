@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,7 +93,7 @@ const int RACKET_HEIGHT = 2 * PROP;
 const unsigned int TICK_INTERVAL = 17;
 
 // Speed multiplier
-const int BALL_SPEED = 3;
+const int BALL_SPEED = 5;
 
 // Amount of balls on screen
 #define LEN 1
@@ -279,7 +279,7 @@ void game(void) {
 
     for (i= 0; i < LEN; i++) {
         ball[i] = createNPC(_posX, _posY,
-                    /* TODO: Ball should start over pad and only go when
+                    /* TODO: Ball should start over racket and only go when
                      * user presses the space key
                      */
                     rand() % 2 ? -1 : 1,
@@ -315,13 +315,17 @@ void game(void) {
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
 
                     player._left = player._left
-                                || e.key.keysym.sym == SDLK_LEFT;
+                                || e.key.keysym.sym == SDLK_LEFT
+                                || e.key.keysym.sym == SDLK_a;
 
                     player._right = player._right
-                                || e.key.keysym.sym == SDLK_RIGHT;
+                                || e.key.keysym.sym == SDLK_RIGHT
+                                || e.key.keysym.sym == SDLK_d;
                     break;
                 case SDL_KEYUP:
+                    if (e.key.keysym.sym == SDLK_a) player._left = false;
                     if (e.key.keysym.sym == SDLK_LEFT) player._left = false;
+                    if (e.key.keysym.sym == SDLK_d) player._right = false;
                     if (e.key.keysym.sym == SDLK_RIGHT) player._right = false;
                     break;
                 default:
