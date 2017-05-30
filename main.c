@@ -52,7 +52,7 @@ typedef struct _RACKET {
     int _right;
     int score;
     int lives;
-    int fator;
+    float factor;
 } RACKET;
 
 
@@ -95,6 +95,7 @@ const unsigned int TICK_INTERVAL = 17;
 
 // Speed multiplier
 const int BALL_SPEED = 5;
+const int BALL_MAX_SPEED = 12;
 
 // Amount of balls on screen
 #define LEN 1
@@ -172,7 +173,7 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image);
 
 // Create RACKET
 RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
-                    int score, int lives, int fator);
+                    int score, int lives, float factor);
 
 // Updates NPC position via stepX and stepY
 int moveNPC(NPC *p);
@@ -268,7 +269,7 @@ void menu(void) {
 
 void game(void) {
     // Iteration variables
-    int i, j, l, m;
+    int i, j, l, m, z;
 
     int _temp_score = 0;
 
@@ -303,9 +304,14 @@ void game(void) {
     // Create RACKET
     l = 2;
     m = 28;
-    player = createRACKET(RACKET_WIDTH * l - 58,
-                        // 58 = 42 + 4² -> magic number
-                        RACKET_HEIGHT * m, 5, gPLAYERSurface, 0, 3, 2);
+    z = 58; // = 42 + 4² (magic number)
+    player = createRACKET(RACKET_WIDTH * l - z,  // int posX
+                             RACKET_HEIGHT * m,  // int posY
+                                             5,  // int stepX
+                                gPLAYERSurface,  // SDL_Surface *image
+                                             0,  // int score
+                                             3,  // int lives
+                                          2.2);  // float factor
     player._left = false;
     player._right = false;
 
@@ -326,6 +332,12 @@ void game(void) {
                     player._right = player._right
                                 || e.key.keysym.sym == SDLK_RIGHT
                                 || e.key.keysym.sym == SDLK_d;
+
+                    /*
+                     * if (e.key.keysym.sym == SDLK_SPACE) {
+                     *     TODO: Start level by pressing space
+                     * }
+                     */
                     break;
                 case SDL_KEYUP:
                     if (e.key.keysym.sym == SDLK_a) player._left = false;
@@ -349,13 +361,14 @@ void game(void) {
                 // Ball hit bottom of screen
                 if(moveNPC(&ball[i])) {
                     player.lives -= 1;
-                    if(_DEBUG) printf("Lives - %d\n", player.lives);
+                    if(_DEBUG) printf("[Lives] %d\n", player.lives);
 
                     ball[i].posY = player.posY - BALL_HEIGHT;
                     ball[i].posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
 
                     if(player.lives < 0) {
                         /* TODO: Player is out of lives -- Game over */
+                        if(_DEBUG) printf("[Player is out of lives!] %d\n", player.lives);
                     }
 
                 }
@@ -439,7 +452,7 @@ void game(void) {
         // For testing purposes only
         if(player.score > _temp_score) {
             _temp_score = player.score;
-            if(_DEBUG) printf("[New score: %d]\n", player.score);
+            if(_DEBUG) printf("[Score: %d]\n", player.score);
         }
 
         // Update the surface
@@ -558,19 +571,58 @@ void collisionRacket(void) {
         int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
 
         int right_side = ball[i].posX >= player.posX + RACKET_WIDTH/2;
-        int left_side = ball[i].posX < player.posX + RACKET_WIDTH/2;
 
         if (top_limit && bottom_limit && left_limit && right_limit) {
             ball[i].stepY = -absolute(ball[i].stepY);
+
             if (right_side) {
-              if (ball[i].stepX <= 0) ball[i].stepX /= player.fator;
-              if (ball[i].stepX > 0) ball[i].stepX *= player.fator;
+                if (ball[i].stepX < 0) {
+                    ball[i].stepX = (int)(ball[i].stepX / player.factor);
+                    if(_DEBUG) {
+                        printf("[  %g  ]\n", ball[i].stepX / player.factor);
+                        printf("RIGHT < 0 :: stepX == %d\n", ball[i].stepX);
+                    }
+                } else if (ball[i].stepX > 0) {
+                    ball[i].stepX = (int)(ball[i].stepX * player.factor);
+                    if(_DEBUG) {
+                        printf("[  %g  ]\n", ball[i].stepX * player.factor);
+                        printf("RIGHT > 0 :: stepX == %d\n", ball[i].stepX);
+                    }
+                } else {
+                    ball[i].stepX = (int)(player.factor);
+                    if(_DEBUG) {
+                        printf("[  %g  ]\n", player.factor);
+                        printf("RIGHT = 0 :: stepX == %d\n", ball[i].stepX);
+                    }
+                }
+            } else {
+                if (ball[i].stepX < 0) {
+                    ball[i].stepX = (int)(ball[i].stepX * player.factor);
+                    if(_DEBUG) {
+                        printf("[  %g  ]\n", ball[i].stepX * player.factor);
+                        printf("LEFT < 0 :: stepX == %d\n", ball[i].stepX);
+                    }
+                } else if (ball[i].stepX > 0) {
+                    ball[i].stepX = (int)(ball[i].stepX / player.factor);
+                    if(_DEBUG) {
+                        printf("[  %g  ]\n", ball[i].stepX / player.factor);
+                        printf("LEFT > 0 :: stepX == %d\n", ball[i].stepX);
+                    }
+                } else {
+                    ball[i].stepX = -(int)(player.factor);
+                    if(_DEBUG) {
+                        printf("[  %g  ]\n", player.factor);
+                        printf("LEFT = 0 :: stepX == %d\n", ball[i].stepX);
+                    }
+                }
             }
-            if (left_side) {
-              if (ball[i].stepX <= 0) ball[i].stepX *= player.fator;
-              if (ball[i].stepX > 0) ball[i].stepX /= player.fator;
+
+            if (ball[i].stepX < -BALL_MAX_SPEED) {
+                ball[i].stepX = -BALL_MAX_SPEED;
+            } else if (ball[i].stepX > BALL_MAX_SPEED) {
+                ball[i].stepX = BALL_MAX_SPEED;
             }
-          if ((ball[i].stepX < 1) && (ball[i].stepX >= 0)) ball[i].stepX = 1;
+            if(_DEBUG) printf("[FINAL] stepX = %d\n", ball[i].stepX);
         }
     }
 }
@@ -594,7 +646,7 @@ void newLevel(void) {
 }
 
 int moveNPC(NPC *p) {
-    p->posX += p->stepX * BALL_SPEED;
+    p->posX += p->stepX/* * BALL_SPEED*/;
     p->posY += p->stepY * BALL_SPEED;
 
     // If the image is out of bounds on the X axis,
@@ -647,7 +699,7 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image) {
 
 // Create RACKET
 RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
-                    int score, int lives, int fator) {
+                    int score, int lives, float factor) {
     RACKET p;
 
     p.posX = posX;
@@ -656,7 +708,7 @@ RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
     p.image = image;
     p.score = score;
     p.lives = lives;
-    p.fator = fator;
+    p.factor = factor;
     return p;
 }
 
