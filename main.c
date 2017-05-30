@@ -52,6 +52,7 @@ typedef struct _RACKET {
     int _right;
     int score;
     int lives;
+    int fator;
 } RACKET;
 
 
@@ -141,6 +142,7 @@ static Uint32 next_time;
 
 // Check Level Clearance
 int levelClear = COLUMNS*LINES;
+int level = 1;
 
 /*
  * Function Prototypes
@@ -170,7 +172,7 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image);
 
 // Create RACKET
 RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
-                    int score, int lives);
+                    int score, int lives, int fator);
 
 // Updates NPC position via stepX and stepY
 int moveNPC(NPC *p);
@@ -303,7 +305,7 @@ void game(void) {
     m = 28;
     player = createRACKET(RACKET_WIDTH * l - 58,
                         // 58 = 42 + 4² -> magic number
-                        RACKET_HEIGHT * m, 5, gPLAYERSurface, 0, 3);
+                        RACKET_HEIGHT * m, 5, gPLAYERSurface, 0, 3, 2);
     player._left = false;
     player._right = false;
 
@@ -551,8 +553,19 @@ void collisionRacket(void) {
         int left_limit = ball[i].posX + BALL_WIDTH >= player.posX;
         int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
 
+        int right_side = ball[i].posX >= player.posX + RACKET_WIDTH/2;
+        int left_side = ball[i].posX < player.posX + RACKET_WIDTH/2;
+
         if (top_limit && bottom_limit && left_limit && right_limit) {
             ball[i].stepY = -absolute(ball[i].stepY);
+            if (right_side) {
+              if (ball[i].stepX <= 0) ball[i].stepX /= player.fator;
+              if (ball[i].stepX >= 0) ball[i].stepX *= player.fator;
+            }
+            if (left_side) {
+              if (ball[i].stepX <= 0) ball[i].stepX *= player.fator;
+              if (ball[i].stepX >= 0) ball[i].stepX /= player.fator;
+            }
         }
     }
 }
@@ -560,7 +573,7 @@ void collisionRacket(void) {
 void newLevel(void) {
   //Iteration variables
   int i, j, k;
-  
+
   for (k = 0; k < LEN; k++) {
     player.score += 1000;
     ball[k].posY = player.posY - BALL_HEIGHT;
@@ -571,7 +584,8 @@ void newLevel(void) {
         }
     }
     levelClear = COLUMNS*LINES;
-}
+    level++;
+  }
 }
 
 int moveNPC(NPC *p) {
@@ -628,7 +642,7 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image) {
 
 // Create RACKET
 RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
-                    int score, int lives) {
+                    int score, int lives, int fator) {
     RACKET p;
 
     p.posX = posX;
@@ -637,6 +651,7 @@ RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
     p.image = image;
     p.score = score;
     p.lives = lives;
+    p.fator = fator;
     return p;
 }
 
