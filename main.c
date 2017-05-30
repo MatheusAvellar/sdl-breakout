@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -547,7 +547,7 @@ void collisionBrick(void) {
 }
 
 void collisionRacket(void) {
-    // Iteraion variable
+    // Iteration variable
     int i;
 
     for (i = 0; i < LEN; i++) {
@@ -564,12 +564,13 @@ void collisionRacket(void) {
             ball[i].stepY = -absolute(ball[i].stepY);
             if (right_side) {
               if (ball[i].stepX <= 0) ball[i].stepX /= player.fator;
-              if (ball[i].stepX >= 0) ball[i].stepX *= player.fator;
+              if (ball[i].stepX > 0) ball[i].stepX *= player.fator;
             }
             if (left_side) {
               if (ball[i].stepX <= 0) ball[i].stepX *= player.fator;
-              if (ball[i].stepX >= 0) ball[i].stepX /= player.fator;
+              if (ball[i].stepX > 0) ball[i].stepX /= player.fator;
             }
+          if ((ball[i].stepX < 1) && (ball[i].stepX >= 0)) ball[i].stepX = 1;
         }
     }
 }
