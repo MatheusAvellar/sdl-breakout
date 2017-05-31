@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -94,7 +94,7 @@ const int RACKET_HEIGHT = 2 * PROP;
 const unsigned int TICK_INTERVAL = 17;
 
 // Speed multiplier
-const int BALL_SPEED = 7; 
+const int BALL_SPEED = 7;
 const int BALL_MAX_SPEED = 11;
 
 // Amount of balls on screen
@@ -382,6 +382,9 @@ void game(void) {
                     if(player.lives < 0) {
                         /* TODO: Player is out of lives -- Game over */
                         if(_DEBUG) printf("[Player is out of lives!] %d\n", player.lives);
+                        player.score=0;
+                        player.lives=3;
+                        newLevel();
                     }
 
                 }
