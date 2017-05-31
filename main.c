@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -81,7 +81,7 @@ const int BALL_HEIGHT = 3 * PROP;
 const int BLOCK_WIDTH = 10 * PROP;
 const int BLOCK_HEIGHT = 5 * PROP;
 
-const int RACKET_WIDTH = 18 * PROP;
+const int RACKET_WIDTH = 13 * PROP;
 const int RACKET_HEIGHT = 2 * PROP;
 
 /* Fixed framerate
@@ -94,8 +94,8 @@ const int RACKET_HEIGHT = 2 * PROP;
 const unsigned int TICK_INTERVAL = 17;
 
 // Speed multiplier
-const int BALL_SPEED = 5;
-const int BALL_MAX_SPEED = 12;
+const int BALL_SPEED = 8;
+const int BALL_MAX_SPEED = 11;
 
 // Amount of balls on screen
 #define LEN 1
@@ -307,7 +307,7 @@ void game(void) {
     z = 58; // = 42 + 4² (magic number)
     player = createRACKET(RACKET_WIDTH * l - z,  // int posX
                              RACKET_HEIGHT * m,  // int posY
-                                             5,  // int stepX
+                                    BALL_SPEED,  // int stepX
                                 gPLAYERSurface,  // SDL_Surface *image
                                              0,  // int score
                                              3,  // int lives
