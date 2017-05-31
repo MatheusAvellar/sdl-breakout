@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -684,6 +684,8 @@ int moveNPC(NPC *p) {
         p->stepY = absolute(p->stepY);
         p->posY = 0;
     }
+
+    if(!ballGame) p->posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
     return 0;
 }
 
