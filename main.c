@@ -94,7 +94,7 @@ const int RACKET_HEIGHT = 2 * PROP;
 const unsigned int TICK_INTERVAL = 17;
 
 // Speed multiplier
-const int BALL_SPEED = 8;
+const int BALL_SPEED = 7; 
 const int BALL_MAX_SPEED = 11;
 
 // Amount of balls on screen
@@ -646,8 +646,13 @@ void newLevel(void) {
 
   for (k = 0; k < LEN; k++) {
     player.score += 1000;
+
     ball[k].posY = player.posY - BALL_HEIGHT;
     ball[k].posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
+    ball[k].stepX = 0;
+    ball[k].stepY = 0;
+    ballGame = false;
+
     for (i = 0; i < COLUMNS; i++) {
         for (j = 0; j < LINES; j++) {
             brick[i][j].resist = 1;
