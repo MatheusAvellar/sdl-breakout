@@ -145,6 +145,9 @@ static Uint32 next_time;
 int levelClear = COLUMNS*LINES;
 int level = 1;
 
+// Check if ball is in game
+int ballGame;
+
 /*
  * Function Prototypes
  */
@@ -279,19 +282,7 @@ void game(void) {
     // Main loop flag
     int quit = false;
 
-    // Create NPC
-    int _posX = SCREEN_WIDTH / 2 - BALL_WIDTH / 2;
-    int _posY = SCREEN_HEIGHT / 2 - BALL_HEIGHT / 2;
-
-    for (i= 0; i < LEN; i++) {
-        ball[i] = createNPC(_posX, _posY,
-                    /* TODO: Ball should start over racket and only go when
-                     * user presses the space key
-                     */
-                    rand() % 2 ? -1 : 1,
-                    rand() % 2 ? -1 : 1,
-                    gBall);
-    }
+    ballGame = false;
 
     //Create BRICKS
     for (i = 0; i < COLUMNS; i++) {
@@ -315,6 +306,20 @@ void game(void) {
     player._left = false;
     player._right = false;
 
+    // Create NPC
+    int _posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
+    int _posY = player.posY - BALL_HEIGHT;
+
+    for (i= 0; i < LEN; i++) {
+        ball[i] = createNPC(_posX, _posY,
+                    /* TODO: Ball should start over racket and only go when
+                     * user presses the space key
+                     */
+                    0,
+                    0,
+                    gBall);
+    }
+
     // While application is running
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
@@ -333,11 +338,15 @@ void game(void) {
                                 || e.key.keysym.sym == SDLK_RIGHT
                                 || e.key.keysym.sym == SDLK_d;
 
-                    /*
-                     * if (e.key.keysym.sym == SDLK_SPACE) {
-                     *     TODO: Start level by pressing space
-                     * }
-                     */
+
+                    if ((e.key.keysym.sym == SDLK_SPACE) && (!ballGame)) {
+                      for (i = 0; i < LEN; i++) {
+                         ball[i].stepX = rand() % 2 ? -1 : 1;
+                         ball[i].stepY = -1;
+                         ballGame = true;
+                      }
+                    }
+
                     break;
                 case SDL_KEYUP:
                     if (e.key.keysym.sym == SDLK_a) player._left = false;
@@ -365,6 +374,10 @@ void game(void) {
 
                     ball[i].posY = player.posY - BALL_HEIGHT;
                     ball[i].posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
+                    ball[i].stepX = 0;
+                    ball[i].stepY = 0;
+
+                    ballGame = false;
 
                     if(player.lives < 0) {
                         /* TODO: Player is out of lives -- Game over */
@@ -447,7 +460,7 @@ void game(void) {
         collisionBrick();
 
         // Collision between ball and racket
-        collisionRacket();
+        if (ballGame) collisionRacket();
 
         // For testing purposes only
         if(player.score > _temp_score) {
