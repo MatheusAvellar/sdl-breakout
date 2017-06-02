@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -116,7 +116,7 @@ const int BALL_MAX_SPEED = 11;
  */
 
 // Define game screen
-int gameScreen = 1;
+int gameScreen = 0;
 
 // The window to render to
 SDL_Window* gWindow = NULL;
@@ -207,6 +207,9 @@ int absolute(int n);
 // New Level
 void newLevel(void);
 
+// Main loop flag
+int quit = 0;
+
 
 int main(int argc, char* args[]) {
 
@@ -216,13 +219,15 @@ int main(int argc, char* args[]) {
         return 1;
     }
 
-    if (gameScreen == 0) {
-        menu();
-    } else if (gameScreen == 1) {
-        game();
-    } else {
-        printf("Error: game screen is invalid\n");
-        return 1;
+    while (!quit) {
+      if (gameScreen == 0) {
+          menu();
+      } else if (gameScreen == 1) {
+          game();
+      } else {
+          printf("Error: game screen is invalid\n");
+          return 1;
+      }
     }
 
     // Frees resources and closes SDL
@@ -236,13 +241,23 @@ int main(int argc, char* args[]) {
 }
 
 void menu(void) {
-    // Main loop flag
-    int quit = false;
+
+    SDL_Rect button1;
+    button1.x = 50;
+    button1.y = 525;
+    button1.w = 150;
+    button1.h = 50;
+
+    //mouse position
+    int mouseX, mouseY;
 
     // Event handler
     SDL_Event e;
 
     while (!quit) {
+      //get current mouse position
+      SDL_GetMouseState (&mouseX, &mouseY);
+
         while (SDL_PollEvent(&e) != 0) {
             switch (e.type) {
                 case SDL_QUIT:
@@ -257,12 +272,47 @@ void menu(void) {
                     break;
             }
         }
+
+        //Check if mouse is over button
+        if (mouseX >= button1.x
+        && mouseX <= button1.x + button1.w
+        && mouseY >= button1.y
+        && mouseY <= button1.y + button1.h) {
+
+          //Check if button is pressed
+          if (SDL_GetMouseState(NULL, NULL)
+              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                gameScreen = 1;
+                return 0;
+          }
+
+        }
+
         // Fill the surface with #000000 (black)
-        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
-                                                    0x00, 0x00, 0x00));
+        //SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
+        //                                            0x00, 0x00, 0x00));
+
+        // Setup renderer
+        SDL_Renderer* renderer = NULL;
+        renderer =  SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED);
+
+        // Set render color to red ( background will be rendered in this color )
+        SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
+
+        // Clear winow
+        SDL_RenderClear( renderer );
+
+        // Set render color ( rect will be rendered in this color )
+        SDL_SetRenderDrawColor( renderer, 71, 127, 216, 255 );
+
+        // Render rect
+        SDL_RenderFillRect( renderer, &button1 );
+
+        // Render the rect to the screen
+        SDL_RenderPresent(renderer);
 
         // Update the surface
-        SDL_UpdateWindowSurface(gWindow);
+        //SDL_UpdateWindowSurface(gWindow);
 
         // Normalize framerate
         SDL_Delay(time_left());
@@ -278,9 +328,6 @@ void game(void) {
 
     // Event handler
     SDL_Event e;
-
-    // Main loop flag
-    int quit = false;
 
     ballGame = false;
 
