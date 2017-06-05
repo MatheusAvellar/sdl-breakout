@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -164,6 +164,7 @@ void close(void);
 // Game states
 void menu(void);
 void game(void);
+//void options(void);
 
 // Loads individual image
 SDL_Surface* loadSurface(char *path);
@@ -224,6 +225,8 @@ int main(int argc, char* args[]) {
           menu();
       } else if (gameScreen == 1) {
           game();
+      //} else if (gameScreen == 2) {
+        //  options();
       } else {
           printf("Error: game screen is invalid\n");
           return 1;
@@ -242,11 +245,23 @@ int main(int argc, char* args[]) {
 
 void menu(void) {
 
-    SDL_Rect button1;
-    button1.x = 50;
-    button1.y = 525;
-    button1.w = 150;
-    button1.h = 50;
+    SDL_Rect buttonplay;
+    buttonplay.x = 200;
+    buttonplay.y = 175;
+    buttonplay.w = 400;
+    buttonplay.h = 50;
+
+    SDL_Rect buttonquit;
+    buttonquit.x = 250;
+    buttonquit.y = 375;
+    buttonquit.w = 300;
+    buttonquit.h = 50;
+
+    SDL_Rect buttonoptions;
+    buttonoptions.x = 225;
+    buttonoptions.y = 275;
+    buttonoptions.w = 350;
+    buttonoptions.h = 50;
 
     //mouse position
     int mouseX, mouseY;
@@ -273,19 +288,48 @@ void menu(void) {
             }
         }
 
-        //Check if mouse is over button
-        if (mouseX >= button1.x
-        && mouseX <= button1.x + button1.w
-        && mouseY >= button1.y
-        && mouseY <= button1.y + button1.h) {
+        //Check if mouse is over buttonplay
+        if (mouseX >= buttonplay.x
+        && mouseX <= buttonplay.x + buttonplay.w
+        && mouseY >= buttonplay.y
+        && mouseY <= buttonplay.y + buttonplay.h) {
 
-          //Check if button is pressed
+          //Check if buttonplay is pressed
           if (SDL_GetMouseState(NULL, NULL)
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 gameScreen = 1;
                 return 0;
           }
 
+        }
+
+        //Check if mouse is over buttonquit
+        if (mouseX >= buttonquit.x
+        && mouseX <= buttonquit.x + buttonquit.w
+        && mouseY >= buttonquit.y
+        && mouseY <= buttonquit.y + buttonquit.h) {
+
+          //Check if buttonquit is pressed
+          if (SDL_GetMouseState(NULL, NULL)
+              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                quit = true;
+                break;
+              }
+        }
+
+        //Check if mouse is over buttonoptions
+        if (mouseX >= buttonoptions.x
+        && mouseX <= buttonoptions.x + buttonoptions.w
+        && mouseY >= buttonoptions.y
+        && mouseY <= buttonoptions.y + buttonoptions.h) {
+
+          //Check if buttonplay is pressed
+          if (SDL_GetMouseState(NULL, NULL)
+              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                quit = true;
+                break;
+                return 0;
+          }
         }
 
         // Fill the surface with #000000 (black)
@@ -296,19 +340,37 @@ void menu(void) {
         SDL_Renderer* renderer = NULL;
         renderer =  SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED);
 
-        // Set render color to red ( background will be rendered in this color )
+        // Set render color to black ( background will be rendered in this color )
         SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
 
-        // Clear winow
+        // Clear window
         SDL_RenderClear( renderer );
 
-        // Set render color ( rect will be rendered in this color )
+        // Set render color ( rect play will be rendered in this color )
         SDL_SetRenderDrawColor( renderer, 71, 127, 216, 255 );
 
-        // Render rect
-        SDL_RenderFillRect( renderer, &button1 );
+        // Render rect play
+        SDL_RenderFillRect( renderer, &buttonplay );
 
-        // Render the rect to the screen
+        // Render the rect play to the screen
+        SDL_RenderPresent(renderer);
+
+        // Set render color ( rect quit will be rendered in this color )
+        SDL_SetRenderDrawColor( renderer, 100, 0, 0, 255 );
+
+        // Render rect quit
+        SDL_RenderFillRect( renderer, &buttonquit );
+
+        // Render the rect quit to the screen
+        SDL_RenderPresent(renderer);
+
+        // Set render color ( rect options will be rendered in this color )
+        SDL_SetRenderDrawColor( renderer, 0, 200, 0, 255 );
+
+        // Render rect options
+        SDL_RenderFillRect( renderer, &buttonoptions );
+
+        // Render the rect options to the screen
         SDL_RenderPresent(renderer);
 
         // Update the surface
@@ -319,6 +381,9 @@ void menu(void) {
         next_time += TICK_INTERVAL;
     }
 }
+
+//void options(void) {
+//}
 
 void game(void) {
     // Iteration variables
@@ -428,10 +493,13 @@ void game(void) {
 
                     if(player.lives < 0) {
                         /* TODO: Player is out of lives -- Game over */
-                        if(_DEBUG) printf("[Player is out of lives!] %d\n", player.lives);
-                        player.score=0;
-                        player.lives=3;
-                        newLevel();
+                        if(_DEBUG) {
+                            printf("[Player is out of lives!] %d\n", player.lives);
+                            //menu();
+                            newLevel();
+                            player.score = 0;
+                            player.lives = 3;
+                            }
                     }
 
                 }
@@ -513,10 +581,11 @@ void game(void) {
         if (ballGame) collisionRacket();
 
         // For testing purposes only
-        if(player.score > _temp_score) {
+        if(player.score != _temp_score)
+            printf("[Score: %d]\n", player.score);
+        if(player.score > _temp_score || player.score == 0) {
             _temp_score = player.score;
-            if(_DEBUG) printf("[Score: %d]\n", player.score);
-        }
+          }
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
