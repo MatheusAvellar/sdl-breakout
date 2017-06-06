@@ -252,9 +252,9 @@ void menu(void) {
     buttonplay.h = 50;
 
     SDL_Rect buttonquit;
-    buttonquit.x = 250;
-    buttonquit.y = 375;
-    buttonquit.w = 300;
+    buttonquit.x = 720;
+    buttonquit.y = 25;
+    buttonquit.w = 50;
     buttonquit.h = 50;
 
     SDL_Rect buttonoptions;
@@ -262,6 +262,12 @@ void menu(void) {
     buttonoptions.y = 275;
     buttonoptions.w = 350;
     buttonoptions.h = 50;
+
+    SDL_Rect buttonrankings;
+    buttonrankings.x = 250;
+    buttonrankings.y = 375;
+    buttonrankings.w = 300;
+    buttonrankings.h = 50;
 
     //mouse position
     int mouseX, mouseY;
@@ -332,6 +338,22 @@ void menu(void) {
           }
         }
 
+        //Check if mouse is over buttonrankings
+        if (mouseX >= buttonrankings.x
+        && mouseX <= buttonrankings.x + buttonrankings.w
+        && mouseY >= buttonrankings.y
+        && mouseY <= buttonrankings.y + buttonrankings.h) {
+
+          //Check if buttonrankings is pressed
+          if (SDL_GetMouseState(NULL, NULL)
+              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                quit = true;
+                break;
+                return 0;
+          }
+
+        }
+
         // Fill the surface with #000000 (black)
         //SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
         //                                            0x00, 0x00, 0x00));
@@ -371,6 +393,15 @@ void menu(void) {
         SDL_RenderFillRect( renderer, &buttonoptions );
 
         // Render the rect options to the screen
+        SDL_RenderPresent(renderer);
+
+        // Set render color ( rect rankings will be rendered in this color )
+        SDL_SetRenderDrawColor( renderer, 250, 220, 0, 255 );
+
+        // Render rect rankings
+        SDL_RenderFillRect( renderer, &buttonrankings );
+
+        // Render the rect rankings to the screen
         SDL_RenderPresent(renderer);
 
         // Update the surface
