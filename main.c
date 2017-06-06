@@ -304,7 +304,7 @@ void menu(void) {
           if (SDL_GetMouseState(NULL, NULL)
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 gameScreen = 1;
-                return 0;
+                //return 0;
           }
 
         }
@@ -320,6 +320,7 @@ void menu(void) {
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 quit = true;
                 break;
+                //return 0;
               }
         }
 
@@ -334,7 +335,7 @@ void menu(void) {
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 quit = true;
                 break;
-                return 0;
+                //return 0;
           }
         }
 
@@ -349,7 +350,7 @@ void menu(void) {
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 quit = true;
                 break;
-                return 0;
+                //return 0;
           }
 
         }
