@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -146,6 +146,7 @@ SDL_Surface* gPLAYERSurface = NULL;
 SDL_Surface * buttonplay = NULL;
 SDL_Surface * buttonoptions = NULL;
 SDL_Surface * buttonrankings = NULL;
+SDL_Surface * breakout = NULL;
 
 // Image for rectangle
 SDL_Surface * rectangle = NULL;
@@ -258,19 +259,24 @@ int main(int argc, char* args[]) {
 void menu(void) {
 
     int buttonplay_x = 300;
-    int buttonplay_y = 205;
+    int buttonplay_y = 255;
     int buttonplay_w = 400;
     int buttonplay_h = 50;
 
     int buttonoptions_x = 325;
-    int buttonoptions_y = 325;
+    int buttonoptions_y = 375;
     int buttonoptions_w = 350;
     int buttonoptions_h = 50;
 
     int buttonrankings_x = 350;
-    int buttonrankings_y = 445;
+    int buttonrankings_y = 495;
     int buttonrankings_w = 300;
     int buttonrankings_h = 50;
+
+    int breakout_x = 100;
+    int breakout_y = 20;
+    int breakout_w = 800;
+    int breakout_h = 160;
 
     // Mouse position
     int mouseX, mouseY;
@@ -380,6 +386,13 @@ void menu(void) {
         if (drawOnScreen(buttonrankings, 0, 0,
           buttonrankings_w, buttonrankings_h,
           buttonrankings_x, buttonrankings_y) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+        }
+
+        if (drawOnScreen(breakout, 0, 0,
+          breakout_w, breakout_h,
+          breakout_x, breakout_y) < 0) {
             error(ERR_BLIT);
             quit = true;
         }
@@ -960,6 +973,11 @@ int loadMedia(void) {
     }
 
     if ((buttonrankings = loadSurface("./images/rankingbutton.png")) == NULL) {
+      error(ERR_IMG_LOAD);
+      return false;
+    }
+
+    if ((breakout = loadSurface("./images/breakout.png")) == NULL) {
       error(ERR_IMG_LOAD);
       return false;
     }
