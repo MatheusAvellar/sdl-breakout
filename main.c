@@ -911,8 +911,8 @@ int init(void) {
 
     // Create window
     gWindow = SDL_CreateWindow("SDL Breakout",
-                            SDL_WINDOWPOS_UNDEFINED,
-                            SDL_WINDOWPOS_UNDEFINED,
+                            200,
+                            70,
                             SCREEN_WIDTH,
                             SCREEN_HEIGHT,
                             SDL_WINDOW_SHOWN);
