@@ -537,11 +537,13 @@ void game(void) {
                         /* TODO: Player is out of lives -- Game over */
                         if(_DEBUG) {
                             printf("[Player is out of lives!] %d\n", player.lives);
-                            // menu();
                             newLevel();
                             player.score = 0;
                             player.aux_score = 0;
                             player.lives = 3;
+                            player._left = false;
+                            player._right = false;
+                            menu();
                         }
                     }
 
@@ -952,49 +954,12 @@ int loadMedia(void) {
     || (buttonplay = loadSurface("./images/newgamebutton.png")) == NULL
     || (buttonoptions = loadSurface("./images/optionsbutton.png")) == NULL
     || (buttonrankings = loadSurface("./images/rankingbutton.png")) == NULL
-    || (side_bar = loadSurface("./images/side_bar.png")) == NULL) {
+    || (side_bar = loadSurface("./images/side_bar.png")) == NULL
+    || (breakout = loadSurface("./images/breakout.png")) == NULL) {
         error(ERR_IMG_LOAD);
         return false;
     }
 
-<<<<<<< HEAD
-    if((gBRICKSurface = loadSurface("./images/brick.png")) == NULL) {
-        error(ERR_IMG_LOAD);
-        return false;
-    }
-
-    if((gPLAYERSurface = loadSurface("./images/racket.png")) == NULL) {
-        error(ERR_IMG_LOAD);
-        return false;
-    }
-
-    if ((buttonplay = loadSurface("./images/newgamebutton.png")) == NULL) {
-      error(ERR_IMG_LOAD);
-      return false;
-    }
-
-    if ((buttonoptions = loadSurface("./images/optionsbutton.png")) == NULL) {
-      error(ERR_IMG_LOAD);
-      return false;
-    }
-
-    if ((buttonrankings = loadSurface("./images/rankingbutton.png")) == NULL) {
-      error(ERR_IMG_LOAD);
-      return false;
-    }
-
-    if ((breakout = loadSurface("./images/breakout.png")) == NULL) {
-      error(ERR_IMG_LOAD);
-      return false;
-    }
-
-    if ((rectangle = loadSurface("./images/rectangle.png")) == NULL) {
-      error(ERR_IMG_LOAD);
-      return false;
-    }
-
-=======
->>>>>>> c8015547da418028c472928ec6550251bad9696c
     // Color key
     SDL_SetColorKey(gBall, SDL_TRUE,
                     SDL_MapRGB(gBall->format, 0xff, 0xAE, 0xC9));
