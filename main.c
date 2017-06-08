@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,6 +51,7 @@ typedef struct _RACKET {
     int _left;
     int _right;
     int score;
+    int aux_score;
     int lives;
     float factor;
 } RACKET;
@@ -69,8 +70,8 @@ typedef struct _RACKET {
 #define PROP 10
 
 // Screen dimension constants
-const int SCREEN_WIDTH = 80 * PROP;
-const int SCREEN_HEIGHT = 60 * PROP;
+const int SCREEN_WIDTH = 100 * PROP;
+const int SCREEN_HEIGHT = 70 * PROP;
 
 const int false = 0;
 const int true = 1;
@@ -94,7 +95,7 @@ const int RACKET_HEIGHT = 2 * PROP;
 const unsigned int TICK_INTERVAL = 17;
 
 // Speed multiplier
-const int BALL_SPEED = 7;
+const int BALL_SPEED = 9;
 const int BALL_MAX_SPEED = 11;
 
 // Amount of balls on screen
@@ -102,7 +103,7 @@ const int BALL_MAX_SPEED = 11;
 
 // Amount of brick on screen
 #define COLUMNS 8
-#define LINES 4
+#define LINES 5
 
 // Error codes
 #define ERR_INIT 0
@@ -140,7 +141,6 @@ SDL_Surface* gPLAYERSurface = NULL;
 
 // Image for buttons
 SDL_Surface * buttonplay = NULL;
-SDL_Surface * buttonquit = NULL;
 SDL_Surface * buttonoptions = NULL;
 SDL_Surface * buttonrankings = NULL;
 
@@ -183,7 +183,7 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image);
 
 // Create RACKET
 RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
-                    int score, int lives, float factor);
+                    int score, int aux_score, int lives, float factor);
 
 // Updates NPC position via stepX and stepY
 int moveNPC(NPC *p);
@@ -251,23 +251,18 @@ int main(int argc, char* args[]) {
 
 void menu(void) {
 
-    int buttonplay_x = 200;
-    int buttonplay_y = 175;
+    int buttonplay_x = 300;
+    int buttonplay_y = 205;
     int buttonplay_w = 400;
     int buttonplay_h = 50;
 
-    int buttonquit_x = 720;
-    int buttonquit_y = 25;
-    int buttonquit_w = 50;
-    int buttonquit_h = 50;
-
-    int buttonoptions_x = 225;
-    int buttonoptions_y = 275;
+    int buttonoptions_x = 325;
+    int buttonoptions_y = 325;
     int buttonoptions_w = 350;
     int buttonoptions_h = 50;
 
-    int buttonrankings_x = 250;
-    int buttonrankings_y = 375;
+    int buttonrankings_x = 350;
+    int buttonrankings_y = 445;
     int buttonrankings_w = 300;
     int buttonrankings_h = 50;
 
@@ -309,21 +304,6 @@ void menu(void) {
                 return;
           }
 
-        }
-
-        //Check if mouse is over buttonquit
-        if (mouseX >= buttonquit_x
-        && mouseX <= buttonquit_x + buttonquit_w
-        && mouseY >= buttonquit_y
-        && mouseY <= buttonquit_y + buttonquit_h) {
-
-          //Check if buttonquit is pressed
-          if (SDL_GetMouseState(NULL, NULL)
-              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                quit = true;
-                break;
-                return;
-              }
         }
 
         //Check if mouse is over buttonoptions
@@ -368,13 +348,6 @@ void menu(void) {
             quit = true;
         }
 
-        if (drawOnScreen(buttonquit, 0, 0,
-          buttonquit_w, buttonquit_h,
-          buttonquit_x, buttonquit_y) < 0) {
-            error(ERR_BLIT);
-            quit = true;
-        }
-
         if (drawOnScreen(buttonoptions, 0, 0,
           buttonoptions_w, buttonoptions_h,
           buttonoptions_x, buttonoptions_y) < 0) {
@@ -388,7 +361,7 @@ void menu(void) {
             error(ERR_BLIT);
             quit = true;
         }
-        
+
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
 
@@ -422,13 +395,14 @@ void game(void) {
 
     // Create RACKET
     l = 2;
-    m = 28;
-    z = 58; // = 42 + 4² (magic number)
-    player = createRACKET(RACKET_WIDTH * l - z,  // int posX
+    m = 33;
+    z = 75; // = 42 + 4² (magic number)
+    player = createRACKET(RACKET_WIDTH * l + z,  // int posX
                              RACKET_HEIGHT * m,  // int posY
-                                    BALL_SPEED,  // int stepX
+                                    (BALL_SPEED-1),  // int stepX
                                 gPLAYERSurface,  // SDL_Surface *image
                                              0,  // int score
+                                             0,  // int aux_score
                                              3,  // int lives
                                           2.2);  // float factor
     player._left = false;
@@ -507,13 +481,14 @@ void game(void) {
 
                     ballGame = false;
 
-                    if(player.lives < 0) {
+                    if(player.lives <= 0) {
                         /* TODO: Player is out of lives -- Game over */
                         if(_DEBUG) {
                             printf("[Player is out of lives!] %d\n", player.lives);
                             //menu();
                             newLevel();
                             player.score = 0;
+                            player.aux_score = 0;
                             player.lives = 3;
                             }
                     }
@@ -574,9 +549,9 @@ void game(void) {
         } else if (player._right) {
             player.stepX = absolute(player.stepX);
 
-            player.posX = player.posX < SCREEN_WIDTH - RACKET_WIDTH
+            player.posX = player.posX < (SCREEN_WIDTH - 200) - RACKET_WIDTH
                         ? player.posX + player.stepX
-                        : SCREEN_WIDTH - RACKET_WIDTH;
+                        : (SCREEN_WIDTH - 200) - RACKET_WIDTH;
         }
 
         // Draw pad
@@ -597,11 +572,18 @@ void game(void) {
         if (ballGame) collisionRacket();
 
         // For testing purposes only
-        if(player.score != _temp_score)
+        if(player.score != _temp_score) {
             printf("[Score: %d]\n", player.score);
+            //player.aux_score = player.score;
+        }
         if(player.score > _temp_score || player.score == 0) {
             _temp_score = player.score;
-          }
+            //player.aux_score = player.score;
+        }
+        if(player.aux_score >= 10000) {
+          player.lives += 1;
+          player.aux_score -= 10000;
+        }
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -656,6 +638,7 @@ void collisionBrick(void) {
                     } else {
                         if(current.resist > 0){
                           player.score += 100;
+                          player.aux_score += 100;
                           levelClear--;
                         }
                         brick[j][k].resist = current.resist-1 < 0
@@ -781,6 +764,7 @@ void newLevel(void) {
 
   for (k = 0; k < LEN; k++) {
     player.score += 1000;
+    player.aux_score += 1000;
 
     ball[k].posY = player.posY - BALL_HEIGHT;
     ball[k].posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
@@ -804,9 +788,9 @@ int moveNPC(NPC *p) {
 
     // If the image is out of bounds on the X axis,
     // invert the direction and reset the position to a valid one
-    if (p->posX + BALL_WIDTH > SCREEN_WIDTH) {
+    if (p->posX + BALL_WIDTH > (SCREEN_WIDTH - 200)) {
         p->stepX = -absolute(p->stepX);
-        p->posX = SCREEN_WIDTH - BALL_WIDTH;
+        p->posX = (SCREEN_WIDTH - 200) - BALL_WIDTH;
     } else if (p->posX < 0) {
         p->stepX = absolute(p->stepX);
         p->posX = 0;
@@ -854,7 +838,7 @@ BLOCK createBLOCK(int posX, int posY, int resist, SDL_Surface *image) {
 
 // Create RACKET
 RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
-                    int score, int lives, float factor) {
+                    int score, int aux_score, int lives, float factor) {
     RACKET p;
 
     p.posX = posX;
@@ -862,6 +846,7 @@ RACKET createRACKET(int posX, int posY, int stepX, SDL_Surface *image,
     p.stepX = stepX;
     p.image = image;
     p.score = score;
+    p.aux_score = aux_score;
     p.lives = lives;
     p.factor = factor;
     return p;
@@ -932,11 +917,6 @@ int loadMedia(void) {
     }
 
     if ((buttonplay = loadSurface("./images/newgamebutton.png")) == NULL) {
-      error(ERR_IMG_LOAD);
-      return false;
-    }
-
-    if ((buttonquit = loadSurface("./images/quitbutton.png")) == NULL) {
       error(ERR_IMG_LOAD);
       return false;
     }
