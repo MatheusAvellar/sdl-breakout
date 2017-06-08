@@ -147,8 +147,8 @@ SDL_Surface * buttonplay = NULL;
 SDL_Surface * buttonoptions = NULL;
 SDL_Surface * buttonrankings = NULL;
 
-// Image for rectangle
-SDL_Surface * rectangle = NULL;
+// Image for side_bar
+SDL_Surface * side_bar = NULL;
 
 // Control variable for optimal FPS handling
 static Uint32 next_time;
@@ -158,7 +158,7 @@ int levelClear = COLUMNS*LINES;
 int level = 1;
 
 // Check if ball is in game
-int ballGame;
+int ball_in_game;
 
 /*
  * Function Prototypes
@@ -405,7 +405,7 @@ void game(void) {
     // Event handler
     SDL_Event e;
 
-    ballGame = false;
+    ball_in_game = false;
 
     //Create BRICKS
     for (i = 0; i < COLUMNS; i++) {
@@ -463,11 +463,11 @@ void game(void) {
                                 || e.key.keysym.sym == SDLK_RIGHT
                                 || e.key.keysym.sym == SDLK_d;
 
-                    if(e.key.keysym.sym == SDLK_SPACE && !ballGame) {
+                    if(e.key.keysym.sym == SDLK_SPACE && !ball_in_game) {
                         for (i = 0; i < LEN; i++) {
                             ball[i].stepX = rand() % 2 ? -1 : 1;
                             ball[i].stepY = -1;
-                            ballGame = true;
+                            ball_in_game = true;
                         }
                     }
                     break;
@@ -488,8 +488,23 @@ void game(void) {
 
         // Fill the surface with #99d9ea (light blue)
         SDL_FillRect(gScreenSurface, NULL,
-                  SDL_MapRGB(gScreenSurface->format,
-                              0x99, 0xD9, 0xEA));
+                    SDL_MapRGB(gScreenSurface->format, 0x99, 0xD9, 0xEA));
+
+        if(!gPause) {
+            if(player._left) {
+                player.stepX = -absolute(player.stepX);
+
+                player.posX = player.posX > 0
+                            ? player.posX + player.stepX
+                            : 0;
+            } else if(player._right) {
+                player.stepX = absolute(player.stepX);
+
+                player.posX = player.posX < (SCREEN_WIDTH - 200) - RACKET_WIDTH
+                            ? player.posX + player.stepX
+                            : (SCREEN_WIDTH - 200) - RACKET_WIDTH;
+            }
+        }
 
         for (i= 0; i < LEN; i++) {
             if (levelClear) {
@@ -503,13 +518,13 @@ void game(void) {
                     ball[i].stepX = 0;
                     ball[i].stepY = 0;
 
-                    ballGame = false;
+                    ball_in_game = false;
 
                     if(player.lives <= 0) {
                         /* TODO: Player is out of lives -- Game over */
                         if(_DEBUG) {
                             printf("[Player is out of lives!] %d\n", player.lives);
-                            //menu();
+                            // menu();
                             newLevel();
                             player.score = 0;
                             player.aux_score = 0;
@@ -519,7 +534,7 @@ void game(void) {
 
                 }
 
-                if (drawOnScreen(ball[i].image, 0, 0,
+                if(drawOnScreen(ball[i].image, 0, 0,
                             BALL_WIDTH,
                             BALL_HEIGHT,
                             ball[i].posX,
@@ -562,24 +577,8 @@ void game(void) {
             }
         }
 
-        if(!gPause) {
-            if(player._left) {
-                player.stepX = -absolute(player.stepX);
-
-                player.posX = player.posX > 0
-                            ? player.posX + player.stepX
-                            : 0;
-            } else if(player._right) {
-                player.stepX = absolute(player.stepX);
-
-                player.posX = player.posX < (SCREEN_WIDTH - 200) - RACKET_WIDTH
-                            ? player.posX + player.stepX
-                            : (SCREEN_WIDTH - 200) - RACKET_WIDTH;
-            }
-        }
-
         // Draw pad
-        if (drawOnScreen(player.image, 0, 0,
+        if(drawOnScreen(player.image, 0, 0,
                         RACKET_WIDTH, RACKET_HEIGHT,
                         player.posX, player.posY) < 0) {
             error(ERR_BLIT);
@@ -587,8 +586,8 @@ void game(void) {
         }
 
 
-        // Draw rectangle
-        if (drawOnScreen(rectangle, 0, 0,
+        // Draw side_bar
+        if(drawOnScreen(side_bar, 0, 0,
                         200, 700,
                         SCREEN_WIDTH - 200, 0) < 0) {
             error(ERR_BLIT);
@@ -602,10 +601,10 @@ void game(void) {
         collisionBrick();
 
         // Collision between ball and racket
-        if (ballGame) collisionRacket();
+        if(ball_in_game) collisionRacket();
 
         // For testing purposes only
-        if(player.score != _temp_score) {
+        if(_DEBUG && player.score != _temp_score) {
             printf("[Score: %d]\n", player.score);
             //player.aux_score = player.score;
         }
@@ -614,8 +613,8 @@ void game(void) {
             //player.aux_score = player.score;
         }
         if(player.aux_score >= 10000) {
-          player.lives += 1;
-          player.aux_score -= 10000;
+            player.lives += 1;
+            player.aux_score -= 10000;
         }
 
         // Update the surface
@@ -665,8 +664,8 @@ void collisionBrick(void) {
                 int left = ball[i].posX <= current.posX + BLOCK_WIDTH;
                 int right = ball[i].posX + BALL_WIDTH >= current.posX;
 
-                if (current.resist && over && under && left && right) {
-                    if (current.resist < 0) {
+                if(current.resist && over && under && left && right) {
+                    if(current.resist < 0) {
                         brick[j][k].resist = 0;
                     } else {
                         if(current.resist > 0){
@@ -792,27 +791,27 @@ void collisionRacket(void) {
 }
 
 void newLevel(void) {
-  //Iteration variables
-  int i, j, k;
+    // Iteration variables
+    int i, j, k;
 
-  for (k = 0; k < LEN; k++) {
-    player.score += 1000;
-    player.aux_score += 1000;
+    for (k = 0; k < LEN; k++) {
+        player.score += 1000;
+        player.aux_score += 1000;
 
-    ball[k].posY = player.posY - BALL_HEIGHT;
-    ball[k].posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
-    ball[k].stepX = 0;
-    ball[k].stepY = 0;
-    ballGame = false;
+        ball[k].posY = player.posY - BALL_HEIGHT;
+        ball[k].posX = player.posX + RACKET_WIDTH / 2 - BALL_WIDTH / 2;
+        ball[k].stepX = 0;
+        ball[k].stepY = 0;
+        ball_in_game = false;
 
-    for (i = 0; i < COLUMNS; i++) {
-        for (j = 0; j < LINES; j++) {
-            brick[i][j].resist = 1;
+        for (i = 0; i < COLUMNS; i++) {
+            for (j = 0; j < LINES; j++) {
+                brick[i][j].resist = 1;
+            }
         }
+        levelClear = COLUMNS * LINES;
+        level++;
     }
-    levelClear = COLUMNS*LINES;
-    level++;
-  }
 }
 
 int moveNPC(NPC *p) {
@@ -842,7 +841,7 @@ int moveNPC(NPC *p) {
         p->posY = 0;
     }
 
-    if(!ballGame) p->posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
+    if(!ball_in_game) p->posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
     return 0;
 }
 
@@ -934,39 +933,15 @@ int init(void) {
 int loadMedia(void) {
 
     // Load PNG surface
-    if((gBall = loadSurface("./images/circle.png")) == NULL) {
+    if((gBall = loadSurface("./images/circle.png")) == NULL
+    || (gBRICKSurface = loadSurface("./images/brick.png")) == NULL
+    || (gPLAYERSurface = loadSurface("./images/racket.png")) == NULL
+    || (buttonplay = loadSurface("./images/newgamebutton.png")) == NULL
+    || (buttonoptions = loadSurface("./images/optionsbutton.png")) == NULL
+    || (buttonrankings = loadSurface("./images/rankingbutton.png")) == NULL
+    || (side_bar = loadSurface("./images/side_bar.png")) == NULL) {
         error(ERR_IMG_LOAD);
         return false;
-    }
-
-    if((gBRICKSurface = loadSurface("./images/brick.png")) == NULL) {
-        error(ERR_IMG_LOAD);
-        return false;
-    }
-
-    if((gPLAYERSurface = loadSurface("./images/racket.png")) == NULL) {
-        error(ERR_IMG_LOAD);
-        return false;
-    }
-
-    if ((buttonplay = loadSurface("./images/newgamebutton.png")) == NULL) {
-      error(ERR_IMG_LOAD);
-      return false;
-    }
-
-    if ((buttonoptions = loadSurface("./images/optionsbutton.png")) == NULL) {
-      error(ERR_IMG_LOAD);
-      return false;
-    }
-
-    if ((buttonrankings = loadSurface("./images/rankingbutton.png")) == NULL) {
-      error(ERR_IMG_LOAD);
-      return false;
-    }
-
-    if ((rectangle = loadSurface("./images/rectangle.png")) == NULL) {
-      error(ERR_IMG_LOAD);
-      return false;
     }
 
     // Color key
@@ -980,10 +955,12 @@ int loadMedia(void) {
 
 void close() {
     // Free loaded image
-    SDL_FreeSurface(gBall);
-    gBall = NULL;
-    SDL_FreeSurface(gBRICKSurface);
-    gBRICKSurface = NULL;
+    SDL_FreeSurface(gBall), SDL_FreeSurface(gBRICKSurface),
+    SDL_FreeSurface(gPLAYERSurface), SDL_FreeSurface(buttonplay),
+    SDL_FreeSurface(buttonoptions), SDL_FreeSurface(buttonrankings),
+    SDL_FreeSurface(side_bar);
+    gBall = gBRICKSurface = gPLAYERSurface = NULL;
+    buttonplay = buttonoptions = buttonrankings = side_bar = NULL;
 
     // Destroy window
     SDL_DestroyWindow(gWindow);
