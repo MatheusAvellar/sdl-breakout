@@ -145,6 +145,9 @@ SDL_Surface * buttonplay = NULL;
 SDL_Surface * buttonoptions = NULL;
 SDL_Surface * buttonrankings = NULL;
 
+// Image for rectangle
+SDL_Surface * rectangle = NULL;
+
 // Control variable for optimal FPS handling
 static Uint32 next_time;
 
@@ -593,6 +596,15 @@ void game(void) {
             quit = true;
         }
 
+
+        // Draw rectangle
+        if (drawOnScreen(rectangle, 0, 0,
+                        200, 700,
+                        SCREEN_WIDTH - 200, 0) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+        }
+
         // Collision between balls
         if(LEN > 1) collisionBalls();
 
@@ -958,6 +970,11 @@ int loadMedia(void) {
     }
 
     if ((buttonrankings = loadSurface("./images/rankingbutton.png")) == NULL) {
+      error(ERR_IMG_LOAD);
+      return false;
+    }
+
+    if ((rectangle = loadSurface("./images/rectangle.png")) == NULL) {
       error(ERR_IMG_LOAD);
       return false;
     }
