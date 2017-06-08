@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,6 +50,7 @@ typedef struct _RACKET {
     int imgH;
     int _left;
     int _right;
+    int _pause;
     int score;
     int aux_score;
     int lives;
@@ -424,6 +425,7 @@ void game(void) {
                                           2.2);  // float factor
     player._left = false;
     player._right = false;
+    player._pause = false;
 
     // Create NPC
     int _posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
@@ -457,6 +459,9 @@ void game(void) {
                                 || e.key.keysym.sym == SDLK_RIGHT
                                 || e.key.keysym.sym == SDLK_d;
 
+                    player._pause = player._pause
+                                || e.key.keysym.sym == SDLK_p;
+
 
                     if ((e.key.keysym.sym == SDLK_SPACE) && (!ballGame)) {
                       for (i = 0; i < LEN; i++) {
@@ -472,6 +477,10 @@ void game(void) {
                     if (e.key.keysym.sym == SDLK_LEFT) player._left = false;
                     if (e.key.keysym.sym == SDLK_d) player._right = false;
                     if (e.key.keysym.sym == SDLK_RIGHT) player._right = false;
+                    if ((e.key.keysym.sym == SDLK_p)
+                      && (player._pause == false)) player._pause = true;
+                    if ((e.key.keysym.sym == SDLK_p)
+                      && (player._pause == true)) player._pause = false;
                     break;
                 default:
                     // Supress warnings from [-Wswitch-default] flag
@@ -569,6 +578,11 @@ void game(void) {
             player.posX = player.posX < (SCREEN_WIDTH - 200) - RACKET_WIDTH
                         ? player.posX + player.stepX
                         : (SCREEN_WIDTH - 200) - RACKET_WIDTH;
+        }
+
+        if (player._pause) {
+            //BALL_SPEED = 0;
+            printf ("%d", player._pause);
         }
 
         // Draw pad
