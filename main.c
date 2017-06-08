@@ -399,7 +399,7 @@ void game(void) {
     z = 75; // = 42 + 42 - 9 (magic number)
     player = createRACKET(RACKET_WIDTH * l + z,  // int posX
                              RACKET_HEIGHT * m,  // int posY
-                                    (BALL_SPEED-1),  // int stepX
+                                (BALL_SPEED-1),  // int stepX
                                 gPLAYERSurface,  // SDL_Surface *image
                                              0,  // int score
                                              0,  // int aux_score
