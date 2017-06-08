@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,7 +50,6 @@ typedef struct _RACKET {
     int imgH;
     int _left;
     int _right;
-    int _pause;
     int score;
     int aux_score;
     int lives;
@@ -116,6 +115,9 @@ const int BALL_MAX_SPEED = 11;
 /*
  * Global Variables
  */
+
+// Pause variable
+int gPause;
 
 // Define game screen
 int gameScreen = 0;
@@ -270,15 +272,15 @@ void menu(void) {
     int buttonrankings_w = 300;
     int buttonrankings_h = 50;
 
-    //mouse position
+    // Mouse position
     int mouseX, mouseY;
 
     // Event handler
     SDL_Event e;
 
     while (!quit) {
-      //get current mouse position
-      SDL_GetMouseState (&mouseX, &mouseY);
+        // Get current mouse position
+        SDL_GetMouseState(&mouseX, &mouseY);
 
         while (SDL_PollEvent(&e) != 0) {
             switch (e.type) {
@@ -286,8 +288,7 @@ void menu(void) {
                     quit = true;
                     break;
                 case SDL_KEYDOWN:
-                    if (e.key.keysym.sym == SDLK_ESCAPE)
-                        quit = true;
+                    if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
                 default:
                     // Supress warnings from [-Wswitch-default] flag
@@ -301,15 +302,15 @@ void menu(void) {
         && mouseY >= buttonplay_y
         && mouseY <= buttonplay_y + buttonplay_h) {
 
-          SDL_SetColorKey(buttonplay, SDL_FALSE,
-                          SDL_MapRGB(buttonplay->format, 0x99, 0xD9, 0xEA));
+            SDL_SetColorKey(buttonplay, SDL_FALSE,
+                            SDL_MapRGB(buttonplay->format, 0x99, 0xD9, 0xEA));
 
-          //Check if buttonplay is pressed
-          if (SDL_GetMouseState(NULL, NULL)
-              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            //Check if buttonplay is pressed
+            if (SDL_GetMouseState(NULL, NULL)
+                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 gameScreen = 1;
                 return;
-          }
+            }
 
         }
         else
@@ -428,7 +429,7 @@ void game(void) {
                                           2.2);  // float factor
     player._left = false;
     player._right = false;
-    player._pause = false;
+    gPause = false;
 
     // Create NPC
     int _posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
@@ -452,7 +453,7 @@ void game(void) {
                     quit = true;
                     break;
                 case SDL_KEYDOWN:
-                    if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+                    if(e.key.keysym.sym == SDLK_ESCAPE) quit = true;
 
                     player._left = player._left
                                 || e.key.keysym.sym == SDLK_LEFT
@@ -462,28 +463,22 @@ void game(void) {
                                 || e.key.keysym.sym == SDLK_RIGHT
                                 || e.key.keysym.sym == SDLK_d;
 
-                    player._pause = player._pause
-                                || e.key.keysym.sym == SDLK_p;
-
-
-                    if ((e.key.keysym.sym == SDLK_SPACE) && (!ballGame)) {
-                      for (i = 0; i < LEN; i++) {
-                         ball[i].stepX = rand() % 2 ? -1 : 1;
-                         ball[i].stepY = -1;
-                         ballGame = true;
-                      }
+                    if(e.key.keysym.sym == SDLK_SPACE && !ballGame) {
+                        for (i = 0; i < LEN; i++) {
+                            ball[i].stepX = rand() % 2 ? -1 : 1;
+                            ball[i].stepY = -1;
+                            ballGame = true;
+                        }
                     }
-
                     break;
                 case SDL_KEYUP:
-                    if (e.key.keysym.sym == SDLK_a) player._left = false;
-                    if (e.key.keysym.sym == SDLK_LEFT) player._left = false;
-                    if (e.key.keysym.sym == SDLK_d) player._right = false;
-                    if (e.key.keysym.sym == SDLK_RIGHT) player._right = false;
-                    if ((e.key.keysym.sym == SDLK_p)
-                      && (player._pause == false)) player._pause = true;
-                    if ((e.key.keysym.sym == SDLK_p)
-                      && (player._pause == true)) player._pause = false;
+                    if(e.key.keysym.sym == SDLK_a
+                    || e.key.keysym.sym == SDLK_LEFT) player._left = false;
+
+                    if (e.key.keysym.sym == SDLK_d
+                    || e.key.keysym.sym == SDLK_RIGHT) player._right = false;
+
+                    if (e.key.keysym.sym == SDLK_p) gPause = !gPause;
                     break;
                 default:
                     // Supress warnings from [-Wswitch-default] flag
@@ -499,7 +494,7 @@ void game(void) {
         for (i= 0; i < LEN; i++) {
             if (levelClear) {
                 // Ball hit bottom of screen
-                if(moveNPC(&ball[i])) {
+                if(!gPause && moveNPC(&ball[i])) {
                     player.lives -= 1;
                     if(_DEBUG) printf("[Lives] %d\n", player.lives);
 
@@ -519,7 +514,7 @@ void game(void) {
                             player.score = 0;
                             player.aux_score = 0;
                             player.lives = 3;
-                            }
+                        }
                     }
 
                 }
@@ -554,8 +549,8 @@ void game(void) {
                     blockY = BLOCK_HEIGHT;
                 }
 
-                if (brick[i][j].resist
-                 && drawOnScreen(brick[i][j].image,
+                if(brick[i][j].resist
+                && drawOnScreen(brick[i][j].image,
                                 blockX, blockY,
                                 BLOCK_WIDTH, BLOCK_HEIGHT,
                                 brick[i][j].posX, brick[i][j].posY) < 0) {
@@ -563,29 +558,24 @@ void game(void) {
                     quit = true;
                 }
 
-                if (!levelClear) {
-                    newLevel();
-                }
+                if (!levelClear) newLevel();
             }
         }
 
-        if (player._left) {
-            player.stepX = -absolute(player.stepX);
+        if(!gPause) {
+            if(player._left) {
+                player.stepX = -absolute(player.stepX);
 
-            player.posX = player.posX > 0
-                        ? player.posX + player.stepX
-                        : 0;
-        } else if (player._right) {
-            player.stepX = absolute(player.stepX);
+                player.posX = player.posX > 0
+                            ? player.posX + player.stepX
+                            : 0;
+            } else if(player._right) {
+                player.stepX = absolute(player.stepX);
 
-            player.posX = player.posX < (SCREEN_WIDTH - 200) - RACKET_WIDTH
-                        ? player.posX + player.stepX
-                        : (SCREEN_WIDTH - 200) - RACKET_WIDTH;
-        }
-
-        if (player._pause) {
-            //BALL_SPEED = 0;
-            printf ("%d", player._pause);
+                player.posX = player.posX < (SCREEN_WIDTH - 200) - RACKET_WIDTH
+                            ? player.posX + player.stepX
+                            : (SCREEN_WIDTH - 200) - RACKET_WIDTH;
+            }
         }
 
         // Draw pad
