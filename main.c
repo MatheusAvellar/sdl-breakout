@@ -396,7 +396,7 @@ void game(void) {
     // Create RACKET
     l = 2;
     m = 33;
-    z = 75; // = 42 + 4² (magic number)
+    z = 75; // = 42 + 42 - 9 (magic number)
     player = createRACKET(RACKET_WIDTH * l + z,  // int posX
                              RACKET_HEIGHT * m,  // int posY
                                     (BALL_SPEED-1),  // int stepX
