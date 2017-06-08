@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -297,6 +297,9 @@ void menu(void) {
         && mouseY >= buttonplay_y
         && mouseY <= buttonplay_y + buttonplay_h) {
 
+          SDL_SetColorKey(buttonplay, SDL_FALSE,
+                          SDL_MapRGB(buttonplay->format, 0x99, 0xD9, 0xEA));
+
           //Check if buttonplay is pressed
           if (SDL_GetMouseState(NULL, NULL)
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
@@ -305,12 +308,18 @@ void menu(void) {
           }
 
         }
+        else
+        SDL_SetColorKey(buttonplay, SDL_TRUE,
+                        SDL_MapRGB(buttonplay->format, 0x99, 0xD9, 0xEA));
 
         //Check if mouse is over buttonoptions
         if (mouseX >= buttonoptions_x
         && mouseX <= buttonoptions_x + buttonoptions_w
         && mouseY >= buttonoptions_y
         && mouseY <= buttonoptions_y + buttonoptions_h) {
+
+          SDL_SetColorKey(buttonoptions, SDL_FALSE,
+                          SDL_MapRGB(buttonoptions->format, 0x99, 0xD9, 0xEA));
 
           //Check if buttonoptions is pressed
           if (SDL_GetMouseState(NULL, NULL)
@@ -320,12 +329,18 @@ void menu(void) {
                 return;
           }
         }
+        else
+        SDL_SetColorKey(buttonoptions, SDL_TRUE,
+                        SDL_MapRGB(buttonoptions->format, 0x99, 0xD9, 0xEA));
 
         //Check if mouse is over buttonrankings
         if (mouseX >= buttonrankings_x
         && mouseX <= buttonrankings_x + buttonrankings_w
         && mouseY >= buttonrankings_y
         && mouseY <= buttonrankings_y + buttonrankings_h) {
+
+          SDL_SetColorKey(buttonrankings, SDL_FALSE,
+                          SDL_MapRGB(buttonrankings->format, 0x99, 0xD9, 0xEA));
 
           //Check if buttonrankings is pressed
           if (SDL_GetMouseState(NULL, NULL)
@@ -334,8 +349,10 @@ void menu(void) {
                 break;
                 return;
           }
-
         }
+        else
+        SDL_SetColorKey(buttonrankings, SDL_TRUE,
+                        SDL_MapRGB(buttonrankings->format, 0x99, 0xD9, 0xEA));
 
         // Fill the surface with #000000 (black)
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
