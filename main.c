@@ -13,8 +13,8 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -138,6 +138,12 @@ SDL_Surface* gBRICKSurface = NULL;
 // Current displayed PNG image (racket)
 SDL_Surface* gPLAYERSurface = NULL;
 
+// Image for buttons
+SDL_Surface * buttonplay = NULL;
+SDL_Surface * buttonquit = NULL;
+SDL_Surface * buttonoptions = NULL;
+SDL_Surface * buttonrankings = NULL;
+
 // Control variable for optimal FPS handling
 static Uint32 next_time;
 
@@ -245,29 +251,25 @@ int main(int argc, char* args[]) {
 
 void menu(void) {
 
-    SDL_Rect buttonplay;
-    buttonplay.x = 200;
-    buttonplay.y = 175;
-    buttonplay.w = 400;
-    buttonplay.h = 50;
+    int buttonplay_x = 200;
+    int buttonplay_y = 175;
+    int buttonplay_w = 400;
+    int buttonplay_h = 50;
 
-    SDL_Rect buttonquit;
-    buttonquit.x = 720;
-    buttonquit.y = 25;
-    buttonquit.w = 50;
-    buttonquit.h = 50;
+    int buttonquit_x = 720;
+    int buttonquit_y = 25;
+    int buttonquit_w = 50;
+    int buttonquit_h = 50;
 
-    SDL_Rect buttonoptions;
-    buttonoptions.x = 225;
-    buttonoptions.y = 275;
-    buttonoptions.w = 350;
-    buttonoptions.h = 50;
+    int buttonoptions_x = 225;
+    int buttonoptions_y = 275;
+    int buttonoptions_w = 350;
+    int buttonoptions_h = 50;
 
-    SDL_Rect buttonrankings;
-    buttonrankings.x = 250;
-    buttonrankings.y = 375;
-    buttonrankings.w = 300;
-    buttonrankings.h = 50;
+    int buttonrankings_x = 250;
+    int buttonrankings_y = 375;
+    int buttonrankings_w = 300;
+    int buttonrankings_h = 50;
 
     //mouse position
     int mouseX, mouseY;
@@ -295,118 +297,100 @@ void menu(void) {
         }
 
         //Check if mouse is over buttonplay
-        if (mouseX >= buttonplay.x
-        && mouseX <= buttonplay.x + buttonplay.w
-        && mouseY >= buttonplay.y
-        && mouseY <= buttonplay.y + buttonplay.h) {
+        if (mouseX >= buttonplay_x
+        && mouseX <= buttonplay_x + buttonplay_w
+        && mouseY >= buttonplay_y
+        && mouseY <= buttonplay_y + buttonplay_h) {
 
           //Check if buttonplay is pressed
           if (SDL_GetMouseState(NULL, NULL)
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 gameScreen = 1;
-                //return 0;
+                return;
           }
 
         }
 
         //Check if mouse is over buttonquit
-        if (mouseX >= buttonquit.x
-        && mouseX <= buttonquit.x + buttonquit.w
-        && mouseY >= buttonquit.y
-        && mouseY <= buttonquit.y + buttonquit.h) {
+        if (mouseX >= buttonquit_x
+        && mouseX <= buttonquit_x + buttonquit_w
+        && mouseY >= buttonquit_y
+        && mouseY <= buttonquit_y + buttonquit_h) {
 
           //Check if buttonquit is pressed
           if (SDL_GetMouseState(NULL, NULL)
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 quit = true;
                 break;
-                //return 0;
+                return;
               }
         }
 
         //Check if mouse is over buttonoptions
-        if (mouseX >= buttonoptions.x
-        && mouseX <= buttonoptions.x + buttonoptions.w
-        && mouseY >= buttonoptions.y
-        && mouseY <= buttonoptions.y + buttonoptions.h) {
+        if (mouseX >= buttonoptions_x
+        && mouseX <= buttonoptions_x + buttonoptions_w
+        && mouseY >= buttonoptions_y
+        && mouseY <= buttonoptions_y + buttonoptions_h) {
 
-          //Check if buttonplay is pressed
+          //Check if buttonoptions is pressed
           if (SDL_GetMouseState(NULL, NULL)
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 quit = true;
                 break;
-                //return 0;
+                return;
           }
         }
 
         //Check if mouse is over buttonrankings
-        if (mouseX >= buttonrankings.x
-        && mouseX <= buttonrankings.x + buttonrankings.w
-        && mouseY >= buttonrankings.y
-        && mouseY <= buttonrankings.y + buttonrankings.h) {
+        if (mouseX >= buttonrankings_x
+        && mouseX <= buttonrankings_x + buttonrankings_w
+        && mouseY >= buttonrankings_y
+        && mouseY <= buttonrankings_y + buttonrankings_h) {
 
           //Check if buttonrankings is pressed
           if (SDL_GetMouseState(NULL, NULL)
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 quit = true;
                 break;
-                //return 0;
+                return;
           }
 
         }
 
         // Fill the surface with #000000 (black)
-        //SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
-        //                                            0x00, 0x00, 0x00));
+        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
+                                                    0x00, 0x00, 0x00));
 
-        // Setup renderer
-        SDL_Renderer* renderer = NULL;
-        renderer =  SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED);
+        if (drawOnScreen(buttonplay, 0, 0,
+          buttonplay_w, buttonplay_h,
+          buttonplay_x, buttonplay_y) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+        }
 
-        // Set render color to black ( background will be rendered in this color )
-        SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
+        if (drawOnScreen(buttonquit, 0, 0,
+          buttonquit_w, buttonquit_h,
+          buttonquit_x, buttonquit_y) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+        }
 
-        // Clear window
-        SDL_RenderClear( renderer );
+        if (drawOnScreen(buttonoptions, 0, 0,
+          buttonoptions_w, buttonoptions_h,
+          buttonoptions_x, buttonoptions_y) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+        }
 
-        // Set render color ( rect play will be rendered in this color )
-        SDL_SetRenderDrawColor( renderer, 71, 127, 216, 255 );
-
-        // Render rect play
-        SDL_RenderFillRect( renderer, &buttonplay );
-
-        // Render the rect play to the screen
-        SDL_RenderPresent(renderer);
-
-        // Set render color ( rect quit will be rendered in this color )
-        SDL_SetRenderDrawColor( renderer, 100, 0, 0, 255 );
-
-        // Render rect quit
-        SDL_RenderFillRect( renderer, &buttonquit );
-
-        // Render the rect quit to the screen
-        SDL_RenderPresent(renderer);
-
-        // Set render color ( rect options will be rendered in this color )
-        SDL_SetRenderDrawColor( renderer, 0, 200, 0, 255 );
-
-        // Render rect options
-        SDL_RenderFillRect( renderer, &buttonoptions );
-
-        // Render the rect options to the screen
-        SDL_RenderPresent(renderer);
-
-        // Set render color ( rect rankings will be rendered in this color )
-        SDL_SetRenderDrawColor( renderer, 250, 220, 0, 255 );
-
-        // Render rect rankings
-        SDL_RenderFillRect( renderer, &buttonrankings );
-
-        // Render the rect rankings to the screen
-        SDL_RenderPresent(renderer);
-
+        if (drawOnScreen(buttonrankings, 0, 0,
+          buttonrankings_w, buttonrankings_h,
+          buttonrankings_x, buttonrankings_y) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+        }
+        
         // Update the surface
-        //SDL_UpdateWindowSurface(gWindow);
+        SDL_UpdateWindowSurface(gWindow);
 
         // Normalize framerate
         SDL_Delay(time_left());
@@ -945,6 +929,26 @@ int loadMedia(void) {
     if((gPLAYERSurface = loadSurface("./images/racket.png")) == NULL) {
         error(ERR_IMG_LOAD);
         return false;
+    }
+
+    if ((buttonplay = loadSurface("./images/newgamebutton.png")) == NULL) {
+      error(ERR_IMG_LOAD);
+      return false;
+    }
+
+    if ((buttonquit = loadSurface("./images/quitbutton.png")) == NULL) {
+      error(ERR_IMG_LOAD);
+      return false;
+    }
+
+    if ((buttonoptions = loadSurface("./images/optionsbutton.png")) == NULL) {
+      error(ERR_IMG_LOAD);
+      return false;
+    }
+
+    if ((buttonrankings = loadSurface("./images/rankingbutton.png")) == NULL) {
+      error(ERR_IMG_LOAD);
+      return false;
     }
 
     // Color key
