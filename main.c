@@ -494,11 +494,8 @@ void game(void) {
 
                     if (e.key.keysym.sym == SDLK_p) gPause = !gPause;
                     break;
-                default:
-                    // Supress warnings from [-Wswitch-default] flag
-                    break;
                 case SDL_MOUSEBUTTONDOWN:
-                  if(e.button.button = SDL_BUTTON_LEFT)
+                  if(e.button.button == SDL_BUTTON_LEFT)
                     if (mouseX >= ((SCREEN_WIDTH - 200) + 40)
                     && mouseX <= ((SCREEN_WIDTH - 200) + 40) + 50
                     && mouseY >= 510
@@ -510,6 +507,9 @@ void game(void) {
                     && mouseY >= 510
                     && mouseY <= 510 + 50)
                         gMusic = gMusic == true? false:true;
+                default:
+                    // Supress warnings from [-Wswitch-default] flag
+                    break;
             }
         }
 
