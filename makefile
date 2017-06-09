@@ -2,7 +2,7 @@ CC=gcc
 
 CFLAGS=-g -D_GNU_SOURCE=1 -D_REENTRANT -Wall -W -Wfloat-equal -Wundef -Wshadow -Wpointer-arith -Wstrict-prototypes -Wswitch-default -Wunreachable-code -pedantic #-Wconversion 
 
-SDLFLAGS=-lSDL2 -lSDL2_image
+SDLFLAGS=-lSDL2 -lSDL2_image -lSDL2_mixer
 SOURCE=main.c
 BINARIES=main
 

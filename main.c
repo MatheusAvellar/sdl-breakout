@@ -13,8 +13,9 @@
 #define SDL_MAIN_HANDLED
 #endif
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 /* TODO: #include <SDL2/SDL_ttf.h>*/
 #include <stdio.h>
 #include <stdlib.h>
@@ -111,6 +112,8 @@ const int BALL_MAX_SPEED = 11;
 #define ERR_BLIT 2
 #define ERR_OPTIMIZE 3
 #define ERR_IMG_LOAD 4
+#define ERR_INIT_AUDIO 5
+#define ERR_WAV_LOAD 6
 
 /*
  * Global Variables
@@ -143,13 +146,13 @@ SDL_Surface* gBRICKSurface = NULL;
 SDL_Surface* gPLAYERSurface = NULL;
 
 // Image for buttons
-SDL_Surface * buttonplay = NULL;
-SDL_Surface * buttonoptions = NULL;
-SDL_Surface * buttonrankings = NULL;
-SDL_Surface * breakout = NULL;
+SDL_Surface* buttonplay = NULL;
+SDL_Surface* buttonoptions = NULL;
+SDL_Surface* buttonrankings = NULL;
+SDL_Surface* breakout = NULL;
 
 // Image for side_bar
-SDL_Surface * side_bar = NULL;
+SDL_Surface* side_bar = NULL;
 
 // Control variable for optimal FPS handling
 static Uint32 next_time;
@@ -160,6 +163,9 @@ int level = 1;
 
 // Check if ball is in game
 int ball_in_game;
+
+// Brick breaking sound
+Mix_Chunk* gBrickWAV;
 
 /*
  * Function Prototypes
@@ -302,7 +308,7 @@ void menu(void) {
             }
         }
 
-        //Check if mouse is over buttonplay
+        // Check if mouse is over buttonplay
         if (mouseX >= buttonplay_x
         && mouseX <= buttonplay_x + buttonplay_w
         && mouseY >= buttonplay_y
@@ -311,88 +317,72 @@ void menu(void) {
             SDL_SetColorKey(buttonplay, SDL_FALSE,
                             SDL_MapRGB(buttonplay->format, 0x99, 0xD9, 0xEA));
 
-            //Check if buttonplay is pressed
+            // Check if buttonplay is pressed
             if (SDL_GetMouseState(NULL, NULL)
                 && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 gameScreen = 1;
                 return;
             }
-
+        } else {
+            SDL_SetColorKey(buttonplay, SDL_TRUE,
+                            SDL_MapRGB(buttonplay->format, 0x99, 0xD9, 0xEA));
         }
-        else
-        SDL_SetColorKey(buttonplay, SDL_TRUE,
-                        SDL_MapRGB(buttonplay->format, 0x99, 0xD9, 0xEA));
 
-        //Check if mouse is over buttonoptions
+        // Check if mouse is over buttonoptions
         if (mouseX >= buttonoptions_x
         && mouseX <= buttonoptions_x + buttonoptions_w
         && mouseY >= buttonoptions_y
         && mouseY <= buttonoptions_y + buttonoptions_h) {
 
-          SDL_SetColorKey(buttonoptions, SDL_FALSE,
-                          SDL_MapRGB(buttonoptions->format, 0x99, 0xD9, 0xEA));
+            SDL_SetColorKey(buttonoptions, SDL_FALSE,
+                         SDL_MapRGB(buttonoptions->format, 0x99, 0xD9, 0xEA));
 
-          //Check if buttonoptions is pressed
-          if (SDL_GetMouseState(NULL, NULL)
-              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            // Check if buttonoptions is pressed
+            if(SDL_GetMouseState(NULL, NULL)
+            && SDL_BUTTON(SDL_BUTTON_LEFT)) {
                 quit = true;
-                break;
-                return;
-          }
+            }
+        } else {
+            SDL_SetColorKey(buttonoptions, SDL_TRUE,
+                         SDL_MapRGB(buttonoptions->format, 0x99, 0xD9, 0xEA));
         }
-        else
-        SDL_SetColorKey(buttonoptions, SDL_TRUE,
-                        SDL_MapRGB(buttonoptions->format, 0x99, 0xD9, 0xEA));
 
-        //Check if mouse is over buttonrankings
+        // Check if mouse is over buttonrankings
         if (mouseX >= buttonrankings_x
         && mouseX <= buttonrankings_x + buttonrankings_w
         && mouseY >= buttonrankings_y
         && mouseY <= buttonrankings_y + buttonrankings_h) {
 
-          SDL_SetColorKey(buttonrankings, SDL_FALSE,
-                          SDL_MapRGB(buttonrankings->format, 0x99, 0xD9, 0xEA));
-
-          //Check if buttonrankings is pressed
-          if (SDL_GetMouseState(NULL, NULL)
-              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                quit = true;
-                break;
-                return;
-          }
-        }
-        else
-        SDL_SetColorKey(buttonrankings, SDL_TRUE,
+            SDL_SetColorKey(buttonrankings, SDL_FALSE,
                         SDL_MapRGB(buttonrankings->format, 0x99, 0xD9, 0xEA));
+
+            //C heck if buttonrankings is pressed
+            if(SDL_GetMouseState(NULL, NULL)
+            && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                quit = true;
+            }
+        } else {
+            SDL_SetColorKey(buttonrankings, SDL_TRUE,
+                        SDL_MapRGB(buttonrankings->format, 0x99, 0xD9, 0xEA));
+        }
 
         // Fill the surface with #000000 (black)
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
                                                     0x00, 0x00, 0x00));
 
-        if (drawOnScreen(buttonplay, 0, 0,
-          buttonplay_w, buttonplay_h,
-          buttonplay_x, buttonplay_y) < 0) {
-            error(ERR_BLIT);
-            quit = true;
-        }
-
-        if (drawOnScreen(buttonoptions, 0, 0,
-          buttonoptions_w, buttonoptions_h,
-          buttonoptions_x, buttonoptions_y) < 0) {
-            error(ERR_BLIT);
-            quit = true;
-        }
-
-        if (drawOnScreen(buttonrankings, 0, 0,
-          buttonrankings_w, buttonrankings_h,
-          buttonrankings_x, buttonrankings_y) < 0) {
-            error(ERR_BLIT);
-            quit = true;
-        }
-
-        if (drawOnScreen(breakout, 0, 0,
-          breakout_w, breakout_h,
-          breakout_x, breakout_y) < 0) {
+        if(drawOnScreen(buttonplay, 0, 0,
+                         buttonplay_w, buttonplay_h,
+                         buttonplay_x, buttonplay_y) < 0
+        || drawOnScreen(buttonoptions, 0, 0,
+                         buttonoptions_w, buttonoptions_h,
+                         buttonoptions_x, buttonoptions_y) < 0
+        || drawOnScreen(buttonrankings, 0, 0,
+                         buttonrankings_w, buttonrankings_h,
+                         buttonrankings_x, buttonrankings_y) < 0
+        || drawOnScreen(breakout, 0, 0,
+                         breakout_w, breakout_h,
+                         breakout_x, breakout_y) < 0) {
+            /* TODO: Clean this if condition */
             error(ERR_BLIT);
             quit = true;
         }
@@ -405,9 +395,6 @@ void menu(void) {
         next_time += TICK_INTERVAL;
     }
 }
-
-//void options(void) {
-//}
 
 void game(void) {
     // Iteration variables
@@ -431,7 +418,7 @@ void game(void) {
     // Create RACKET
     l = 2;
     m = 33;
-    z = 75; // = 42 + 42 - 9 (magic number)
+    z = 75; // = 42 + 42 - (4-(4/2²))² (magic number)
     player = createRACKET(RACKET_WIDTH * l + z,  // int posX
                              RACKET_HEIGHT * m,  // int posY
                                 (BALL_SPEED-1),  // int stepX
@@ -449,13 +436,7 @@ void game(void) {
     int _posY = player.posY - BALL_HEIGHT;
 
     for (i= 0; i < LEN; i++) {
-        ball[i] = createNPC(_posX, _posY,
-                    /* TODO: Ball should start over racket and only go when
-                     * user presses the space key
-                     */
-                    0,
-                    0,
-                    gBall);
+        ball[i] = createNPC(_posX, _posY, 0, 0, gBall);
     }
 
     // While application is running
@@ -476,7 +457,8 @@ void game(void) {
                                 || e.key.keysym.sym == SDLK_RIGHT
                                 || e.key.keysym.sym == SDLK_d;
 
-                    if(e.key.keysym.sym == SDLK_SPACE && !ball_in_game) {
+                    if(e.key.keysym.sym == SDLK_SPACE
+                    && !ball_in_game && !gPause) {
                         for (i = 0; i < LEN; i++) {
                             ball[i].stepX = rand() % 2 ? -1 : 1;
                             ball[i].stepY = -1;
@@ -684,13 +666,16 @@ void collisionBrick(void) {
                         brick[j][k].resist = 0;
                     } else {
                         if(current.resist > 0){
-                          player.score += 100;
-                          player.aux_score += 100;
-                          levelClear--;
+                            player.score += 100;
+                            player.aux_score += 100;
+                            levelClear--;
                         }
                         brick[j][k].resist = current.resist-1 < 0
                                     ? 0
                                     : current.resist-1;
+                        if(!brick[j][k].resist) {
+                            Mix_PlayChannel(-1, gBrickWAV, 0);
+                        }
 
                         // Check collision side
                         int ball_half_x = ball[i].posX + BALL_WIDTH / 2;
@@ -909,6 +894,13 @@ int init(void) {
         return false;
     }
 
+    /* Open 44.1KHz, signed 16bit, system byte order,
+            stereo audio, using 1024 byte chunks     */
+    if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
+        error(ERR_INIT_AUDIO);
+        return false;
+    }
+
     // Create window
     gWindow = SDL_CreateWindow("SDL Breakout",
                             200,
@@ -947,7 +939,7 @@ int init(void) {
 
 int loadMedia(void) {
 
-    // Load PNG surface
+    // Load PNG surfaces
     if((gBall = loadSurface("./images/circle.png")) == NULL
     || (gBRICKSurface = loadSurface("./images/brick.png")) == NULL
     || (gPLAYERSurface = loadSurface("./images/racket.png")) == NULL
@@ -965,6 +957,13 @@ int loadMedia(void) {
                     SDL_MapRGB(gBall->format, 0xff, 0xAE, 0xC9));
     SDL_SetColorKey(gPLAYERSurface, SDL_TRUE,
                     SDL_MapRGB(gPLAYERSurface->format, 0xff, 0xAE, 0xC9));
+
+    // Load audios
+    gBrickWAV = Mix_LoadWAV("./sounds/brick.wav");
+    if(!gBrickWAV) {
+        error(ERR_WAV_LOAD);
+        return false;
+    }
 
     return true;
 }
@@ -1053,6 +1052,10 @@ void error(int code) {
         case ERR_IMG_LOAD:
             printf("Unable to load image!");
             break;
+        case ERR_INIT_AUDIO:
+            printf("Audio could not initialize!");
+        case ERR_WAV_LOAD:
+            printf("Unable to load WAV!");
         default:
             printf("Unspecified error!");
             break;
