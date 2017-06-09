@@ -1,5 +1,5 @@
 /*
- *  Simple Breakout game in SDL
+ *    Breakout game in SDL
  *
  *    by the great minds of
  *       Matheus Avellar
@@ -121,6 +121,8 @@ const int BALL_MAX_SPEED = 11;
 
 // Pause variable
 int gPause;
+int gSound;
+int gMusic;
 
 // Define game screen
 int gameScreen = 0;
@@ -149,10 +151,14 @@ SDL_Surface* gPLAYERSurface = NULL;
 SDL_Surface* buttonplay = NULL;
 SDL_Surface* buttonoptions = NULL;
 SDL_Surface* buttonrankings = NULL;
+SDL_Surface* buttonhome = NULL;
 SDL_Surface* breakout = NULL;
 
 // Image for side_bar
 SDL_Surface* side_bar = NULL;
+
+//Image for sound icon
+SDL_Surface* sound = NULL;
 
 // Control variable for optimal FPS handling
 static Uint32 next_time;
@@ -183,7 +189,8 @@ void close(void);
 // Game states
 void menu(void);
 void game(void);
-//void options(void);
+void options(void);
+void ranking(void);
 
 // Loads individual image
 SDL_Surface* loadSurface(char *path);
@@ -244,9 +251,11 @@ int main(int argc, char* args[]) {
           menu();
       } else if (gameScreen == 1) {
           game();
-      //} else if (gameScreen == 2) {
-        //  options();
-      } else {
+      } else if (gameScreen == 2) {
+          options();
+      } else if (gameScreen == 3) {
+          ranking();
+      }  else {
           printf("Error: game screen is invalid\n");
           return 1;
       }
@@ -339,8 +348,9 @@ void menu(void) {
 
             // Check if buttonoptions is pressed
             if(SDL_GetMouseState(NULL, NULL)
-            && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                quit = true;
+              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+              gameScreen = 2;
+              return;
             }
         } else {
             SDL_SetColorKey(buttonoptions, SDL_TRUE,
@@ -358,8 +368,9 @@ void menu(void) {
 
             //C heck if buttonrankings is pressed
             if(SDL_GetMouseState(NULL, NULL)
-            && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                quit = true;
+              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+              gameScreen = 3;
+              return;
             }
         } else {
             SDL_SetColorKey(buttonrankings, SDL_TRUE,
@@ -381,7 +392,7 @@ void menu(void) {
                          buttonrankings_x, buttonrankings_y) < 0
         || drawOnScreen(breakout, 0, 0,
                          breakout_w, breakout_h,
-                         breakout_x, breakout_y) < 0) {
+                         breakout_x, breakout_y) < 0){
             /* TODO: Clean this if condition */
             error(ERR_BLIT);
             quit = true;
@@ -401,6 +412,9 @@ void game(void) {
     int i, j, l, m, z;
 
     int _temp_score = 0;
+
+    // Mouse position
+    int mouseX, mouseY;
 
     // Event handler
     SDL_Event e;
@@ -430,6 +444,8 @@ void game(void) {
     player._left = false;
     player._right = false;
     gPause = false;
+    gSound = true;
+    gMusic = true;
 
     // Create NPC
     int _posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
@@ -441,6 +457,9 @@ void game(void) {
 
     // While application is running
     while (!quit) {
+        // Get current mouse position
+        SDL_GetMouseState(&mouseX, &mouseY);
+
         while (SDL_PollEvent(&e) != 0) {
             switch (e.type) {
                 case SDL_QUIT:
@@ -478,6 +497,19 @@ void game(void) {
                 default:
                     // Supress warnings from [-Wswitch-default] flag
                     break;
+                case SDL_MOUSEBUTTONDOWN:
+                  if(e.button.button = SDL_BUTTON_LEFT)
+                    if (mouseX >= ((SCREEN_WIDTH - 200) + 40)
+                    && mouseX <= ((SCREEN_WIDTH - 200) + 40) + 50
+                    && mouseY >= 510
+                    && mouseY <= 510 + 50)
+                        gSound = gSound == true? false:true;
+
+                    if (mouseX >= ((SCREEN_WIDTH - 200) + 120)
+                    && mouseX <= ((SCREEN_WIDTH - 200) + 120) + 50
+                    && mouseY >= 510
+                    && mouseY <= 510 + 50)
+                        gMusic = gMusic == true? false:true;
             }
         }
 
@@ -559,6 +591,9 @@ void game(void) {
                 } else if (j == 3) {
                     blockX = BLOCK_WIDTH;
                     blockY = BLOCK_HEIGHT;
+                } else if (j == 4) {
+                    blockX = 0;
+                    blockY = BLOCK_HEIGHT*2;
                 }
 
                 if(brick[i][j].resist
@@ -591,6 +626,38 @@ void game(void) {
             quit = true;
         }
 
+        // Draw sound icon
+        if (gSound)
+          if(drawOnScreen(sound, 0, 0,
+                          50, 50,
+                          (SCREEN_WIDTH - 200) + 40, 510) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+          }
+        if (!gSound)
+          if(drawOnScreen(sound, 50, 0,
+                          50, 50,
+                          (SCREEN_WIDTH - 200) + 40, 510) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+          }
+
+        // Draw sound icon
+        if (gMusic)
+          if(drawOnScreen(sound, 0, 50,
+                          50, 50,
+                          (SCREEN_WIDTH - 200) + 120, 510) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+          }
+        if (!gMusic)
+          if(drawOnScreen(sound, 50, 50,
+                          50, 50,
+                          (SCREEN_WIDTH - 200) + 120, 510) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+          }
+
         // Collision between balls
         if(LEN > 1) collisionBalls();
 
@@ -621,6 +688,150 @@ void game(void) {
         SDL_Delay(time_left());
         next_time += TICK_INTERVAL;
     }
+}
+
+void options(void) {
+
+  int buttonhome_x = 50;
+  int buttonhome_y = 50;
+  int buttonhome_w = 112;
+  int buttonhome_h = 50;
+
+  // Mouse position
+  int mouseX, mouseY;
+
+  // Event handler
+  SDL_Event e;
+
+  while (!quit) {
+    // Get current mouse position
+    SDL_GetMouseState(&mouseX, &mouseY);
+
+    while (SDL_PollEvent(&e) != 0) {
+        switch (e.type) {
+            case SDL_QUIT:
+                quit = true;
+                break;
+            case SDL_KEYDOWN:
+                if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+                break;
+            default:
+                // Supress warnings from [-Wswitch-default] flag
+                break;
+          }
+      }
+
+      // Check if mouse is over button home
+      if (mouseX >= buttonhome_x
+      && mouseX <= buttonhome_x + buttonhome_w
+      && mouseY >= buttonhome_y
+      && mouseY <= buttonhome_y + buttonhome_h) {
+
+          SDL_SetColorKey(buttonhome, SDL_FALSE,
+                          SDL_MapRGB(buttonhome->format, 0x99, 0xD9, 0xEA));
+
+          // Check if button home is pressed
+          if (SDL_GetMouseState(NULL, NULL)
+              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+              gameScreen = 0;
+              return;
+          }
+      } else {
+          SDL_SetColorKey(buttonhome, SDL_TRUE,
+                          SDL_MapRGB(buttonhome->format, 0x99, 0xD9, 0xEA));
+      }
+
+    // Fill the surface with #000000 (black)
+    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
+                                                0x00, 0x00, 0x00));
+
+    if(drawOnScreen(buttonhome, 0, 0,
+          buttonhome_w, buttonhome_h,
+          buttonhome_x, buttonhome_y) < 0){
+    /* TODO: Clean this if condition */
+          error(ERR_BLIT);
+          quit = true;
+    }
+
+    // Update the surface
+    SDL_UpdateWindowSurface(gWindow);
+
+    // Normalize framerate
+    SDL_Delay(time_left());
+    next_time += TICK_INTERVAL;
+  }
+}
+
+void ranking(void) {
+
+  int buttonhome_x = 50;
+  int buttonhome_y = 50;
+  int buttonhome_w = 112;
+  int buttonhome_h = 50;
+
+  // Mouse position
+  int mouseX, mouseY;
+
+  // Event handler
+  SDL_Event e;
+
+  while (!quit) {
+    // Get current mouse position
+    SDL_GetMouseState(&mouseX, &mouseY);
+
+    while (SDL_PollEvent(&e) != 0) {
+        switch (e.type) {
+            case SDL_QUIT:
+                quit = true;
+                break;
+            case SDL_KEYDOWN:
+                if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+                break;
+            default:
+                // Supress warnings from [-Wswitch-default] flag
+                break;
+          }
+      }
+
+      // Check if mouse is over button home
+      if (mouseX >= buttonhome_x
+      && mouseX <= buttonhome_x + buttonhome_w
+      && mouseY >= buttonhome_y
+      && mouseY <= buttonhome_y + buttonhome_h) {
+
+          SDL_SetColorKey(buttonhome, SDL_FALSE,
+                          SDL_MapRGB(buttonhome->format, 0x99, 0xD9, 0xEA));
+
+          // Check if button home is pressed
+          if (SDL_GetMouseState(NULL, NULL)
+              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+              gameScreen = 0;
+              return;
+          }
+      } else {
+          SDL_SetColorKey(buttonhome, SDL_TRUE,
+                          SDL_MapRGB(buttonhome->format, 0x99, 0xD9, 0xEA));
+      }
+
+    // Fill the surface with #000000 (black)
+    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
+                                                0x00, 0x00, 0x00));
+
+    if(drawOnScreen(buttonhome, 0, 0,
+          buttonhome_w, buttonhome_h,
+          buttonhome_x, buttonhome_y) < 0){
+    /* TODO: Clean this if condition */
+          error(ERR_BLIT);
+          quit = true;
+    }
+
+    // Update the surface
+    SDL_UpdateWindowSurface(gWindow);
+
+    // Normalize framerate
+    SDL_Delay(time_left());
+    next_time += TICK_INTERVAL;
+  }
 }
 
 void collisionBalls(void) {
@@ -673,7 +884,7 @@ void collisionBrick(void) {
                         brick[j][k].resist = current.resist-1 < 0
                                     ? 0
                                     : current.resist-1;
-                        if(!brick[j][k].resist) {
+                        if((!brick[j][k].resist)&&(gSound)) {
                             Mix_PlayChannel(-1, gBrickWAV, 0);
                         }
 
@@ -947,7 +1158,9 @@ int loadMedia(void) {
     || (buttonoptions = loadSurface("./images/optionsbutton.png")) == NULL
     || (buttonrankings = loadSurface("./images/rankingbutton.png")) == NULL
     || (side_bar = loadSurface("./images/side_bar.png")) == NULL
-    || (breakout = loadSurface("./images/breakout.png")) == NULL) {
+    || (breakout = loadSurface("./images/breakout.png")) == NULL
+    || (sound = loadSurface("./images/sound.png")) == NULL
+    || (buttonhome = loadSurface("./images/homebutton.png")) == NULL) {
         error(ERR_IMG_LOAD);
         return false;
     }
@@ -957,6 +1170,8 @@ int loadMedia(void) {
                     SDL_MapRGB(gBall->format, 0xff, 0xAE, 0xC9));
     SDL_SetColorKey(gPLAYERSurface, SDL_TRUE,
                     SDL_MapRGB(gPLAYERSurface->format, 0xff, 0xAE, 0xC9));
+    SDL_SetColorKey(sound, SDL_TRUE,
+                    SDL_MapRGB(sound->format, 0xff, 0xAE, 0xC9));
 
     // Load audios
     gBrickWAV = Mix_LoadWAV("./sounds/brick.wav");
