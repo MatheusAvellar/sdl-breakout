@@ -561,6 +561,7 @@ void game(void) {
                             player._left = false;
                             player._right = false;
                             menu();
+                            return;
                         }
                     }
 
