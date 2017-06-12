@@ -436,14 +436,14 @@ void game(void) {
     l = 2;
     m = 33;
     z = 75; // = 42 + 42 - (4-(4/2²))² (magic number)
-    player = createRACKET(RACKET_WIDTH * l + z,  // int posX
-                             RACKET_HEIGHT * m,  // int posY
-                                (BALL_SPEED-1),  // int stepX
-                                gPLAYERSurface,  // SDL_Surface *image
-                                             0,  // int score
-                                             0,  // int aux_score
-                                             3,  // int lives
-                                          2.2);  // float factor
+    player = createRACKET (RACKET_WIDTH * l + z,  // int posX
+                              RACKET_HEIGHT * m,  // int posY
+                                   (BALL_SPEED),  // int stepX
+                                 gPLAYERSurface,  // SDL_Surface *image
+                                              0,  // int score
+                                              0,  // int aux_score
+                                              3,  // int lives
+                                           2.2);  // float factor
     player._left = false;
     player._right = false;
     gPause = false;
@@ -948,12 +948,22 @@ void collisionRacket(void) {
         int left_limit = ball[i].posX + BALL_WIDTH >= player.posX;
         int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
 
-        int right_side = ball[i].posX >= player.posX + RACKET_WIDTH/2;
+        float left_edge = (player.posX);
+        float right_edge = left_edge + RACKET_WIDTH;
 
         if (top_limit && bottom_limit && left_limit && right_limit) {
             ball[i].stepY = -absolute(ball[i].stepY);
+            
+        float step_max = BALL_MAX_SPEED;
+        int POS = ball[i].posX + (BALL_WIDTH/2);
+        ball[i].stepX = ( ( ( POS - left_edge ) * ( step_max-1 ) ) -
+        ( ( right_edge - POS ) * ( step_max-1 ) ) ) / 100.0;
+        if(_DEBUG) {
+          printf("[  %f  ]\n", ball[i].stepX / player.factor);
+          printf("stepX == %f\n", ball[i].stepX);
+        }
 
-            if (right_side) {
+          /*  if (right_side) {
                 if (ball[i].stepX < 0) {
                     ball[i].stepX = (int)(ball[i].stepX / player.factor);
                     if(_DEBUG) {
@@ -993,7 +1003,7 @@ void collisionRacket(void) {
                         printf("LEFT = 0 :: stepX == %d\n", ball[i].stepX);
                     }
                 }
-            }
+            } */
 
             if (ball[i].stepX < -BALL_MAX_SPEED) {
                 ball[i].stepX = -BALL_MAX_SPEED;
