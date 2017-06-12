@@ -369,7 +369,7 @@ void menu(void) {
             SDL_SetColorKey(buttonrankings, SDL_FALSE,
                         SDL_MapRGB(buttonrankings->format, 0x70, 0x92, 0xBE));
 
-            //C heck if buttonrankings is pressed
+            // Check if buttonrankings is pressed
             if(SDL_GetMouseState(NULL, NULL)
               && SDL_BUTTON(SDL_BUTTON_LEFT)) {
               gameScreen = 3;
