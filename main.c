@@ -947,6 +947,7 @@ void collisionRacket(void) {
         int bottom_limit = ball[i].posY + BALL_HEIGHT <= player.posY + 2;
         int left_limit = ball[i].posX + BALL_WIDTH >= player.posX;
         int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
+        //int right_side = ball[i].posX >= player.posX + RACKET_WIDTH/2;
 
         float left_edge = (player.posX);
         float right_edge = left_edge + RACKET_WIDTH;
