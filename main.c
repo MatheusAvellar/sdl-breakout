@@ -957,7 +957,7 @@ void collisionRacket(void) {
         float step_max = BALL_MAX_SPEED;
         int POS = ball[i].posX + (BALL_WIDTH/2);
         ball[i].stepX = ( ( ( POS - left_edge ) * ( step_max-1 ) ) -
-        ( ( right_edge - POS ) * ( step_max-1 ) ) ) / 100.0;
+        ( ( right_edge - POS ) * ( step_max-1 ) ) ) / ( RACKET_WIDTH*1.0 );
         if(_DEBUG) {
           printf("[  %f  ]\n", ball[i].stepX / player.factor);
           printf("stepX == %f\n", ball[i].stepX);
