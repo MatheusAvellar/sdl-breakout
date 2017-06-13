@@ -245,6 +245,10 @@ int absolute(int n);
 // New Level
 void newLevel(void);
 
+// Random generators
+int randneg(void);
+int randposi(void);
+
 // Main loop flag
 int quit = 0;
 
@@ -492,7 +496,9 @@ void game(void) {
                     if(e.key.keysym.sym == SDLK_SPACE
                     && !ball_in_game && !gPause) {
                         for (i = 0; i < LEN; i++) {
-                            ball[i].stepX = rand() % 2 ? -1 : 1;
+                            ball[i].stepX = rand() % 2 ?
+                            randneg() : randposi();
+
                             ball[i].stepY = -1;
                             ball_in_game = true;
                         }
@@ -1541,6 +1547,18 @@ int drawOnScreen(SDL_Surface* image,
     dstRect.y = dstY;
 
     return SDL_BlitSurface(image, &srcRect, gScreenSurface, &dstRect);
+}
+
+int randneg(void) {
+  int neg = rand()%4*(-1);
+  if (!neg) neg = -1;
+  return neg;
+}
+
+int randposi(void) {
+  int posi = rand()%4;
+  if (!posi) posi = 1;
+  return posi;
 }
 
 // Time left until next tick
