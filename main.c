@@ -163,6 +163,7 @@ SDL_Surface* buttonclassic = NULL;
 SDL_Surface* buttonalternate = NULL;
 SDL_Surface* buttonplay = NULL;
 SDL_Surface* breakout = NULL;
+SDL_Surface* config = NULL;
 
 // Image for side_bar
 SDL_Surface* side_bar = NULL;
@@ -194,7 +195,7 @@ int init(void);
 int loadMedia(void);
 
 // Frees media and shuts down SDL
-void close(void);
+void closef(void);
 
 // Game states
 void menu(void);
@@ -279,7 +280,7 @@ int main(int argc, char* args[]) {
     }
 
     // Frees resources and closes SDL
-    close();
+    closef();
 
     // Supress warnings from [-Wunused-parameter] flag
     (void)argc;
@@ -879,6 +880,11 @@ void configuration(void) {
   int physics_w = 350;
   int physics_h = 50;
 
+  int config_x = 0;
+  int config_y = 0;
+  int config_w = 1000;
+  int config_h = 700;
+
   // Mouse position
   int mouseX, mouseY;
 
@@ -1000,7 +1006,10 @@ void configuration(void) {
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
                                                 0x00, 0x00, 0x00));
 
-    if((drawOnScreen(buttonhome, 0, 0,
+    if((drawOnScreen(config, 0, 0,
+          config_w, config_h,
+          config_x, config_y) < 0)
+    || (drawOnScreen(buttonhome, 0, 0,
           buttonhome_w, buttonhome_h,
           buttonhome_x, buttonhome_y) < 0)
     || (drawOnScreen(buttonplay, 0, 0,
@@ -1458,6 +1467,7 @@ int loadMedia(void) {
     || (buttonrankings = loadSurface("./images/rankingbutton.png")) == NULL
     || (side_bar = loadSurface("./images/side_bar.png")) == NULL
     || (breakout = loadSurface("./images/homeback.png")) == NULL
+    || (config = loadSurface("./images/configback.png")) == NULL
     || (sound = loadSurface("./images/sound.png")) == NULL
     || (buttonhome = loadSurface("./images/homebutton.png")) == NULL
     || (buttonendless = loadSurface("./images/endless.png")) == NULL
@@ -1487,7 +1497,7 @@ int loadMedia(void) {
     return true;
 }
 
-void close() {
+void closef() {
     // Free loaded image
     SDL_FreeSurface(gBall), SDL_FreeSurface(gBRICKSurface),
     SDL_FreeSurface(gPLAYERSurface), SDL_FreeSurface(buttonnew),
