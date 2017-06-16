@@ -184,6 +184,9 @@ int ball_in_game;
 // Brick breaking sound
 Mix_Chunk* gBrickWAV;
 
+// Racket collision sound
+Mix_Chunk* gRacketWAV;
+
 /*
  * Function Prototypes
  */
@@ -1190,6 +1193,9 @@ void collisionRacket(void) {
           printf("[  %f  ]\n", ball[i].stepX / player.factor);
           printf("stepX == %f\n", ball[i].stepX);
         }
+        if (gSound) {
+          Mix_PlayChannel(-1, gRacketWAV, 0);
+        }
 
             if (ball[i].stepX < -BALL_MAX_SPEED) {
                 ball[i].stepX = -BALL_MAX_SPEED;
@@ -1265,6 +1271,7 @@ void collisionRacket(void) {
                 ball[i].stepX = BALL_MAX_SPEED;
             }
             if(_DEBUG) printf("[FINAL] stepX = %d\n", ball[i].stepX);
+            if (gSound) Mix_PlayChannel(-1, gBrickWAV, 0);
         }
     }
   }
@@ -1490,6 +1497,11 @@ int loadMedia(void) {
     // Load audios
     gBrickWAV = Mix_LoadWAV("./sounds/brick.wav");
     if(!gBrickWAV) {
+        error(ERR_WAV_LOAD);
+        return false;
+    }
+    gRacketWAV = Mix_LoadWAV("./sounds/racket.wav");
+    if(!gRacketWAV) {
         error(ERR_WAV_LOAD);
         return false;
     }
