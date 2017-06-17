@@ -275,13 +275,13 @@ void game(void) {
                     && mouseX <= ((SCREEN_WIDTH - 200) + 40) + 50
                     && mouseY >= 510
                     && mouseY <= 510 + 50)
-                        gSound = gSound == true? false:true;
+                        gSound = gSound == true ? false : true;
 
                     if (mouseX >= ((SCREEN_WIDTH - 200) + 120)
                     && mouseX <= ((SCREEN_WIDTH - 200) + 120) + 50
                     && mouseY >= 510
                     && mouseY <= 510 + 50)
-                        gMusic = gMusic == true? false:true;
+                        gMusic = gMusic == true ? false : true;
 
                 default:
                     // Supress warnings from [-Wswitch-default] flag
@@ -328,6 +328,7 @@ void game(void) {
                         if(_DEBUG) {
                             printf("[Player is out of lives!] %d\n", player.lives);
                             newLevel();
+                            music_play = 1;
                             player.score = 0;
                             player.aux_score = 0;
                             player.lives = 3;
@@ -435,6 +436,11 @@ void game(void) {
             quit = true;
           }
 
+        // Play music
+        if ((gMusic) && (player.lives > 0) && (music_play)) {
+            Mix_PlayChannel(-1, gMusicWAV, 0);
+            music_play = 0;
+          }
         // Collision between balls
         if(LEN > 1) collisionBalls();
 
@@ -1256,6 +1262,11 @@ int loadMedia(void) {
         error(ERR_WAV_LOAD);
         return false;
     }
+    gMusicWAV = Mix_LoadWAV("./sounds/music.mp3");
+    if(!gMusicWAV) {
+        error(ERR_MP3_LOAD);
+        return false;
+    }
 
     return true;
 }
@@ -1360,6 +1371,8 @@ void error(int code) {
             printf("Audio could not initialize!");
         case ERR_WAV_LOAD:
             printf("Unable to load WAV!");
+        case ERR_MP3_LOAD:
+            printf("Unable to load MP3!");
         default:
             printf("Unspecified error!");
             break;

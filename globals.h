@@ -16,6 +16,8 @@ extern int gameScreen;
 extern int gGameMode;
 extern int gPhysics;
 
+extern int music_play;
+
 // The window to render to
 extern SDL_Window* gWindow;
 
@@ -73,3 +75,6 @@ extern Mix_Chunk* gBrickWAV;
 
 // Racket collision sound
 extern Mix_Chunk* gRacketWAV;
+
+// Game music
+extern Mix_Chunk* gMusicWAV;

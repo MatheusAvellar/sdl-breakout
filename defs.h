@@ -121,6 +121,9 @@ extern const int BALL_MAX_SPEED;
 #ifndef ERR_WAV_LOAD
 #define ERR_WAV_LOAD 6
 #endif
+#ifndef ERR_MP3_LOAD
+#define ERR_MP3_LOAD 7
+#endif
 
 /*
  * Function Prototypes
@@ -187,3 +190,5 @@ void newLevel(void);
 // Random generators
 int randneg(void);
 int randposi(void);
+
+int Mix_PausedMusic(void);
