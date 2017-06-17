@@ -45,25 +45,25 @@ const int BALL_MAX_SPEED = 11;
 
 void menu(void) {
 
-    int buttonnew_x = 592;
-    int buttonnew_y = 12;
-    int buttonnew_w = 400;
-    int buttonnew_h = 50;
+    int buttonnew_x = 59.2*PROP;
+    int buttonnew_y = 1.2*PROP;
+    int buttonnew_w = 40*PROP;
+    int buttonnew_h = 5*PROP;
 
-    int buttonoptions_x = 642;
-    int buttonoptions_y = 66;
-    int buttonoptions_w = 350;
-    int buttonoptions_h = 50;
+    int buttonoptions_x = 64.2*PROP;
+    int buttonoptions_y = 6.6*PROP;
+    int buttonoptions_w = 35*PROP;
+    int buttonoptions_h = 5*PROP;
 
-    int buttonrankings_x = 692;
-    int buttonrankings_y = 121;
-    int buttonrankings_w = 300;
-    int buttonrankings_h = 50;
+    int buttonrankings_x = 69.2*PROP;
+    int buttonrankings_y = 12.1*PROP;
+    int buttonrankings_w = 30*PROP;
+    int buttonrankings_h = 5*PROP;
 
     int breakout_x = 0;
     int breakout_y = 0;
-    int breakout_w = 1000;
-    int breakout_h = 700;
+    int breakout_w = 100*PROP;
+    int breakout_h = 70*PROP;
 
     // Mouse position
     int mouseX, mouseY;
@@ -469,10 +469,10 @@ void game(void) {
 
 void options(void) {
 
-  int buttonhome_x = 50;
-  int buttonhome_y = 50;
-  int buttonhome_w = 112;
-  int buttonhome_h = 50;
+  int buttonhome_x = 5*PROP;
+  int buttonhome_y = 5*PROP;
+  int buttonhome_w = 11.2*PROP;
+  int buttonhome_h = 5*PROP;
 
   // Mouse position
   int mouseX, mouseY;
@@ -542,10 +542,10 @@ void options(void) {
 
 void ranking(void) {
 
-  int buttonhome_x = 50;
-  int buttonhome_y = 50;
-  int buttonhome_w = 112;
-  int buttonhome_h = 50;
+  int buttonhome_x = 5*PROP;
+  int buttonhome_y = 5*PROP;
+  int buttonhome_w = 11.2*PROP;
+  int buttonhome_h = 5*PROP;
 
   // Mouse position
   int mouseX, mouseY;
@@ -614,30 +614,30 @@ void ranking(void) {
 
 void configuration(void) {
 
-  int buttonhome_x = 50;
-  int buttonhome_y = 50;
-  int buttonhome_w = 112;
-  int buttonhome_h = 50;
+  int buttonhome_x = 5*PROP;
+  int buttonhome_y = 5*PROP;
+  int buttonhome_w = 11.2*PROP;
+  int buttonhome_h = 5*PROP;
 
-  int buttonplay_x = 50;
-  int buttonplay_y = 600;
-  int buttonplay_w = 112;
-  int buttonplay_h = 50;
+  int buttonplay_x = 5*PROP;
+  int buttonplay_y = 60*PROP;
+  int buttonplay_w = 11.2*PROP;
+  int buttonplay_h = 5*PROP;
 
-  int gamemode_x = 50;
-  int gamemode_y = 250;
-  int gamemode_w = 350;
-  int gamemode_h = 50;
+  int gamemode_x = 5*PROP;
+  int gamemode_y = 25*PROP;
+  int gamemode_w = 35*PROP;
+  int gamemode_h = 5*PROP;
 
-  int physics_x = 50;
-  int physics_y = 400;
-  int physics_w = 350;
-  int physics_h = 50;
+  int physics_x = 5*PROP;
+  int physics_y = 40*PROP;
+  int physics_w = 35*PROP;
+  int physics_h = 5*PROP;
 
   int config_x = 0;
   int config_y = 0;
-  int config_w = 1000;
-  int config_h = 700;
+  int config_w = 100*PROP;
+  int config_h = 70*PROP;
 
   // Mouse position
   int mouseX, mouseY;
