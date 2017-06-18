@@ -22,7 +22,7 @@ int gameScreen = 0;
 int gGameMode = 1;
 int gPhysics = 1;
 
-int music_play = 1;
+int can_music_play = 1;
 
 // The window to render to
 SDL_Window* gWindow = NULL;
@@ -83,4 +83,4 @@ Mix_Chunk* gBrickWAV;
 Mix_Chunk* gRacketWAV;
 
 // Game music
-Mix_Chunk* gMusicWAV;
+Mix_Music* gMusicWAV;

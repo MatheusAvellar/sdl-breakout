@@ -32,19 +32,15 @@ int main(int argc, char* args[]) {
     }
 
     while (!quit) {
-        if (gameScreen == 0) {
-            menu();
-        } else if (gameScreen == 1) {
-            game();
-        } else if (gameScreen == 2) {
-            options();
-        } else if (gameScreen == 3) {
-            ranking();
-        } else if (gameScreen == 4) {
-            configuration();
-        } else {
-            printf("Error: game screen is invalid\n");
-            return 1;
+        switch(gameScreen) {
+            case 0: menu(); break;
+            case 1: game(); break;
+            case 2: options(); break;
+            case 3: ranking(); break;
+            case 4: configuration(); break;
+            default:
+                printf("Error: game screen is invalid\n");
+                return 1;
         }
     }
 

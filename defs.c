@@ -193,7 +193,7 @@ void game(void) {
 
     ball_in_game = false;
 
-    //Create BRICKS
+    // Create BRICKS
     for (i = 0; i < COLUMNS; i++) {
         for (j = 0; j < LINES; j++) {
             brick[i][j] = createBLOCK(BLOCK_WIDTH*i, BLOCK_HEIGHT*j, 1,
@@ -251,8 +251,9 @@ void game(void) {
                     if(e.key.keysym.sym == SDLK_SPACE
                     && !ball_in_game && !gPause) {
                         for (i = 0; i < LEN; i++) {
-                            ball[i].stepX = rand() % 2 ?
-                            randneg() : randposi();
+                            float r = rand() % 4;
+                            ball[i].stepX = !r ? 1 : r;
+                            if(rand() % 2) ball[i].stepX *= -1;
 
                             ball[i].stepY = -1;
                             ball_in_game = true;
@@ -270,18 +271,20 @@ void game(void) {
                     break;
 
                 case SDL_MOUSEBUTTONDOWN:
-                  if(e.button.button == SDL_BUTTON_LEFT)
-                    if (mouseX >= ((SCREEN_WIDTH - 200) + 40)
-                    && mouseX <= ((SCREEN_WIDTH - 200) + 40) + 50
-                    && mouseY >= 510
-                    && mouseY <= 510 + 50)
-                        gSound = gSound == true ? false : true;
-
-                    if (mouseX >= ((SCREEN_WIDTH - 200) + 120)
-                    && mouseX <= ((SCREEN_WIDTH - 200) + 120) + 50
-                    && mouseY >= 510
-                    && mouseY <= 510 + 50)
-                        gMusic = gMusic == true ? false : true;
+                    if(e.button.button == SDL_BUTTON_LEFT) {
+                        if (mouseX >= ((SCREEN_WIDTH - 200) + 40)
+                        && mouseX <= ((SCREEN_WIDTH - 200) + 40) + 50
+                        && mouseY >= 510
+                        && mouseY <= 510 + 50) {
+                            gSound = !gSound;
+                        } else if (mouseX >= ((SCREEN_WIDTH - 200) + 120)
+                        && mouseX <= ((SCREEN_WIDTH - 200) + 120) + 50
+                        && mouseY >= 510
+                        && mouseY <= 510 + 50)
+                            gMusic = !gMusic;
+                            if(!gMusic) Mix_VolumeMusic(0);
+                            else Mix_VolumeMusic(MIX_MAX_VOLUME);
+                    }
 
                 default:
                     // Supress warnings from [-Wswitch-default] flag
@@ -328,7 +331,7 @@ void game(void) {
                         if(_DEBUG) {
                             printf("[Player is out of lives!] %d\n", player.lives);
                             newLevel();
-                            music_play = 1;
+                            can_music_play = 1;
                             player.score = 0;
                             player.aux_score = 0;
                             player.lives = 3;
@@ -338,7 +341,6 @@ void game(void) {
                             return;
                         }
                     }
-
                 }
 
                 if(drawOnScreen(ball[i].image, 0, 0,
@@ -357,22 +359,9 @@ void game(void) {
 
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
-                if (j == 0) {
-                    blockX = 0;
-                    blockY = BLOCK_HEIGHT;
-                } else if (j == 1) {
-                    blockX = BLOCK_WIDTH;
-                    blockY = 0;
-                } else if (j == 2) {
-                    blockX = 0;
-                    blockY = 0;
-                } else if (j == 3) {
-                    blockX = BLOCK_WIDTH;
-                    blockY = BLOCK_HEIGHT;
-                } else if (j == 4) {
-                    blockX = 0;
-                    blockY = BLOCK_HEIGHT*2;
-                }
+                blockX = j % 2 ? BLOCK_WIDTH : 0;
+                blockY = j % 2 ? 0 : BLOCK_HEIGHT;
+                if(j == 4) blockY *= 2;
 
                 if(brick[i][j].resist
                 && drawOnScreen(brick[i][j].image,
@@ -404,43 +393,26 @@ void game(void) {
             quit = true;
         }
 
-        // Draw sound icon
-        if (gSound)
-          if(drawOnScreen(sound, 0, 0,
-                          50, 50,
-                          (SCREEN_WIDTH - 200) + 40, 510) < 0) {
+        // Draw sound icons
+        if(drawOnScreen(sound, gSound ? 0 : 50, 0,
+                        50, 50,
+                        (SCREEN_WIDTH - 200) + 40, 510) < 0
+        || drawOnScreen(sound, gMusic ? 0 : 50, 50,
+                        50, 50,
+                        (SCREEN_WIDTH - 200) + 120, 510) < 0) {
             error(ERR_BLIT);
             quit = true;
-          }
-        if (!gSound)
-          if(drawOnScreen(sound, 50, 0,
-                          50, 50,
-                          (SCREEN_WIDTH - 200) + 40, 510) < 0) {
-            error(ERR_BLIT);
-            quit = true;
-          }
-
-        // Draw sound icon
-        if (gMusic)
-          if(drawOnScreen(sound, 0, 50,
-                          50, 50,
-                          (SCREEN_WIDTH - 200) + 120, 510) < 0) {
-            error(ERR_BLIT);
-            quit = true;
-          }
-        if (!gMusic)
-          if(drawOnScreen(sound, 50, 50,
-                          50, 50,
-                          (SCREEN_WIDTH - 200) + 120, 510) < 0) {
-            error(ERR_BLIT);
-            quit = true;
-          }
+        }
 
         // Play music
-        if ((gMusic) && (player.lives > 0) && (music_play)) {
-            Mix_PlayChannel(-1, gMusicWAV, 0);
-            music_play = 0;
-          }
+        if(player.lives > 0 && can_music_play) {
+            if(Mix_PlayMusic(gMusicWAV, -1)==-1) {
+                printf("Failed to load music!\n%s\n", Mix_GetError());
+                // There is no music, but the game is still playable
+            }
+            can_music_play = 0;
+        }
+
         // Collision between balls
         if(LEN > 1) collisionBalls();
 
@@ -474,354 +446,300 @@ void game(void) {
 }
 
 void options(void) {
+    int buttonhome_x = 5*PROP;
+    int buttonhome_y = 5*PROP;
+    int buttonhome_w = 11.2*PROP;
+    int buttonhome_h = 5*PROP;
 
-  int buttonhome_x = 5*PROP;
-  int buttonhome_y = 5*PROP;
-  int buttonhome_w = 11.2*PROP;
-  int buttonhome_h = 5*PROP;
+    // Mouse position
+    int mouseX, mouseY;
 
-  // Mouse position
-  int mouseX, mouseY;
+    // Event handler
+    SDL_Event e;
 
-  // Event handler
-  SDL_Event e;
+    while (!quit) {
+        // Get current mouse position
+        SDL_GetMouseState(&mouseX, &mouseY);
+  
+        while (SDL_PollEvent(&e) != 0) {
+            switch (e.type) {
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN:
+                    if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+                    break;
+                default:
+                    // Supress warnings from [-Wswitch-default] flag
+                    break;
+            }
+        }
 
-  while (!quit) {
-    // Get current mouse position
-    SDL_GetMouseState(&mouseX, &mouseY);
+        // Check if mouse is over button home
+        if (mouseX >= buttonhome_x
+        && mouseX <= buttonhome_x + buttonhome_w
+        && mouseY >= buttonhome_y
+        && mouseY <= buttonhome_y + buttonhome_h) {
+            SDL_SetColorKey(buttonhome, SDL_FALSE,
+                            SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
-    while (SDL_PollEvent(&e) != 0) {
-        switch (e.type) {
-            case SDL_QUIT:
-                quit = true;
-                break;
-            case SDL_KEYDOWN:
-                if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
-                break;
+            // Check if button home is pressed
+            if (SDL_GetMouseState(NULL, NULL)
+                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                gameScreen = 0;
+                return;
+            }
+        } else {
+            SDL_SetColorKey(buttonhome, SDL_TRUE,
+                            SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
+        }
 
-            default:
-                // Supress warnings from [-Wswitch-default] flag
-                break;
-          }
-      }
+        // Fill the surface with #000000 (black)
+        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
+                                                      0x00, 0x00, 0x00));
 
-      // Check if mouse is over button home
-      if (mouseX >= buttonhome_x
-      && mouseX <= buttonhome_x + buttonhome_w
-      && mouseY >= buttonhome_y
-      && mouseY <= buttonhome_y + buttonhome_h) {
+        if(drawOnScreen(buttonhome, 0, 0,
+              buttonhome_w, buttonhome_h,
+              buttonhome_x, buttonhome_y) < 0){
+            /* TODO: Clean this if condition */
+              error(ERR_BLIT);
+              quit = true;
+        }
 
-          SDL_SetColorKey(buttonhome, SDL_FALSE,
-                          SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
+        // Update the surface
+        SDL_UpdateWindowSurface(gWindow);
 
-          // Check if button home is pressed
-          if (SDL_GetMouseState(NULL, NULL)
-              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-              gameScreen = 0;
-              return;
-          }
-      } else {
-          SDL_SetColorKey(buttonhome, SDL_TRUE,
-                          SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
-      }
-
-    // Fill the surface with #000000 (black)
-    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
-                                                0x00, 0x00, 0x00));
-
-    if(drawOnScreen(buttonhome, 0, 0,
-          buttonhome_w, buttonhome_h,
-          buttonhome_x, buttonhome_y) < 0){
-    /* TODO: Clean this if condition */
-          error(ERR_BLIT);
-          quit = true;
+        // Normalize framerate
+        SDL_Delay(time_left());
+        next_time += TICK_INTERVAL;
     }
-
-    // Update the surface
-    SDL_UpdateWindowSurface(gWindow);
-
-    // Normalize framerate
-    SDL_Delay(time_left());
-    next_time += TICK_INTERVAL;
-  }
 }
 
 void ranking(void) {
+    /* TODO: struct all the things */
+    int buttonhome_x = 5*PROP;
+    int buttonhome_y = 5*PROP;
+    int buttonhome_w = 11.2*PROP;
+    int buttonhome_h = 5*PROP;
 
-  int buttonhome_x = 5*PROP;
-  int buttonhome_y = 5*PROP;
-  int buttonhome_w = 11.2*PROP;
-  int buttonhome_h = 5*PROP;
+    // Mouse position
+    int mouseX, mouseY;
 
-  // Mouse position
-  int mouseX, mouseY;
+    // Event handler
+    SDL_Event e;
 
-  // Event handler
-  SDL_Event e;
+    while (!quit) {
+        // Get current mouse position
+        SDL_GetMouseState(&mouseX, &mouseY);
 
-  while (!quit) {
-    // Get current mouse position
-    SDL_GetMouseState(&mouseX, &mouseY);
+        while (SDL_PollEvent(&e) != 0) {
+            switch (e.type) {
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN:
+                    if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+                    break;
+                default:
+                    // Supress warnings from [-Wswitch-default] flag
+                    break;
+              }
+        }
 
-    while (SDL_PollEvent(&e) != 0) {
-        switch (e.type) {
-            case SDL_QUIT:
-                quit = true;
-                break;
-            case SDL_KEYDOWN:
-                if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
-                break;
-            default:
-                // Supress warnings from [-Wswitch-default] flag
-                break;
-          }
-      }
+        // Check if mouse is over button home
+        int is_hovering = (mouseX >= buttonhome_x
+                        && mouseX <= buttonhome_x + buttonhome_w
+                        && mouseY >= buttonhome_y
+                        && mouseY <= buttonhome_y + buttonhome_h);
 
-      // Check if mouse is over button home
-      if (mouseX >= buttonhome_x
-      && mouseX <= buttonhome_x + buttonhome_w
-      && mouseY >= buttonhome_y
-      && mouseY <= buttonhome_y + buttonhome_h) {
+        SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
-          SDL_SetColorKey(buttonhome, SDL_FALSE,
-                          SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
+        // Check if button home is pressed
+        if(is_hovering
+        && SDL_GetMouseState(NULL, NULL)
+        && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            gameScreen = 0;
+            return;
+        }
 
-          // Check if button home is pressed
-          if (SDL_GetMouseState(NULL, NULL)
-              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-              gameScreen = 0;
-              return;
-          }
-      } else {
-          SDL_SetColorKey(buttonhome, SDL_TRUE,
-                          SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
-      }
+        // Fill the surface with #000000 (black)
+        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
+                                                      0x00, 0x00, 0x00));
 
-    // Fill the surface with #000000 (black)
-    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
-                                                0x00, 0x00, 0x00));
-
-    if(drawOnScreen(buttonhome, 0, 0,
+        if(drawOnScreen(buttonhome, 0, 0,
           buttonhome_w, buttonhome_h,
-          buttonhome_x, buttonhome_y) < 0){
-    /* TODO: Clean this if condition */
-          error(ERR_BLIT);
-          quit = true;
+          buttonhome_x, buttonhome_y) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+        }
+
+        // Update the surface
+        SDL_UpdateWindowSurface(gWindow);
+
+        // Normalize framerate
+        SDL_Delay(time_left());
+        next_time += TICK_INTERVAL;
     }
-
-    // Update the surface
-    SDL_UpdateWindowSurface(gWindow);
-
-    // Normalize framerate
-    SDL_Delay(time_left());
-    next_time += TICK_INTERVAL;
-  }
 }
 
 void configuration(void) {
+    /* TODO: struct all the things */
+    int buttonhome_x = 5*PROP;
+    int buttonhome_y = 5*PROP;
+    int buttonhome_w = 11.2*PROP;
+    int buttonhome_h = 5*PROP;
 
-  int buttonhome_x = 5*PROP;
-  int buttonhome_y = 5*PROP;
-  int buttonhome_w = 11.2*PROP;
-  int buttonhome_h = 5*PROP;
+    int buttonplay_x = 5*PROP;
+    int buttonplay_y = 60*PROP;
+    int buttonplay_w = 11.2*PROP;
+    int buttonplay_h = 5*PROP;
 
-  int buttonplay_x = 5*PROP;
-  int buttonplay_y = 60*PROP;
-  int buttonplay_w = 11.2*PROP;
-  int buttonplay_h = 5*PROP;
+    int gamemode_x = 5*PROP;
+    int gamemode_y = 25*PROP;
+    int gamemode_w = 35*PROP;
+    int gamemode_h = 5*PROP;
 
-  int gamemode_x = 5*PROP;
-  int gamemode_y = 25*PROP;
-  int gamemode_w = 35*PROP;
-  int gamemode_h = 5*PROP;
+    int physics_x = 5*PROP;
+    int physics_y = 40*PROP;
+    int physics_w = 35*PROP;
+    int physics_h = 5*PROP;
 
-  int physics_x = 5*PROP;
-  int physics_y = 40*PROP;
-  int physics_w = 35*PROP;
-  int physics_h = 5*PROP;
+    int config_x = 0;
+    int config_y = 0;
+    int config_w = 100*PROP;
+    int config_h = 70*PROP;
 
-  int config_x = 0;
-  int config_y = 0;
-  int config_w = 100*PROP;
-  int config_h = 70*PROP;
+    // Mouse position
+    int mouseX, mouseY;
 
-  // Mouse position
-  int mouseX, mouseY;
+    int is_hovering;
 
-  // Event handler
-  SDL_Event e;
+    // Event handler
+    SDL_Event e;
 
-  while (!quit) {
-    // Get current mouse position
-    SDL_GetMouseState(&mouseX, &mouseY);
+    while (!quit) {
+        // Get current mouse position
+        SDL_GetMouseState(&mouseX, &mouseY);
 
-    while (SDL_PollEvent(&e) != 0) {
-        switch (e.type) {
-            case SDL_QUIT:
-                quit = true;
-                break;
-            case SDL_KEYDOWN:
-                if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
-                break;
-            case SDL_MOUSEBUTTONDOWN:
-                if(e.button.button == SDL_BUTTON_LEFT) {
-                  if (mouseX >= gamemode_x
-                  && mouseX <= gamemode_x + gamemode_w
-                  && mouseY >= gamemode_y
-                  && mouseY <= gamemode_y + gamemode_h) {
-                    gGameMode = gGameMode == 1? 2:1;
-                  }
-                }
-                if(e.button.button == SDL_BUTTON_LEFT) {
-                  if (mouseX >= physics_x
-                  && mouseX <= physics_x + physics_w
-                  && mouseY >= physics_y
-                  && mouseY <= physics_y + physics_h) {
-                    gPhysics = gPhysics == 1? 2:1;
-                  }
-                }
-            default:
-                // Supress warnings from [-Wswitch-default] flag
-                break;
-          }
-      }
+        while (SDL_PollEvent(&e) != 0) {
+            switch (e.type) {
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN:
+                    if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    if(e.button.button == SDL_BUTTON_LEFT
+                    && mouseX >= gamemode_x
+                    && mouseX <= gamemode_x + gamemode_w
+                    && mouseY >= gamemode_y
+                    && mouseY <= gamemode_y + gamemode_h) {
+                        gGameMode = gGameMode == 1 ? 2 : 1;
+                    }
+                    if(e.button.button == SDL_BUTTON_LEFT
+                    && mouseX >= physics_x
+                    && mouseX <= physics_x + physics_w
+                    && mouseY >= physics_y
+                    && mouseY <= physics_y + physics_h) {
+                        gPhysics = gPhysics == 1 ? 2 : 1;
+                    }
+                default:
+                    // Supress warnings from [-Wswitch-default] flag
+                    break;
+            }
+        }
 
-      // Check if mouse is over button home
-      if (mouseX >= buttonhome_x
-      && mouseX <= buttonhome_x + buttonhome_w
-      && mouseY >= buttonhome_y
-      && mouseY <= buttonhome_y + buttonhome_h) {
+        // Check if mouse is over button home
+        is_hovering = (mouseX >= buttonhome_x
+                    && mouseX <= buttonhome_x + buttonhome_w
+                    && mouseY >= buttonhome_y
+                    && mouseY <= buttonhome_y + buttonhome_h);
 
-          SDL_SetColorKey(buttonhome, SDL_FALSE,
-                          SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
+        SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
-          // Check if button home is pressed
-          if (SDL_GetMouseState(NULL, NULL)
-              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-              gameScreen = 0;
-              return;
-          }
-      } else {
-          SDL_SetColorKey(buttonhome, SDL_TRUE,
-                          SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
-      }
+        // Check if button home is pressed
+        if(is_hovering
+        && SDL_GetMouseState(NULL, NULL)
+        && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            gameScreen = 0;
+            return;
+        }
 
-      // Check if mouse is over button play
-      if (mouseX >= buttonplay_x
-      && mouseX <= buttonplay_x + buttonplay_w
-      && mouseY >= buttonplay_y
-      && mouseY <= buttonplay_y + buttonplay_h) {
+        // Check if mouse is over button play
+        is_hovering = (mouseX >= buttonplay_x
+                    && mouseX <= buttonplay_x + buttonplay_w
+                    && mouseY >= buttonplay_y
+                    && mouseY <= buttonplay_y + buttonplay_h);
 
-          SDL_SetColorKey(buttonplay, SDL_FALSE,
-                          SDL_MapRGB(buttonplay->format, 0x70, 0x92, 0xBE));
+        SDL_SetColorKey(buttonplay, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttonplay->format, 0x70, 0x92, 0xBE));
 
-          // Check if button home is pressed
-          if (SDL_GetMouseState(NULL, NULL)
-              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-              gameScreen = 1;
-              return;
-          }
-      } else {
-          SDL_SetColorKey(buttonplay, SDL_TRUE,
-                          SDL_MapRGB(buttonplay->format, 0x70, 0x92, 0xBE));
-      }
+        // Check if button home is pressed
+        if(is_hovering
+        && SDL_GetMouseState(NULL, NULL)
+        && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            gameScreen = 1;
+            return;
+        }
 
-      // Check if mouse is over button campaign/endless
-      if (mouseX >= gamemode_x
-      && mouseX <= gamemode_x + gamemode_w
-      && mouseY >= gamemode_y
-      && mouseY <= gamemode_y + gamemode_h) {
+        // Check if mouse is over button campaign/endless
+        is_hovering = (mouseX >= gamemode_x
+                    && mouseX <= gamemode_x + gamemode_w
+                    && mouseY >= gamemode_y
+                    && mouseY <= gamemode_y + gamemode_h);
 
-          SDL_SetColorKey(buttoncampaign, SDL_FALSE,
-                          SDL_MapRGB(buttoncampaign->format, 0x70, 0x92, 0xBE));
-          SDL_SetColorKey(buttonendless, SDL_FALSE,
-                          SDL_MapRGB(buttonendless->format, 0x70, 0x92, 0xBE));
+        SDL_SetColorKey(buttoncampaign, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttoncampaign->format, 0x70, 0x92, 0xBE));
 
-      } else {
-          SDL_SetColorKey(buttoncampaign, SDL_TRUE,
-                          SDL_MapRGB(buttoncampaign->format, 0x70, 0x92, 0xBE));
-          SDL_SetColorKey(buttonendless, SDL_TRUE,
-                          SDL_MapRGB(buttonendless->format, 0x70, 0x92, 0xBE));
-      }
+        SDL_SetColorKey(buttonendless, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttonendless->format, 0x70,
+                                                          0x92,
+                                                          0xBE));
 
-      // Check if mouse is over button campaign/endless
-      if (mouseX >= physics_x
-      && mouseX <= physics_x + physics_w
-      && mouseY >= physics_y
-      && mouseY <= physics_y + physics_h) {
+        // Check if mouse is over button campaign/endless
+        is_hovering = (mouseX >= physics_x
+                    && mouseX <= physics_x + physics_w
+                    && mouseY >= physics_y
+                    && mouseY <= physics_y + physics_h);
 
-          SDL_SetColorKey(buttonclassic, SDL_FALSE,
-                          SDL_MapRGB(buttonclassic->format, 0x70, 0x92, 0xBE));
-          SDL_SetColorKey(buttonalternate, SDL_FALSE,
-                          SDL_MapRGB(buttonalternate->format, 0x70, 0x92, 0xBE));
+        SDL_SetColorKey(buttonclassic, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttonclassic->format, 0x70, 0x92, 0xBE));
+        SDL_SetColorKey(buttonalternate, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttonalternate->format, 0x70, 0x92,0xBE));
 
-      } else {
-          SDL_SetColorKey(buttonclassic, SDL_TRUE,
-                          SDL_MapRGB(buttonclassic->format, 0x70, 0x92, 0xBE));
-          SDL_SetColorKey(buttonalternate, SDL_TRUE,
-                          SDL_MapRGB(buttonalternate->format, 0x70, 0x92, 0xBE));
-      }
+        // Fill the surface with #000000 (black)
+        SDL_FillRect(gScreenSurface, NULL,
+                        SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
-    // Fill the surface with #000000 (black)
-    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
-                                                0x00, 0x00, 0x00));
+        if(drawOnScreen(config, 0, 0,
+                        config_w, config_h,
+                        config_x, config_y) < 0
+        || drawOnScreen(buttonhome, 0, 0,
+                        buttonhome_w, buttonhome_h,
+                        buttonhome_x, buttonhome_y) < 0
+        || drawOnScreen(buttonplay, 0, 0,
+                        buttonplay_w, buttonplay_h,
+                        buttonplay_x, buttonplay_y) < 0
+        || drawOnScreen(gGameMode == 1 ? buttoncampaign : buttonendless, 0, 0,
+                        gamemode_w, gamemode_h,
+                        gamemode_x, gamemode_y) < 0
+        || drawOnScreen(gPhysics == 1 ? buttonclassic : buttonalternate, 0, 0,
+                        physics_w, physics_h,
+                        physics_x, physics_y) < 0) {
+              error(ERR_BLIT);
+              quit = true;
+        }
 
-    if((drawOnScreen(config, 0, 0,
-          config_w, config_h,
-          config_x, config_y) < 0)
-    || (drawOnScreen(buttonhome, 0, 0,
-          buttonhome_w, buttonhome_h,
-          buttonhome_x, buttonhome_y) < 0)
-    || (drawOnScreen(buttonplay, 0, 0,
-          buttonplay_w, buttonplay_h,
-          buttonplay_x, buttonplay_y) < 0)) {
-    /* TODO: Clean this if condition */
-          error(ERR_BLIT);
-          quit = true;
+        // Update the surface
+        SDL_UpdateWindowSurface(gWindow);
+
+        // Normalize framerate
+        SDL_Delay(time_left());
+        next_time += TICK_INTERVAL;
     }
-
-    if (gGameMode == 1)
-      if  (drawOnScreen(buttoncampaign, 0, 0,
-            gamemode_w, gamemode_h,
-            gamemode_x, gamemode_y) < 0){
-      /* TODO: Clean this if condition */
-            error(ERR_BLIT);
-            quit = true;
-      }
-    if (gGameMode == 2)
-      if  (drawOnScreen(buttonendless, 0, 0,
-            gamemode_w, gamemode_h,
-            gamemode_x, gamemode_y) < 0){
-      /* TODO: Clean this if condition */
-            error(ERR_BLIT);
-            quit = true;
-      }
-
-      if (gPhysics == 1)
-        if  (drawOnScreen(buttonclassic, 0, 0,
-              physics_w, physics_h,
-              physics_x, physics_y) < 0){
-        /* TODO: Clean this if condition */
-              error(ERR_BLIT);
-              quit = true;
-        }
-      if (gPhysics == 2)
-        if  (drawOnScreen(buttonalternate, 0, 0,
-              physics_w, physics_h,
-              physics_x, physics_y) < 0){
-        /* TODO: Clean this if condition */
-              error(ERR_BLIT);
-              quit = true;
-        }
-
-
-    // Update the surface
-    SDL_UpdateWindowSurface(gWindow);
-
-    // Normalize framerate
-    SDL_Delay(time_left());
-    next_time += TICK_INTERVAL;
-  }
 }
 
 void collisionBalls(void) {
@@ -874,7 +792,7 @@ void collisionBrick(void) {
                         brick[j][k].resist = current.resist-1 < 0
                                     ? 0
                                     : current.resist-1;
-                        if((!brick[j][k].resist)&&(gSound)) {
+                        if(!brick[j][k].resist && gSound) {
                             Mix_PlayChannel(-1, gBrickWAV, 0);
                         }
 
@@ -925,113 +843,113 @@ void collisionBrick(void) {
 
 void collisionRacket(void) {
     if (gPhysics == 1) {
-    // Iteration variable
-    int i;
+        // Iteration variable
+        int i;
 
-    for (i = 0; i < LEN; i++) {
-        int top_limit = ball[i].posY + BALL_HEIGHT >= player.posY;
-        // 2 pixels of tolerance
-        int bottom_limit = ball[i].posY + BALL_HEIGHT <= player.posY + 2;
-        int left_limit = ball[i].posX + BALL_WIDTH >= player.posX;
-        int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
-        //int right_side = ball[i].posX >= player.posX + RACKET_WIDTH/2;
+        for (i = 0; i < LEN; i++) {
+            int top_limit = ball[i].posY + BALL_HEIGHT >= player.posY;
+            // 2 pixels of tolerance
+            int bottom_limit = ball[i].posY + BALL_HEIGHT <= player.posY + 2;
+            int left_limit = ball[i].posX + BALL_WIDTH >= player.posX;
+            int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
+            //int right_side = ball[i].posX >= player.posX + RACKET_WIDTH/2;
 
-        float left_edge = (player.posX);
-        float right_edge = left_edge + RACKET_WIDTH;
+            if (top_limit && bottom_limit && left_limit && right_limit) {
+                ball[i].stepY = -absolute(ball[i].stepY);
 
-        if (top_limit && bottom_limit && left_limit && right_limit) {
-            ball[i].stepY = -absolute(ball[i].stepY);
+                float left_edge = player.posX;
+                float right_edge = left_edge + RACKET_WIDTH;
 
-        float step_max = BALL_MAX_SPEED;
-        int POS = ball[i].posX + (BALL_WIDTH/2);
-        ball[i].stepX = ( ( ( POS - left_edge ) * ( step_max-1 ) ) -
-        ( ( right_edge - POS ) * ( step_max-1 ) ) ) / ( RACKET_WIDTH*1.0 );
-        if(_DEBUG) {
-          printf("[  %f  ]\n", ball[i].stepX / player.factor);
-          printf("stepX == %f\n", ball[i].stepX);
-        }
-        if (gSound) {
-          Mix_PlayChannel(-1, gRacketWAV, 0);
-        }
+                float step_max = BALL_MAX_SPEED - 1;
+                int POS = ball[i].posX + BALL_WIDTH/2;
 
-            if (ball[i].stepX < -BALL_MAX_SPEED) {
-                ball[i].stepX = -BALL_MAX_SPEED;
-            } else if (ball[i].stepX > BALL_MAX_SPEED) {
-                ball[i].stepX = BALL_MAX_SPEED;
+                ball[i].stepX = (2*POS - left_edge - right_edge) * step_max;
+                ball[i].stepX /= (float)RACKET_WIDTH;
+
+                if(_DEBUG) {
+                    printf("[  %f  ]\n", ball[i].stepX / player.factor);
+                    printf("stepX == %f\n", ball[i].stepX);
+                }
+
+                if(gSound) Mix_PlayChannel(-1, gRacketWAV, 0);
+
+                if(ball[i].stepX < -BALL_MAX_SPEED) {
+                    ball[i].stepX = -BALL_MAX_SPEED;
+                } else if (ball[i].stepX > BALL_MAX_SPEED) {
+                    ball[i].stepX = BALL_MAX_SPEED;
+                }
+
+                if(_DEBUG) printf("[FINAL] stepX = %d\n", ball[i].stepX);
             }
-            if(_DEBUG) printf("[FINAL] stepX = %d\n", ball[i].stepX);
         }
-    }
-  }
+    } else if(gPhysics == 2) {
+        // Iteration variable
+        int i;
 
-  if (gPhysics == 2) {
-    // Iteration variable
-    int i;
+        for (i = 0; i < LEN; i++) {
+            int top_limit = ball[i].posY + BALL_HEIGHT >= player.posY;
+            // 2 pixels of tolerance
+            int bottom_limit = ball[i].posY + BALL_HEIGHT <= player.posY + 2;
+            int left_limit = ball[i].posX + BALL_WIDTH >= player.posX;
+            int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
 
-    for (i = 0; i < LEN; i++) {
-        int top_limit = ball[i].posY + BALL_HEIGHT >= player.posY;
-        // 2 pixels of tolerance
-        int bottom_limit = ball[i].posY + BALL_HEIGHT <= player.posY + 2;
-        int left_limit = ball[i].posX + BALL_WIDTH >= player.posX;
-        int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
+            int right_side = ball[i].posX >= player.posX + RACKET_WIDTH/2;
 
-        int right_side = ball[i].posX >= player.posX + RACKET_WIDTH/2;
+            if (top_limit && bottom_limit && left_limit && right_limit) {
+                ball[i].stepY = -absolute(ball[i].stepY);
 
-        if (top_limit && bottom_limit && left_limit && right_limit) {
-            ball[i].stepY = -absolute(ball[i].stepY);
-
-            if (right_side) {
-                if (ball[i].stepX < 0) {
-                    ball[i].stepX = (int)(ball[i].stepX / player.factor);
-                    if(_DEBUG) {
-                        printf("[  %g  ]\n", ball[i].stepX / player.factor);
-                        printf("RIGHT < 0 :: stepX == %d\n", ball[i].stepX);
-                    }
-                } else if (ball[i].stepX > 0) {
-                    ball[i].stepX = (int)(ball[i].stepX * player.factor);
-                    if(_DEBUG) {
-                        printf("[  %g  ]\n", ball[i].stepX * player.factor);
-                        printf("RIGHT > 0 :: stepX == %d\n", ball[i].stepX);
+                if (right_side) {
+                    if (ball[i].stepX < 0) {
+                        ball[i].stepX = (int)(ball[i].stepX / player.factor);
+                        if(_DEBUG) {
+                            printf("[  %g  ]\n", ball[i].stepX / player.factor);
+                            printf("RIGHT < 0 :: stepX == %d\n", ball[i].stepX);
+                        }
+                    } else if (ball[i].stepX > 0) {
+                        ball[i].stepX = (int)(ball[i].stepX * player.factor);
+                        if(_DEBUG) {
+                            printf("[  %g  ]\n", ball[i].stepX * player.factor);
+                            printf("RIGHT > 0 :: stepX == %d\n", ball[i].stepX);
+                        }
+                    } else {
+                        ball[i].stepX = (int)(player.factor);
+                        if(_DEBUG) {
+                            printf("[  %g  ]\n", player.factor);
+                            printf("RIGHT = 0 :: stepX == %d\n", ball[i].stepX);
+                        }
                     }
                 } else {
-                    ball[i].stepX = (int)(player.factor);
-                    if(_DEBUG) {
-                        printf("[  %g  ]\n", player.factor);
-                        printf("RIGHT = 0 :: stepX == %d\n", ball[i].stepX);
+                    if (ball[i].stepX < 0) {
+                        ball[i].stepX = (int)(ball[i].stepX * player.factor);
+                        if(_DEBUG) {
+                            printf("[  %g  ]\n", ball[i].stepX * player.factor);
+                            printf("LEFT < 0 :: stepX == %d\n", ball[i].stepX);
+                        }
+                    } else if (ball[i].stepX > 0) {
+                        ball[i].stepX = (int)(ball[i].stepX / player.factor);
+                        if(_DEBUG) {
+                            printf("[  %g  ]\n", ball[i].stepX / player.factor);
+                            printf("LEFT > 0 :: stepX == %d\n", ball[i].stepX);
+                        }
+                    } else {
+                        ball[i].stepX = -(int)(player.factor);
+                        if(_DEBUG) {
+                            printf("[  %g  ]\n", player.factor);
+                            printf("LEFT = 0 :: stepX == %d\n", ball[i].stepX);
+                        }
                     }
                 }
-            } else {
-                if (ball[i].stepX < 0) {
-                    ball[i].stepX = (int)(ball[i].stepX * player.factor);
-                    if(_DEBUG) {
-                        printf("[  %g  ]\n", ball[i].stepX * player.factor);
-                        printf("LEFT < 0 :: stepX == %d\n", ball[i].stepX);
-                    }
-                } else if (ball[i].stepX > 0) {
-                    ball[i].stepX = (int)(ball[i].stepX / player.factor);
-                    if(_DEBUG) {
-                        printf("[  %g  ]\n", ball[i].stepX / player.factor);
-                        printf("LEFT > 0 :: stepX == %d\n", ball[i].stepX);
-                    }
-                } else {
-                    ball[i].stepX = -(int)(player.factor);
-                    if(_DEBUG) {
-                        printf("[  %g  ]\n", player.factor);
-                        printf("LEFT = 0 :: stepX == %d\n", ball[i].stepX);
-                    }
-                }
-            }
 
-            if (ball[i].stepX < -BALL_MAX_SPEED) {
-                ball[i].stepX = -BALL_MAX_SPEED;
-            } else if (ball[i].stepX > BALL_MAX_SPEED) {
-                ball[i].stepX = BALL_MAX_SPEED;
+                if(ball[i].stepX < -BALL_MAX_SPEED) {
+                    ball[i].stepX = -BALL_MAX_SPEED;
+                } else if (ball[i].stepX > BALL_MAX_SPEED) {
+                    ball[i].stepX = BALL_MAX_SPEED;
+                }
+                if(_DEBUG) printf("[FINAL] stepX = %d\n", ball[i].stepX);
+                if(gSound) Mix_PlayChannel(-1, gBrickWAV, 0);
             }
-            if(_DEBUG) printf("[FINAL] stepX = %d\n", ball[i].stepX);
-            if (gSound) Mix_PlayChannel(-1, gBrickWAV, 0);
         }
     }
-  }
 }
 
 void newLevel(void) {
@@ -1158,40 +1076,44 @@ int init(void) {
     }
 
     Uint16 pixels[16*16] = {  // ...or with raw pixel data:
-    0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
-    0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
-    0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
-    0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
-    0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
-    0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
-    0x0fff, 0x0aab, 0x0789, 0x0bcc, 0x0eee, 0x09aa, 0x099a, 0x0ddd,
-    0x0fff, 0x0eee, 0x0899, 0x0fff, 0x0fff, 0x1fff, 0x0dde, 0x0dee,
-    0x0fff, 0xabbc, 0xf779, 0x8cdd, 0x3fff, 0x9bbc, 0xaaab, 0x6fff,
-    0x0fff, 0x3fff, 0xbaab, 0x0fff, 0x0fff, 0x6689, 0x6fff, 0x0dee,
-    0xe678, 0xf134, 0x8abb, 0xf235, 0xf678, 0xf013, 0xf568, 0xf001,
-    0xd889, 0x7abc, 0xf001, 0x0fff, 0x0fff, 0x0bcc, 0x9124, 0x5fff,
-    0xf124, 0xf356, 0x3eee, 0x0fff, 0x7bbc, 0xf124, 0x0789, 0x2fff,
-    0xf002, 0xd789, 0xf024, 0x0fff, 0x0fff, 0x0002, 0x0134, 0xd79a,
-    0x1fff, 0xf023, 0xf000, 0xf124, 0xc99a, 0xf024, 0x0567, 0x0fff,
-    0xf002, 0xe678, 0xf013, 0x0fff, 0x0ddd, 0x0fff, 0x0fff, 0xb689,
-    0x8abb, 0x0fff, 0x0fff, 0xf001, 0xf235, 0xf013, 0x0fff, 0xd789,
-    0xf002, 0x9899, 0xf001, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0xe789,
-    0xf023, 0xf000, 0xf001, 0xe456, 0x8bcc, 0xf013, 0xf002, 0xf012,
-    0x1767, 0x5aaa, 0xf013, 0xf001, 0xf000, 0x0fff, 0x7fff, 0xf124,
-    0x0fff, 0x089a, 0x0578, 0x0fff, 0x089a, 0x0013, 0x0245, 0x0eff,
-    0x0223, 0x0dde, 0x0135, 0x0789, 0x0ddd, 0xbbbc, 0xf346, 0x0467,
-    0x0fff, 0x4eee, 0x3ddd, 0x0edd, 0x0dee, 0x0fff, 0x0fff, 0x0dee,
-    0x0def, 0x08ab, 0x0fff, 0x7fff, 0xfabc, 0xf356, 0x0457, 0x0467,
-    0x0fff, 0x0bcd, 0x4bde, 0x9bcc, 0x8dee, 0x8eff, 0x8fff, 0x9fff,
-    0xadee, 0xeccd, 0xf689, 0xc357, 0x2356, 0x0356, 0x0467, 0x0467,
-    0x0fff, 0x0ccd, 0x0bdd, 0x0cdd, 0x0aaa, 0x2234, 0x4135, 0x4346,
-    0x5356, 0x2246, 0x0346, 0x0356, 0x0467, 0x0356, 0x0467, 0x0467,
-    0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
-    0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
-    0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
-    0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff
-  };
-  gIcon = SDL_CreateRGBSurfaceFrom(pixels,16,16,16,16*2,0x0f00,0x00f0,0x000f,0xf000);
+        0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
+        0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
+        0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
+        0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
+        0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
+        0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
+        0x0fff, 0x0aab, 0x0789, 0x0bcc, 0x0eee, 0x09aa, 0x099a, 0x0ddd,
+        0x0fff, 0x0eee, 0x0899, 0x0fff, 0x0fff, 0x1fff, 0x0dde, 0x0dee,
+        0x0fff, 0xabbc, 0xf779, 0x8cdd, 0x3fff, 0x9bbc, 0xaaab, 0x6fff,
+        0x0fff, 0x3fff, 0xbaab, 0x0fff, 0x0fff, 0x6689, 0x6fff, 0x0dee,
+        0xe678, 0xf134, 0x8abb, 0xf235, 0xf678, 0xf013, 0xf568, 0xf001,
+        0xd889, 0x7abc, 0xf001, 0x0fff, 0x0fff, 0x0bcc, 0x9124, 0x5fff,
+        0xf124, 0xf356, 0x3eee, 0x0fff, 0x7bbc, 0xf124, 0x0789, 0x2fff,
+        0xf002, 0xd789, 0xf024, 0x0fff, 0x0fff, 0x0002, 0x0134, 0xd79a,
+        0x1fff, 0xf023, 0xf000, 0xf124, 0xc99a, 0xf024, 0x0567, 0x0fff,
+        0xf002, 0xe678, 0xf013, 0x0fff, 0x0ddd, 0x0fff, 0x0fff, 0xb689,
+        0x8abb, 0x0fff, 0x0fff, 0xf001, 0xf235, 0xf013, 0x0fff, 0xd789,
+        0xf002, 0x9899, 0xf001, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0xe789,
+        0xf023, 0xf000, 0xf001, 0xe456, 0x8bcc, 0xf013, 0xf002, 0xf012,
+        0x1767, 0x5aaa, 0xf013, 0xf001, 0xf000, 0x0fff, 0x7fff, 0xf124,
+        0x0fff, 0x089a, 0x0578, 0x0fff, 0x089a, 0x0013, 0x0245, 0x0eff,
+        0x0223, 0x0dde, 0x0135, 0x0789, 0x0ddd, 0xbbbc, 0xf346, 0x0467,
+        0x0fff, 0x4eee, 0x3ddd, 0x0edd, 0x0dee, 0x0fff, 0x0fff, 0x0dee,
+        0x0def, 0x08ab, 0x0fff, 0x7fff, 0xfabc, 0xf356, 0x0457, 0x0467,
+        0x0fff, 0x0bcd, 0x4bde, 0x9bcc, 0x8dee, 0x8eff, 0x8fff, 0x9fff,
+        0xadee, 0xeccd, 0xf689, 0xc357, 0x2356, 0x0356, 0x0467, 0x0467,
+        0x0fff, 0x0ccd, 0x0bdd, 0x0cdd, 0x0aaa, 0x2234, 0x4135, 0x4346,
+        0x5356, 0x2246, 0x0346, 0x0356, 0x0467, 0x0356, 0x0467, 0x0467,
+        0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
+        0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
+        0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
+        0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff
+    };
+    gIcon = SDL_CreateRGBSurfaceFrom(pixels,
+                                    16,16,
+                                    16,16*2,
+                                    0x0f00,0x00f0,
+                                    0x000f,0xf000);
 
     // The icon is attached to the window pointer
     SDL_SetWindowIcon(gWindow, gIcon);
@@ -1262,7 +1184,8 @@ int loadMedia(void) {
         error(ERR_WAV_LOAD);
         return false;
     }
-    gMusicWAV = Mix_LoadWAV("./sounds/music.mp3");
+
+    gMusicWAV = Mix_LoadMUS("./sounds/music.mp3");
     if(!gMusicWAV) {
         error(ERR_MP3_LOAD);
         return false;
@@ -1331,18 +1254,6 @@ int drawOnScreen(SDL_Surface* image,
     dstRect.y = dstY;
 
     return SDL_BlitSurface(image, &srcRect, gScreenSurface, &dstRect);
-}
-
-int randneg(void) {
-  int neg = rand()%4*(-1);
-  if (!neg) neg = -1;
-  return neg;
-}
-
-int randposi(void) {
-  int posi = rand()%4;
-  if (!posi) posi = 1;
-  return posi;
 }
 
 // Time left until next tick
