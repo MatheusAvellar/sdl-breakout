@@ -272,18 +272,23 @@ void game(void) {
 
                 case SDL_MOUSEBUTTONDOWN:
                     if(e.button.button == SDL_BUTTON_LEFT) {
-                        if (mouseX >= ((SCREEN_WIDTH - 200) + 40)
+                        if(mouseX >= ((SCREEN_WIDTH - 200) + 40)
                         && mouseX <= ((SCREEN_WIDTH - 200) + 40) + 50
                         && mouseY >= 510
                         && mouseY <= 510 + 50) {
                             gSound = !gSound;
-                        } else if (mouseX >= ((SCREEN_WIDTH - 200) + 120)
+                        } else if(mouseX >= ((SCREEN_WIDTH - 200) + 120)
                         && mouseX <= ((SCREEN_WIDTH - 200) + 120) + 50
                         && mouseY >= 510
                         && mouseY <= 510 + 50) {
                             gMusic = !gMusic;
                             if(!gMusic) Mix_VolumeMusic(0);
                             else Mix_VolumeMusic(MIX_MAX_VOLUME);
+                        } else if (mouseX >= ((SCREEN_WIDTH - 200) + 80)
+                        && mouseX <= ((SCREEN_WIDTH - 200) + 80) + 50
+                        && mouseY >= 580
+                        && mouseY <= 580 + 50) {
+                            gPause = !gPause;
                         }
                     }
                     break;
@@ -399,7 +404,10 @@ void game(void) {
                         (SCREEN_WIDTH - 200) + 40, 510) < 0
         || drawOnScreen(sound, gMusic ? 0 : 50, 50,
                         50, 50,
-                        (SCREEN_WIDTH - 200) + 120, 510) < 0) {
+                        (SCREEN_WIDTH - 200) + 120, 510) < 0
+        || drawOnScreen(sound, gPause ? 0 : 50, 100,
+                        50, 50,
+                        (SCREEN_WIDTH - 200) + 80, 580) < 0) {
             error(ERR_BLIT);
             quit = true;
         }
@@ -426,6 +434,42 @@ void game(void) {
         if(player.aux_score >= 10000) {
             player.lives += 1;
             player.aux_score -= 10000;
+        }
+
+        int buttonquit_x = 36*PROP;
+        int buttonquit_y = 31*PROP;
+        int buttonquit_w = 11.2*PROP;
+        int buttonquit_h = 5*PROP;
+
+        // Check if mouse is over button quit
+        if ((mouseX >= buttonquit_x
+        && mouseX <= buttonquit_x + buttonquit_w
+        && mouseY >= buttonquit_y
+        && mouseY <= buttonquit_y + buttonquit_h) && (gPause)){
+            SDL_SetColorKey(buttonquit, SDL_FALSE,
+                            SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
+
+            // Check if button home is pressed
+            if (SDL_GetMouseState(NULL, NULL)
+                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                gameScreen = 0;
+                return;
+            }
+        } else {
+            SDL_SetColorKey(buttonquit, SDL_TRUE,
+                            SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
+        }
+
+        if(gPause) {
+          if ((drawOnScreen(pause, 0, 0,
+                      28.8*PROP, 14.2*PROP,
+                      30*PROP, 24*PROP) < 0)
+              || (drawOnScreen(buttonquit, 0, 0,
+                          buttonquit_w, buttonquit_h,
+                          buttonquit_x, buttonquit_y) < 0)) {
+              error(ERR_BLIT);
+              quit = true;
+            }
         }
 
         // Update the surface
@@ -1145,7 +1189,9 @@ int loadMedia(void) {
     || (buttoncampaign = loadSurface("./images/campaign.png")) == NULL
     || (buttonclassic = loadSurface("./images/classic.png")) == NULL
     || (buttonalternate = loadSurface("./images/alternate.png")) == NULL
-    || (buttonplay = loadSurface("./images/playbutton.png")) == NULL) {
+    || (buttonplay = loadSurface("./images/playbutton.png")) == NULL
+    || (pause = loadSurface("./images/pause.png")) == NULL
+    || (buttonquit = loadSurface("./images/quitbutton.png")) == NULL) {
         error(ERR_IMG_LOAD);
         return false;
     }

@@ -59,6 +59,8 @@ SDL_Surface* buttonalternate = NULL;
 SDL_Surface* buttonplay = NULL;
 SDL_Surface* breakout = NULL;
 SDL_Surface* config = NULL;
+SDL_Surface* pause = NULL;
+SDL_Surface* buttonquit = NULL;
 
 // Image for side_bar
 SDL_Surface* side_bar = NULL;
