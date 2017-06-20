@@ -443,10 +443,10 @@ void game(void) {
         int buttonquit_h = 5*PROP;
 
         // Check if mouse is over button quit
-        if (mouseX >= buttonquit_x
+        if ((mouseX >= buttonquit_x
         && mouseX <= buttonquit_x + buttonquit_w
         && mouseY >= buttonquit_y
-        && mouseY <= buttonquit_y + buttonquit_h) {
+        && mouseY <= buttonquit_y + buttonquit_h) && (gPause)){
             SDL_SetColorKey(buttonquit, SDL_FALSE,
                             SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
 
