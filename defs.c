@@ -252,7 +252,7 @@ void game(void) {
                     && !ball_in_game && !gPause) {
                         for (i = 0; i < LEN; i++) {
                             float r = rand() % 4;
-                            ball[i].stepX = !r ? 1 : r;
+                            ball[i].stepX = !(int)r ? 1 : r;
                             if(rand() % 2) ball[i].stepX *= -1;
 
                             ball[i].stepY = -1;
@@ -285,6 +285,7 @@ void game(void) {
                             if(!gMusic) Mix_VolumeMusic(0);
                             else Mix_VolumeMusic(MIX_MAX_VOLUME);
                     }
+                    break;
 
                 default:
                     // Supress warnings from [-Wswitch-default] flag
@@ -328,7 +329,7 @@ void game(void) {
 
                     if(player.lives <= 0) {
                         /* TODO: Player is out of lives -- Game over */
-                        if(_DEBUG) {
+                        if(_DEBUG)
                             printf("[Player is out of lives!] %d\n", player.lives);
                             newLevel();
                             can_music_play = 1;
@@ -339,7 +340,6 @@ void game(void) {
                             player._right = false;
                             menu();
                             return;
-                        }
                     }
                 }
 
@@ -404,14 +404,6 @@ void game(void) {
             quit = true;
         }
 
-        // Play music
-        if(player.lives > 0 && can_music_play) {
-            if(Mix_PlayMusic(gMusicWAV, -1)==-1) {
-                printf("Failed to load music!\n%s\n", Mix_GetError());
-                // There is no music, but the game is still playable
-            }
-            can_music_play = 0;
-        }
 
         // Collision between balls
         if(LEN > 1) collisionBalls();
@@ -460,7 +452,7 @@ void options(void) {
     while (!quit) {
         // Get current mouse position
         SDL_GetMouseState(&mouseX, &mouseY);
-  
+
         while (SDL_PollEvent(&e) != 0) {
             switch (e.type) {
                 case SDL_QUIT:
@@ -1185,10 +1177,20 @@ int loadMedia(void) {
         return false;
     }
 
-    gMusicWAV = Mix_LoadMUS("./sounds/music.mp3");
+    gMusicWAV = Mix_LoadMUS("./sounds/music.wav");
     if(!gMusicWAV) {
         error(ERR_MP3_LOAD);
         return false;
+    }
+
+
+    // Play music
+    if(can_music_play) {
+      if(Mix_PlayMusic(gMusicWAV, -1)==-1) {
+        printf("Failed to load music!\n%s\n", Mix_GetError());
+        // There is no music, but the game is still playable
+        }
+      can_music_play = 0;
     }
 
     return true;
