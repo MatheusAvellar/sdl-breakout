@@ -59,6 +59,7 @@ SDL_Surface* buttonalternate = NULL;
 SDL_Surface* buttonplay = NULL;
 SDL_Surface* breakout = NULL;
 SDL_Surface* config = NULL;
+SDL_Surface* optionsback = NULL;
 SDL_Surface* pause = NULL;
 SDL_Surface* buttonquit = NULL;
 

@@ -487,6 +487,11 @@ void options(void) {
     int buttonhome_w = 11.2*PROP;
     int buttonhome_h = 5*PROP;
 
+    int options_x = 0;
+    int options_y = 0;
+    int options_w = 100*PROP;
+    int options_h = 70*PROP;
+
     // Mouse position
     int mouseX, mouseY;
 
@@ -533,8 +538,10 @@ void options(void) {
         // Fill the surface with #000000 (black)
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
                                                       0x00, 0x00, 0x00));
-
-        if(drawOnScreen(buttonhome, 0, 0,
+        if(drawOnScreen(optionsback, 0, 0,
+              options_w, options_h,
+              options_x, options_y) < 0
+        || drawOnScreen(buttonhome, 0, 0,
               buttonhome_w, buttonhome_h,
               buttonhome_x, buttonhome_y) < 0){
             /* TODO: Clean this if condition */
@@ -1191,7 +1198,8 @@ int loadMedia(void) {
     || (buttonalternate = loadSurface("./images/alternate.png")) == NULL
     || (buttonplay = loadSurface("./images/playbutton.png")) == NULL
     || (pause = loadSurface("./images/pause.png")) == NULL
-    || (buttonquit = loadSurface("./images/quitbutton.png")) == NULL) {
+    || (buttonquit = loadSurface("./images/quitbutton.png")) == NULL
+    || (optionsback = loadSurface("./images/optionsback.png")) == NULL) {
         error(ERR_IMG_LOAD);
         return false;
     }
