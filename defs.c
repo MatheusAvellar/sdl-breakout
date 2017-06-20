@@ -360,7 +360,7 @@ void game(void) {
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
                 blockX = j % 2 ? BLOCK_WIDTH : 0;
-                blockY = j % 2 ? 0 : BLOCK_HEIGHT;
+                blockY = j == 1 || j == 2 ? 0 : BLOCK_HEIGHT;
                 if(j == 4) blockY *= 2;
 
                 if(brick[i][j].resist
