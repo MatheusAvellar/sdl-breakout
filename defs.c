@@ -1179,7 +1179,7 @@ int loadMedia(void) {
 
     gMusicWAV = Mix_LoadMUS("./sounds/music.wav");
     if(!gMusicWAV) {
-        error(ERR_MP3_LOAD);
+        error(ERR_WAV_LOAD);
         return false;
     }
 
@@ -1284,8 +1284,6 @@ void error(int code) {
             printf("Audio could not initialize!");
         case ERR_WAV_LOAD:
             printf("Unable to load WAV!");
-        case ERR_MP3_LOAD:
-            printf("Unable to load MP3!");
         default:
             printf("Unspecified error!");
             break;
