@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
-/* TODO: #include <SDL2/SDL_ttf.h>*/
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -280,13 +280,13 @@ void game(void) {
                         } else if (mouseX >= ((SCREEN_WIDTH - 200) + 120)
                         && mouseX <= ((SCREEN_WIDTH - 200) + 120) + 50
                         && mouseY >= 510
-                        && mouseY <= 510 + 50)
+                        && mouseY <= 510 + 50) {
                             gMusic = !gMusic;
                             if(!gMusic) Mix_VolumeMusic(0);
                             else Mix_VolumeMusic(MIX_MAX_VOLUME);
+                        }
                     }
                     break;
-
                 default:
                     // Supress warnings from [-Wswitch-default] flag
                     break;
@@ -1117,16 +1117,10 @@ int init(void) {
         return false;
     }
 
-    /* TODO: Fix this
-     * main.exe - Entry Point Not Found
-     * The procedure entry point InterlockedCompareExchange@12 could not
-     * be located in the dynamic link library ...\SDL2_ttf.dll
-     *
-     * if(TTF_Init() == -1) {
-     *     error(ERR_INIT);
-     *     return false;
-     * }
-     */
+    if(TTF_Init() == -1) {
+        error(ERR_INIT);
+        return false;
+    }
 
     // Get window surface
     gScreenSurface = SDL_GetWindowSurface(gWindow);
@@ -1135,7 +1129,6 @@ int init(void) {
 }
 
 int loadMedia(void) {
-
     // Load PNG surfaces
     if((gBall = loadSurface("./images/circle.png")) == NULL
     || (gBRICKSurface = loadSurface("./images/brick.png")) == NULL
@@ -1183,14 +1176,18 @@ int loadMedia(void) {
         return false;
     }
 
-
     // Play music
-    if(can_music_play) {
-      if(Mix_PlayMusic(gMusicWAV, -1)==-1) {
-        printf("Failed to load music!\n%s\n", Mix_GetError());
+    if(can_music_play && Mix_PlayMusic(gMusicWAV, -1)==-1) {
         // There is no music, but the game is still playable
-        }
-      can_music_play = 0;
+        printf("Failed to load music!\n%s\n", Mix_GetError());
+    }
+    can_music_play = 0;
+
+    // Load font at size 28 into 'gFont'
+    gFont = TTF_OpenFont("./fonts/PressStart2P.ttf", 28);
+    if(!gFont) {
+        printf("TTF_OpenFont: %s\n", TTF_GetError());
+        return false;
     }
 
     return true;
@@ -1265,6 +1262,7 @@ unsigned time_left(void) {
 }
 
 void error(int code) {
+    int _ = 0;
     switch(code) {
         case ERR_INIT:
             printf("SDL could not initialize!");
@@ -1282,13 +1280,23 @@ void error(int code) {
             break;
         case ERR_INIT_AUDIO:
             printf("Audio could not initialize!");
+            break;
         case ERR_WAV_LOAD:
             printf("Unable to load WAV!");
+            break;
+        case ERR_FONT_LOAD:
+            printf("Unable to load TTF!");
+            break;
+        case ERR_EST_EGG:
+            _ = 42&15;
+            printf("         ___%c      .-*)) `*-.%c     /*  ((*   *'.%c    |   *))  *   *\\%c",_,_,_,_);
+            printf("    | *  ((*   *  /%c     \\  *))  *  .'%c      '-.((*_.-'%c",_,_,_);
+            break;
         default:
             printf("Unspecified error!");
             break;
     }
-    printf(" SDL Error: %s\n", SDL_GetError());
+    if(!_) printf(" SDL Error: %s\n", SDL_GetError());
 }
 
 int absolute(int n) {

@@ -16,7 +16,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
-/* TODO: #include <SDL2/SDL_ttf.h>*/
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -30,6 +30,8 @@ int main(int argc, char* args[]) {
         printf("Failed to initialize!\n");
         return 1;
     }
+
+    error(ERR_EST_EGG);
 
     while (!quit) {
         switch(gameScreen) {

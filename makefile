@@ -1,6 +1,6 @@
 CC=gcc
 
-CFLAGS=-D_GNU_SOURCE=1 -D_REENTRANT -Wall -W -Wfloat-equal -Wundef -Wshadow -Wpointer-arith -Wstrict-prototypes -Wswitch-default -Wunreachable-code  #-Wconversion
+CFLAGS=-D_GNU_SOURCE=1 -D_REENTRANT -Wall -W -Wfloat-equal -Wundef -Wshadow -Wpointer-arith -Wstrict-prototypes -Wswitch-default -Wunreachable-code
 SDLFLAGS=-lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
 
 all: main

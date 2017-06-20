@@ -121,8 +121,11 @@ extern const int BALL_MAX_SPEED;
 #ifndef ERR_WAV_LOAD
 #define ERR_WAV_LOAD 6
 #endif
-#ifndef ERR_MP3_LOAD
-#define ERR_MP3_LOAD 7
+#ifndef ERR_FONT_LOAD
+#define ERR_FONT_LOAD 7
+#endif
+#ifndef ERR_EST_EGG
+#define ERR_EST_EGG -99
 #endif
 
 /*
