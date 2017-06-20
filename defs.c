@@ -429,7 +429,7 @@ void game(void) {
         }
 
         int buttonquit_x = 360;
-        int buttonquit_y = 270;
+        int buttonquit_y = 310;
         int buttonquit_w = 112;
         int buttonquit_h = 50;
 
@@ -455,7 +455,7 @@ void game(void) {
         if(gPause) {
           if ((drawOnScreen(pause, 0, 0,
                       288, 142,
-                      300, 200) < 0)
+                      300, 240) < 0)
               || (drawOnScreen(buttonquit, 0, 0,
                           buttonquit_w, buttonquit_h,
                           buttonquit_x, buttonquit_y) < 0)) {
