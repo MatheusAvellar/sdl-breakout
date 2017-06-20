@@ -428,6 +428,42 @@ void game(void) {
             player.aux_score -= 10000;
         }
 
+        int buttonquit_x = 360;
+        int buttonquit_y = 270;
+        int buttonquit_w = 112;
+        int buttonquit_h = 50;
+
+        // Check if mouse is over button quit
+        if (mouseX >= buttonquit_x
+        && mouseX <= buttonquit_x + buttonquit_w
+        && mouseY >= buttonquit_y
+        && mouseY <= buttonquit_y + buttonquit_h) {
+            SDL_SetColorKey(buttonquit, SDL_FALSE,
+                            SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
+
+            // Check if button home is pressed
+            if (SDL_GetMouseState(NULL, NULL)
+                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                gameScreen = 0;
+                return;
+            }
+        } else {
+            SDL_SetColorKey(buttonquit, SDL_TRUE,
+                            SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
+        }
+
+        if(gPause) {
+          if ((drawOnScreen(pause, 0, 0,
+                      288, 142,
+                      300, 200) < 0)
+              || (drawOnScreen(buttonquit, 0, 0,
+                          buttonquit_w, buttonquit_h,
+                          buttonquit_x, buttonquit_y) < 0)) {
+              error(ERR_BLIT);
+              quit = true;
+            }
+        }
+
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
 
@@ -1152,7 +1188,9 @@ int loadMedia(void) {
     || (buttoncampaign = loadSurface("./images/campaign.png")) == NULL
     || (buttonclassic = loadSurface("./images/classic.png")) == NULL
     || (buttonalternate = loadSurface("./images/alternate.png")) == NULL
-    || (buttonplay = loadSurface("./images/playbutton.png")) == NULL) {
+    || (buttonplay = loadSurface("./images/playbutton.png")) == NULL
+    || (pause = loadSurface("./images/pause.png")) == NULL
+    || (buttonquit = loadSurface("./images/quitbutton.png")) == NULL) {
         error(ERR_IMG_LOAD);
         return false;
     }

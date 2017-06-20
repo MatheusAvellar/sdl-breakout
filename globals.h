@@ -53,6 +53,8 @@ extern SDL_Surface* buttonalternate;
 extern SDL_Surface* buttonplay;
 extern SDL_Surface* breakout;
 extern SDL_Surface* config;
+extern SDL_Surface* pause;
+extern SDL_Surface* buttonquit;
 
 // Image for side_bar
 extern SDL_Surface* side_bar;
