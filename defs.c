@@ -280,10 +280,16 @@ void game(void) {
                         } else if (mouseX >= ((SCREEN_WIDTH - 200) + 120)
                         && mouseX <= ((SCREEN_WIDTH - 200) + 120) + 50
                         && mouseY >= 510
-                        && mouseY <= 510 + 50)
+                        && mouseY <= 510 + 50) {
                             gMusic = !gMusic;
                             if(!gMusic) Mix_VolumeMusic(0);
                             else Mix_VolumeMusic(MIX_MAX_VOLUME);
+                      } else if (mouseX >= ((SCREEN_WIDTH - 200) + 80)
+                      && mouseX <= ((SCREEN_WIDTH - 200) + 80) + 50
+                      && mouseY >= 580
+                      && mouseY <= 580 + 50) {
+                        gPause = !gPause;
+                    }
                     }
                     break;
 
@@ -399,7 +405,10 @@ void game(void) {
                         (SCREEN_WIDTH - 200) + 40, 510) < 0
         || drawOnScreen(sound, gMusic ? 0 : 50, 50,
                         50, 50,
-                        (SCREEN_WIDTH - 200) + 120, 510) < 0) {
+                        (SCREEN_WIDTH - 200) + 120, 510) < 0
+        || drawOnScreen(sound, gPause ? 0 : 50, 100,
+                        50, 50,
+                        (SCREEN_WIDTH - 200) + 80, 580) < 0) {
             error(ERR_BLIT);
             quit = true;
         }
