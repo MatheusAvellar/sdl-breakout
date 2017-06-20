@@ -428,10 +428,10 @@ void game(void) {
             player.aux_score -= 10000;
         }
 
-        int buttonquit_x = 360;
-        int buttonquit_y = 310;
-        int buttonquit_w = 112;
-        int buttonquit_h = 50;
+        int buttonquit_x = 36*PROP;
+        int buttonquit_y = 31*PROP;
+        int buttonquit_w = 11.2*PROP;
+        int buttonquit_h = 5*PROP;
 
         // Check if mouse is over button quit
         if (mouseX >= buttonquit_x
@@ -454,8 +454,8 @@ void game(void) {
 
         if(gPause) {
           if ((drawOnScreen(pause, 0, 0,
-                      288, 142,
-                      300, 240) < 0)
+                      28.8*PROP, 14.2*PROP,
+                      30*PROP, 24*PROP) < 0)
               || (drawOnScreen(buttonquit, 0, 0,
                           buttonquit_w, buttonquit_h,
                           buttonquit_x, buttonquit_y) < 0)) {
