@@ -347,6 +347,7 @@ void game(void) {
                         player.score = 0;
                         player.aux_score = 0;
                         player.lives = 3;
+                        level = 1;
                         player._left = false;
                         player._right = false;
                         menu();
