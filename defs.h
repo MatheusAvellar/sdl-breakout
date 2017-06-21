@@ -149,6 +149,7 @@ void game(void);
 void options(void);
 void ranking(void);
 void configuration(void);
+void end_game(void);
 
 // Loads individual image
 SDL_Surface* loadSurface(char *path);

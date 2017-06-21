@@ -342,17 +342,12 @@ void game(void) {
                             printf("[Player is out of lives!] %d\n",
                                     player.lives);
                         }
-                        newLevel();
-                        player.score = 0;
-                        player.aux_score = 0;
-                        player.lives = 3;
-                        level = 1;
                         blocklevel = 0;
                         blockscore = 0;
                         blocklives = 0;
                         player._left = false;
                         player._right = false;
-                        gameScreen = 0;
+                        gameScreen = 5;
                         return;
                     }
                 }
@@ -853,6 +848,101 @@ void configuration(void) {
         SDL_Delay(time_left());
         next_time += TICK_INTERVAL;
     }
+}
+
+void end_game(void) {
+
+    int buttonhome_x = 5*PROP;
+    int buttonhome_y = 5*PROP;
+    int buttonhome_w = 11.2*PROP;
+    int buttonhome_h = 5*PROP;
+
+    // Mouse position
+    int mouseX, mouseY;
+
+    int is_hovering;
+
+    // Event handler
+    SDL_Event e;
+
+    while (!quit) {
+        // Get current mouse position
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        while (SDL_PollEvent(&e) != 0) {
+            switch (e.type) {
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN:
+                    if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+                    break;
+                    default:
+                        // Supress warnings from [-Wswitch-default] flag
+                        break;
+                }
+            }
+
+        // Check if mouse is over button home
+        is_hovering = (mouseX >= buttonhome_x
+                    && mouseX <= buttonhome_x + buttonhome_w
+                    && mouseY >= buttonhome_y
+                    && mouseY <= buttonhome_y + buttonhome_h);
+
+        SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
+
+        // Check if button home is pressed
+        if(is_hovering
+        && SDL_GetMouseState(NULL, NULL)
+        && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+            gameScreen = 0;
+            blocklevel = 0;
+            blockscore = 0;
+            player.score = 0;
+            player.aux_score = 0;
+            player.lives = 3;
+            level = 1;
+            newLevel();
+            return;
+        }
+
+        // Fill the surface with #000000 (black)
+        SDL_FillRect(gScreenSurface, NULL,
+          SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+
+        if (drawOnScreen(buttonhome, 0, 0,
+            buttonhome_w, buttonhome_h,
+            buttonhome_x, buttonhome_y) < 0) {
+              error(ERR_BLIT);
+              quit = true;
+            }
+
+            SDL_Color yellow = { 180, 180, 0, 255 };
+
+            char strlevel[10];
+            if((level != contalevel) || (!blocklevel)) {
+              sprintf(strlevel, "Level: %d", level);
+              contalevel = level;
+              blocklevel = 1;
+            }
+            drawTextOnScreen(strlevel, SCREEN_WIDTH-260, 75, yellow);
+
+            char strscore[18];
+            if((player.score != contascore) || (!blockscore)) {
+              sprintf(strscore, "Score: %d", player.score);
+              contascore = player.score;
+              blockscore = 1;
+            }
+            drawTextOnScreen(strscore, SCREEN_WIDTH-260, 160, yellow);
+
+            // Update the surface
+            SDL_UpdateWindowSurface(gWindow);
+
+            // Normalize framerate
+            SDL_Delay(time_left());
+            next_time += TICK_INTERVAL;
+  }
 }
 
 void collisionBalls(void) {
