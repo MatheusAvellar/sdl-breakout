@@ -897,13 +897,13 @@ void end_game(void) {
         && SDL_GetMouseState(NULL, NULL)
         && SDL_BUTTON(SDL_BUTTON_LEFT)) {
             gameScreen = 0;
+            newLevel();
             blocklevel = 0;
             blockscore = 0;
             player.score = 0;
             player.aux_score = 0;
             player.lives = 3;
             level = 1;
-            newLevel();
             return;
         }
 
