@@ -192,7 +192,7 @@ void game(void) {
 
     // Time for bonus
     int finalTime, time_y_bonus;
-    int time_max_bonus = 1.2*((LINES*COLUMNS)+(LINES+COLUMNS))-5;
+    int time_max_bonus = (1.2*((LINES*COLUMNS)+(LINES+COLUMNS)))-2;
     int time_min_bonus = 1.5*time_max_bonus;
 
     ball_in_game = false;
