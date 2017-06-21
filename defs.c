@@ -1039,6 +1039,7 @@ void collisionRacket(void) {
                 }
                 if(_DEBUG) printf("[FINAL] stepX = %d\n", ball[i].stepX);
                 if(gSound) Mix_PlayChannel(-1, gBrickWAV, 0);
+                if(gSound) Mix_PlayChannel(-1, gRacketWAV, 0);
             }
         }
     }
