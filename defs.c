@@ -192,7 +192,7 @@ void game(void) {
 
     // Time for bonus
     int finalTime, time_y_bonus;
-    int time_max_bonus = (1.2*((LINES*COLUMNS)+(LINES+COLUMNS)))-2;
+    int time_max_bonus = (1.2*((LINES*COLUMNS)+(LINES+COLUMNS)))-4;
     int time_min_bonus = 1.5*time_max_bonus;
 
     ball_in_game = false;
@@ -451,7 +451,7 @@ void game(void) {
 
         finalTime = time(0);
         time_y_bonus = finalTime - gTime;
-        bonus = (((time_min_bonus - time_y_bonus) * 1000) / time_max_bonus);
+        bonus = (((time_min_bonus - time_y_bonus) * 1200) / time_max_bonus);
         bonus = bonus > 600 ? 600 : bonus < 0 ? 0 : bonus;
 
         // Collision between balls
