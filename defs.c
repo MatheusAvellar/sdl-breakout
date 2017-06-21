@@ -518,6 +518,7 @@ void game(void) {
           sprintf(strlevel, "%d", level);
           contalevel = level;
           blocklevel = 1;
+          if(_DEBUG) printf("TTF level\n");
         }
         drawTextOnScreen(strlevel, SCREEN_WIDTH-160, 75, black);
 
@@ -526,6 +527,7 @@ void game(void) {
           sprintf(strscore, "%d", player.score);
           contascore = player.score;
           blockscore = 1;
+          if(_DEBUG) printf("TTF score\n");
         }
         drawTextOnScreen(strscore, SCREEN_WIDTH-160, 160, black);
 
@@ -534,6 +536,7 @@ void game(void) {
           sprintf(strlives, "%d", player.lives);
           contalives = player.lives;
           blocklives = 1;
+          if(_DEBUG) printf("TTF balls left\n");
         }
         drawTextOnScreen(strlives, SCREEN_WIDTH-160, 250, black);
 
@@ -925,6 +928,7 @@ void end_game(void) {
               sprintf(strlevel, "Level: %d", level);
               contalevel = level;
               blocklevel = 1;
+              if(_DEBUG) printf("TTF end_level\n");
             }
             drawTextOnScreen(strlevel, SCREEN_WIDTH-260, 75, yellow);
 
@@ -933,6 +937,7 @@ void end_game(void) {
               sprintf(strscore, "Score: %d", player.score);
               contascore = player.score;
               blockscore = 1;
+              if(_DEBUG) printf("TTF end_score\n");
             }
             drawTextOnScreen(strscore, SCREEN_WIDTH-260, 160, yellow);
 
