@@ -334,17 +334,19 @@ void game(void) {
 
                     if(player.lives <= 0) {
                         /* TODO: Player is out of lives -- Game over */
-                        if(_DEBUG)
-                            printf("[Player is out of lives!] %d\n", player.lives);
-                            newLevel();
-                            can_music_play = 1;
-                            player.score = 0;
-                            player.aux_score = 0;
-                            player.lives = 3;
-                            player._left = false;
-                            player._right = false;
-                            menu();
-                            return;
+                        if(_DEBUG) {
+                            printf("[Player is out of lives!] %d\n",
+                                    player.lives);
+                        }
+                        newLevel();
+                        can_music_play = 1;
+                        player.score = 0;
+                        player.aux_score = 0;
+                        player.lives = 3;
+                        player._left = false;
+                        player._right = false;
+                        menu();
+                        return;
                     }
                 }
 
@@ -471,6 +473,18 @@ void game(void) {
               quit = true;
             }
         }
+
+        SDL_Color black = { 0, 0, 0, 255 };
+
+        char str[10];
+        sprintf(str, "%d", level);
+        drawTextOnScreen(str, SCREEN_WIDTH-160, 75, 17, black);
+
+        sprintf(str, "%d", player.score);
+        drawTextOnScreen(str, SCREEN_WIDTH-160, 160, 17, black);
+
+        sprintf(str, "%d", player.lives);
+        drawTextOnScreen(str, SCREEN_WIDTH-160, 250, 17, black);
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -1229,13 +1243,6 @@ int loadMedia(void) {
     }
     can_music_play = 0;
 
-    // Load font at size 28 into 'gFont'
-    gFont = TTF_OpenFont("./fonts/PressStart2P.ttf", 28);
-    if(!gFont) {
-        printf("TTF_OpenFont: %s\n", TTF_GetError());
-        return false;
-    }
-
     return true;
 }
 
@@ -1301,6 +1308,34 @@ int drawOnScreen(SDL_Surface* image,
     return SDL_BlitSurface(image, &srcRect, gScreenSurface, &dstRect);
 }
 
+int drawTextOnScreen(char* text,
+                    int dstX, int dstY,
+                    int font_size, SDL_Color color) {
+
+    SDL_Surface* text_surface;
+    TTF_Font* font = TTF_OpenFont("./fonts/PressStart2P.ttf", font_size);
+
+    SDL_Rect dstRect;
+
+    dstRect.x = dstX;
+    dstRect.y = dstY;
+
+    if(!font) {
+        printf("TTF_OpenFont: %s\n", TTF_GetError());
+        return false;
+    }
+
+    if(!(text_surface = TTF_RenderText_Solid(font, text, color))) {
+        error(0);
+        return false;
+    }
+
+    int _r = SDL_BlitSurface(text_surface, NULL, gScreenSurface, &dstRect);
+    SDL_FreeSurface(text_surface);
+
+    return _r;
+}
+
 // Time left until next tick
 unsigned time_left(void) {
     unsigned now = SDL_GetTicks();
@@ -1308,7 +1343,7 @@ unsigned time_left(void) {
 }
 
 void error(int code) {
-    int _ = 0;
+    _0 _=0;
     switch(code) {
         case ERR_INIT:
             printf("SDL could not initialize!");
@@ -1334,7 +1369,7 @@ void error(int code) {
             printf("Unable to load TTF!");
             break;
         case ERR_EST_EGG:
-            _ = 42&15;
+            _=42&15;
             printf("         ___%c      .-*)) `*-.%c     /*  ((*   *'.%c    |   *))  *   *\\%c",_,_,_,_);
             printf("    | *  ((*   *  /%c     \\  *))  *  .'%c      '-.((*_.-'%c",_,_,_);
             break;

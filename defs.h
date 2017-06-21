@@ -35,6 +35,8 @@ typedef struct _RACKET {
     int lives;
     float factor;
 } RACKET;
+
+typedef int _0;
 #endif
 
 /*
@@ -172,6 +174,11 @@ int drawOnScreen(SDL_Surface* image,
                 int srcX, int srcY,
                 int srcW, int srcH,
                 int dstX, int dstY);
+
+// Draws text on gScreenSurface
+int drawTextOnScreen(char* text,
+                    int dstX, int dstY,
+                    int font_size, SDL_Color color);
 
 // Returns the time left until next tick
 unsigned time_left(void);

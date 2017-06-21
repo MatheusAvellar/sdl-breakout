@@ -31,8 +31,6 @@ int main(int argc, char* args[]) {
         return 1;
     }
 
-    error(ERR_EST_EGG);
-
     while (!quit) {
         switch(gameScreen) {
             case 0: menu(); break;

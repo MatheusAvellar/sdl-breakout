@@ -80,6 +80,3 @@ extern Mix_Chunk* gRacketWAV;
 
 // Game music
 extern Mix_Music* gMusicWAV;
-
-// Game font
-extern TTF_Font* gFont;
