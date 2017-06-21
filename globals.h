@@ -11,6 +11,11 @@ extern int gPause;
 extern int gSound;
 extern int gMusic;
 
+// Power up
+extern int gPowerUp;
+extern int powerup_x;
+extern int powerup_y;
+
 // Define game screen
 extern int gameScreen;
 extern int gGameMode;
@@ -56,6 +61,9 @@ extern SDL_Surface* config;
 extern SDL_Surface* pause;
 extern SDL_Surface* buttonquit;
 extern SDL_Surface* optionsback;
+
+// Image for power up
+extern SDL_Surface* power_up;
 
 // Image for side_bar
 extern SDL_Surface* side_bar;

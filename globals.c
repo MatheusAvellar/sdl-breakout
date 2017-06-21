@@ -24,6 +24,12 @@ int gPhysics = 1;
 
 int can_music_play = 1;
 
+//Power up
+int gPowerUp;
+int powerup_x;
+int powerup_y;
+
+
 // The window to render to
 SDL_Window* gWindow = NULL;
 
@@ -62,6 +68,9 @@ SDL_Surface* config = NULL;
 SDL_Surface* optionsback = NULL;
 SDL_Surface* pause = NULL;
 SDL_Surface* buttonquit = NULL;
+
+//Image for power up
+SDL_Surface* power_up = NULL;
 
 // Image for side_bar
 SDL_Surface* side_bar = NULL;

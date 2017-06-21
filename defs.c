@@ -227,6 +227,10 @@ void game(void) {
         ball[i] = createNPC(_posX, _posY, 0, 0, gBall);
     }
 
+    // Power up
+    int anim_frame = 0;
+    int anim_time = 0;
+
     // While application is running
     while (!quit) {
         // Get current mouse position
@@ -414,6 +418,31 @@ void game(void) {
             quit = true;
         }
 
+        // Power up animation
+        if (gPowerUp) {
+          anim_time++;
+
+          if (anim_time > 5) {
+            anim_frame++;
+            anim_time = 0;
+          }
+
+          powerup_y += 3;
+
+          if (anim_frame > 11)
+            anim_frame = 0;
+
+          // Draw power up
+          if(drawOnScreen(power_up, 42*anim_frame, 0,
+                          42, 42,
+                          powerup_x, powerup_y) < 0) {
+              error(ERR_BLIT);
+              quit = true;
+          }
+
+          if (powerup_y > SCREEN_HEIGHT)
+            gPowerUp = 0;
+        }
 
         // Collision between balls
         if(LEN > 1) collisionBalls();
@@ -852,6 +881,11 @@ void collisionBrick(void) {
                         if(!brick[j][k].resist && gSound) {
                             Mix_PlayChannel(-1, gBrickWAV, 0);
                         }
+                        if (!gPowerUp) {
+                          gPowerUp = 1;
+                          powerup_x = current.posX + 29;
+                          powerup_y = current.posY;
+                        }
 
                         // Check collision side
                         int ball_half_x = ball[i].posX + BALL_WIDTH / 2;
@@ -1213,7 +1247,8 @@ int loadMedia(void) {
     || (buttonplay = loadSurface("./images/playbutton.png")) == NULL
     || (pause = loadSurface("./images/pause.png")) == NULL
     || (buttonquit = loadSurface("./images/quitbutton.png")) == NULL
-    || (optionsback = loadSurface("./images/optionsback.png")) == NULL) {
+    || (optionsback = loadSurface("./images/optionsback.png")) == NULL
+    || (power_up = loadSurface("./images/powerup.png")) == NULL) {
         error(ERR_IMG_LOAD);
         return false;
     }
@@ -1224,6 +1259,8 @@ int loadMedia(void) {
     SDL_SetColorKey(gPLAYERSurface, SDL_TRUE,
                     SDL_MapRGB(gPLAYERSurface->format, 0xff, 0xAE, 0xC9));
     SDL_SetColorKey(sound, SDL_TRUE,
+                    SDL_MapRGB(sound->format, 0xff, 0xAE, 0xC9));
+    SDL_SetColorKey(power_up, SDL_TRUE,
                     SDL_MapRGB(sound->format, 0xff, 0xAE, 0xC9));
 
     // Load audios
