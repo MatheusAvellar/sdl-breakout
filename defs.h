@@ -78,7 +78,7 @@ extern const int BALL_MAX_SPEED;
 
 // Debug mode
 #ifndef _DEBUG
-#define _DEBUG 1
+#define _DEBUG 0
 #endif
 
 // Constants of proportion

@@ -42,7 +42,6 @@ const unsigned int TICK_INTERVAL = 17;
 const int BALL_SPEED = 9;
 const int BALL_MAX_SPEED = 11;
 
-
 void menu(void) {
 
     int buttonnew_x = 59.2*PROP;
@@ -190,6 +189,10 @@ void game(void) {
 
     // Event handler
     SDL_Event e;
+
+    // Time for bonus
+    int finalTime, currentTime;
+    int limitTime = 100;
 
     ball_in_game = false;
 
@@ -442,6 +445,14 @@ void game(void) {
             gPowerUp = 0;
         }
 
+        //Bonus time
+
+        finalTime = time(0);
+        currentTime = finalTime - gTime;
+        bonus = limitTime - currentTime > 0 ? (limitTime - currentTime)*10:0;
+
+
+
         // Collision between balls
         if(LEN > 1) collisionBalls();
 
@@ -485,7 +496,7 @@ void game(void) {
                   player.score = 0;
                   player.aux_score = 0;
                   player.lives = 3;
-                  level = 1;
+                  level = 0;
                   blocklevel = 0;
                   blockscore = 0;
                   blocklives = 0;
@@ -512,6 +523,10 @@ void game(void) {
         }
 
         SDL_Color black = { 0, 0, 0, 255 };
+
+        char strbonus[4];
+        sprintf(strbonus, "%d", bonus);
+        drawTextOnScreen(strbonus, SCREEN_WIDTH-160, 340, black);
 
         char strlevel[4];
         if((level != contalevel) || (!blocklevel)) {
@@ -790,6 +805,7 @@ void configuration(void) {
         && SDL_GetMouseState(NULL, NULL)
         && SDL_BUTTON(SDL_BUTTON_LEFT)) {
             gameScreen = 1;
+            newLevel();
             return;
         }
 
@@ -903,7 +919,7 @@ void end_game(void) {
             player.score = 0;
             player.aux_score = 0;
             player.lives = 3;
-            level = 1;
+            level = 0;
             return;
         }
 
@@ -1167,7 +1183,9 @@ void newLevel(void) {
 
     for (k = 0; k < LEN; k++) {
         player.score += 1000;
+        player.score += bonus;
         player.aux_score += 1000;
+        player.aux_score += bonus;
 
         ball[k].posY = player.posY - BALL_HEIGHT;
         ball[k].posX = player.posX + RACKET_WIDTH / 2 - BALL_WIDTH / 2;
@@ -1182,6 +1200,7 @@ void newLevel(void) {
         }
         levelClear = COLUMNS * LINES;
         level++;
+        gTime = time(0);
     }
 }
 
