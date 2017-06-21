@@ -29,6 +29,9 @@ int gPowerUp;
 int powerup_x;
 int powerup_y;
 
+// Bonus time
+int gTime;
+int bonus;
 
 // The window to render to
 SDL_Window* gWindow = NULL;
@@ -83,7 +86,7 @@ Uint32 next_time;
 
 // Check Level Clearance
 int levelClear = COLUMNS*LINES;
-int level = 1;
+int level = 0;
 
 // Check if ball is in game
 int ball_in_game;

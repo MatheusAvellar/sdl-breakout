@@ -16,6 +16,10 @@ extern int gPowerUp;
 extern int powerup_x;
 extern int powerup_y;
 
+// Bonus time
+extern int gTime;
+extern int bonus;
+
 // Define game screen
 extern int gameScreen;
 extern int gGameMode;
