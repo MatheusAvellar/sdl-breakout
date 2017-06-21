@@ -55,6 +55,7 @@ extern SDL_Surface* breakout;
 extern SDL_Surface* config;
 extern SDL_Surface* pause;
 extern SDL_Surface* buttonquit;
+extern SDL_Surface* optionsback;
 
 // Image for side_bar
 extern SDL_Surface* side_bar;
