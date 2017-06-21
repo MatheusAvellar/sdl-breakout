@@ -92,3 +92,11 @@ extern Mix_Music* gMusicWAV;
 
 // Game font
 TTF_Font* gFont;
+
+// Check if ttf needs to update
+extern int contalevel;
+extern int contascore;
+extern int contalives;
+extern int blocklevel;
+extern int blockscore;
+extern int blocklives;

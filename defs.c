@@ -343,14 +343,16 @@ void game(void) {
                                     player.lives);
                         }
                         newLevel();
-                        can_music_play = 1;
                         player.score = 0;
                         player.aux_score = 0;
                         player.lives = 3;
                         level = 1;
+                        blocklevel = 0;
+                        blockscore = 0;
+                        blocklives = 0;
                         player._left = false;
                         player._right = false;
-                        menu();
+                        gameScreen = 0;
                         return;
                     }
                 }
@@ -484,8 +486,18 @@ void game(void) {
             // Check if button home is pressed
             if (SDL_GetMouseState(NULL, NULL)
                 && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                gameScreen = 0;
-                return;
+                  newLevel();
+                  player.score = 0;
+                  player.aux_score = 0;
+                  player.lives = 3;
+                  level = 1;
+                  blocklevel = 0;
+                  blockscore = 0;
+                  blocklives = 0;
+                  player._left = false;
+                  player._right = false;
+                  gameScreen = 0;
+                  return;
             }
         } else {
             SDL_SetColorKey(buttonquit, SDL_TRUE,
@@ -506,15 +518,29 @@ void game(void) {
 
         SDL_Color black = { 0, 0, 0, 255 };
 
-        char str[10];
-        sprintf(str, "%d", level);
-        drawTextOnScreen(str, SCREEN_WIDTH-160, 75, black);
+        char strlevel[4];
+        if((level != contalevel) || (!blocklevel)) {
+          sprintf(strlevel, "%d", level);
+          contalevel = level;
+          blocklevel = 1;
+        }
+        drawTextOnScreen(strlevel, SCREEN_WIDTH-160, 75, black);
 
-        sprintf(str, "%d", player.score);
-        drawTextOnScreen(str, SCREEN_WIDTH-160, 160, black);
+        char strscore[10];
+        if((player.score != contascore) || (!blockscore)) {
+          sprintf(strscore, "%d", player.score);
+          contascore = player.score;
+          blockscore = 1;
+        }
+        drawTextOnScreen(strscore, SCREEN_WIDTH-160, 160, black);
 
-        sprintf(str, "%d", player.lives);
-        drawTextOnScreen(str, SCREEN_WIDTH-160, 250, black);
+        char strlives[3];
+        if((player.lives != contalives) || (!blocklives)) {
+          sprintf(strlives, "%d", player.lives);
+          contalives = player.lives;
+          blocklives = 1;
+        }
+        drawTextOnScreen(strlives, SCREEN_WIDTH-160, 250, black);
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);

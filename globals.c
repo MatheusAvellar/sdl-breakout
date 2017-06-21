@@ -99,3 +99,11 @@ Mix_Music* gMusicWAV;
 
 // Game font
 TTF_Font* gFont;
+
+// Check if ttf needs to update
+int contalevel = 1;
+int contascore = 0;
+int contalives = 3;
+int blocklevel = 0;
+int blockscore = 0;
+int blocklives = 0;
