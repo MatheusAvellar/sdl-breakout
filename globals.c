@@ -107,6 +107,8 @@ TTF_Font* gFont;
 int contalevel = 1;
 int contascore = 0;
 int contalives = 3;
+int contabonus = 600;
 int blocklevel = 0;
 int blockscore = 0;
 int blocklives = 0;
+int blockbonus = 0;

@@ -191,8 +191,9 @@ void game(void) {
     SDL_Event e;
 
     // Time for bonus
-    int finalTime, currentTime;
-    int limitTime = 100;
+    int finalTime, time_y_bonus;
+    int time_max_bonus = 1.2*((LINES*COLUMNS)+(LINES+COLUMNS))-5;
+    int time_min_bonus = 1.5*time_max_bonus;
 
     ball_in_game = false;
 
@@ -348,6 +349,7 @@ void game(void) {
                         blocklevel = 0;
                         blockscore = 0;
                         blocklives = 0;
+                        blockbonus = 0;
                         player._left = false;
                         player._right = false;
                         gameScreen = 5;
@@ -448,10 +450,9 @@ void game(void) {
         //Bonus time
 
         finalTime = time(0);
-        currentTime = finalTime - gTime;
-        bonus = limitTime - currentTime > 0 ? (limitTime - currentTime)*10:0;
-
-
+        time_y_bonus = finalTime - gTime;
+        bonus = (((time_min_bonus - time_y_bonus) * 1000) / time_max_bonus);
+        bonus = bonus > 600 ? 600 : bonus < 0 ? 0 : bonus;
 
         // Collision between balls
         if(LEN > 1) collisionBalls();
@@ -500,6 +501,7 @@ void game(void) {
                   blocklevel = 0;
                   blockscore = 0;
                   blocklives = 0;
+                  blockbonus = 0;
                   player._left = false;
                   player._right = false;
                   gameScreen = 0;
@@ -525,7 +527,12 @@ void game(void) {
         SDL_Color black = { 0, 0, 0, 255 };
 
         char strbonus[4];
-        sprintf(strbonus, "%d", bonus);
+        if((bonus != contabonus) || (!blockbonus)) {
+          sprintf(strbonus, "%d", bonus);
+          contabonus = bonus;
+          blockbonus = 1;
+          if(_DEBUG) printf("TTF bonus\n");
+        }
         drawTextOnScreen(strbonus, SCREEN_WIDTH-160, 340, black);
 
         char strlevel[4];

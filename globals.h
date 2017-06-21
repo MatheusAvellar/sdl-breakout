@@ -101,6 +101,8 @@ TTF_Font* gFont;
 extern int contalevel;
 extern int contascore;
 extern int contalives;
+extern int contabonus;
 extern int blocklevel;
 extern int blockscore;
 extern int blocklives;
+extern int blockbonus;
