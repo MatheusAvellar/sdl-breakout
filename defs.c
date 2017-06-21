@@ -508,13 +508,13 @@ void game(void) {
 
         char str[10];
         sprintf(str, "%d", level);
-        drawTextOnScreen(str, SCREEN_WIDTH-160, 75, 17, black);
+        drawTextOnScreen(str, SCREEN_WIDTH-160, 75, black);
 
         sprintf(str, "%d", player.score);
-        drawTextOnScreen(str, SCREEN_WIDTH-160, 160, 17, black);
+        drawTextOnScreen(str, SCREEN_WIDTH-160, 160, black);
 
         sprintf(str, "%d", player.lives);
-        drawTextOnScreen(str, SCREEN_WIDTH-160, 250, 17, black);
+        drawTextOnScreen(str, SCREEN_WIDTH-160, 250, black);
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -1222,6 +1222,8 @@ int init(void) {
         return false;
     }
 
+    gFont = TTF_OpenFont("./fonts/PressStart2P.ttf", 17);
+
     // Get window surface
     gScreenSurface = SDL_GetWindowSurface(gWindow);
 
@@ -1354,24 +1356,20 @@ int drawOnScreen(SDL_Surface* image,
     return SDL_BlitSurface(image, &srcRect, gScreenSurface, &dstRect);
 }
 
-int drawTextOnScreen(char* text,
-                    int dstX, int dstY,
-                    int font_size, SDL_Color color) {
+int drawTextOnScreen(char* text, int dstX, int dstY, SDL_Color color) {
 
     SDL_Surface* text_surface;
-    TTF_Font* font = TTF_OpenFont("./fonts/PressStart2P.ttf", font_size);
-
     SDL_Rect dstRect;
 
     dstRect.x = dstX;
     dstRect.y = dstY;
 
-    if(!font) {
+    if(!gFont) {
         printf("TTF_OpenFont: %s\n", TTF_GetError());
         return false;
     }
 
-    if(!(text_surface = TTF_RenderText_Solid(font, text, color))) {
+    if(!(text_surface = TTF_RenderText_Solid(gFont, text, color))) {
         error(0);
         return false;
     }

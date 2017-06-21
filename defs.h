@@ -176,9 +176,7 @@ int drawOnScreen(SDL_Surface* image,
                 int dstX, int dstY);
 
 // Draws text on gScreenSurface
-int drawTextOnScreen(char* text,
-                    int dstX, int dstY,
-                    int font_size, SDL_Color color);
+int drawTextOnScreen(char* text, int dstX, int dstY, SDL_Color color);
 
 // Returns the time left until next tick
 unsigned time_left(void);
