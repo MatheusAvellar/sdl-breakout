@@ -1027,7 +1027,7 @@ void collisionBrick(void) {
                             Mix_PlayChannel(-1, gBrickWAV, 0);
                         }
                         if (!gPowerUp) {
-                          gPowerUp = (rand())%100 < 11 ? 1:0;
+                          gPowerUp = (rand())%100 < 12 ? 1:0;
                           powerup_x = current.posX + 29;
                           powerup_y = current.posY;
                         }
