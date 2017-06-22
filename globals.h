@@ -99,7 +99,7 @@ extern Mix_Chunk* gRacketWAV;
 extern Mix_Music* gMusicWAV;
 
 // Game font
-TTF_Font* gFont;
+extern TTF_Font* gFont;
 
 // Check if ttf needs to update
 extern int contalevel;
