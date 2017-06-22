@@ -22,6 +22,7 @@ extern int bonus;
 
 // Define game screen
 extern int gameScreen;
+extern int gScreen;
 extern int gGameMode;
 extern int gPhysics;
 
@@ -65,6 +66,9 @@ extern SDL_Surface* config;
 extern SDL_Surface* pause;
 extern SDL_Surface* buttonquit;
 extern SDL_Surface* optionsback;
+extern SDL_Surface* optionsback1;
+extern SDL_Surface* arrow_right;
+extern SDL_Surface* arrow_left;
 
 // Image for power up
 extern SDL_Surface* power_up;

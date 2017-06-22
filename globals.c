@@ -19,6 +19,7 @@ int gMusic;
 
 // Define game screen
 int gameScreen = 0;
+int gScreen = 0;
 int gGameMode = 1;
 int gPhysics = 1;
 
@@ -69,8 +70,11 @@ SDL_Surface* buttonplay = NULL;
 SDL_Surface* breakout = NULL;
 SDL_Surface* config = NULL;
 SDL_Surface* optionsback = NULL;
+SDL_Surface* optionsback1 = NULL;
 SDL_Surface* pause = NULL;
 SDL_Surface* buttonquit = NULL;
+SDL_Surface* arrow_right = NULL;
+SDL_Surface* arrow_left = NULL;
 
 //Image for power up
 SDL_Surface* power_up = NULL;

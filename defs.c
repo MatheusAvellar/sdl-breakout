@@ -586,6 +586,16 @@ void options(void) {
     int options_w = 100*PROP;
     int options_h = 70*PROP;
 
+    int arrowr_x = 82*PROP;
+    int arrowr_y = 60*PROP;
+    int arrowr_w = 5.4*PROP;
+    int arrowr_h = 5.4*PROP;
+
+    int arrowl_x = 72*PROP;
+    int arrowl_y = 60*PROP;
+    int arrowl_w = 5.4*PROP;
+    int arrowl_h = 5.4*PROP;
+
     // Mouse position
     int mouseX, mouseY;
 
@@ -629,15 +639,53 @@ void options(void) {
                             SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
         }
 
+        // Check if mouse is over button home
+        if (mouseX >= arrowr_x
+        && mouseX <= arrowr_x + arrowr_w
+        && mouseY >= arrowr_y
+        && mouseY <= arrowr_y + arrowr_h) {
+            // Check if button home is pressed
+            if (SDL_GetMouseState(NULL, NULL)
+                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                  if (gScreen < 1) gScreen++;
+                return;
+            }
+        }
+
+        if (mouseX >= arrowl_x
+        && mouseX <= arrowl_x + arrowl_w
+        && mouseY >= arrowl_y
+        && mouseY <= arrowl_y + arrowl_h) {
+            // Check if button home is pressed
+            if (SDL_GetMouseState(NULL, NULL)
+                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
+                  if (gScreen > 0) gScreen--;
+                return;
+            }
+        }
+
         // Fill the surface with #000000 (black)
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
                                                       0x00, 0x00, 0x00));
-        if(drawOnScreen(optionsback, 0, 0,
+
+        // KeyColor for arrows
+        SDL_SetColorKey(arrow_right, SDL_TRUE,
+                        SDL_MapRGB(arrow_right->format, 0xff, 0xAE, 0xC9));
+        SDL_SetColorKey(arrow_left, SDL_TRUE,
+                        SDL_MapRGB(arrow_left->format, 0xff, 0xAE, 0xC9));
+
+        if(drawOnScreen(gScreen == 0? optionsback:optionsback1, 0, 0,
               options_w, options_h,
               options_x, options_y) < 0
         || drawOnScreen(buttonhome, 0, 0,
               buttonhome_w, buttonhome_h,
-              buttonhome_x, buttonhome_y) < 0){
+              buttonhome_x, buttonhome_y) < 0
+        || drawOnScreen(arrow_right, 0, 0,
+              arrowr_w, arrowr_h,
+              arrowr_x, arrowr_y) < 0
+        || drawOnScreen(arrow_left, 0, 0,
+              arrowl_w, arrowl_h,
+              arrowl_x, arrowl_y) < 0){
             /* TODO: Clean this if condition */
               error(ERR_BLIT);
               quit = true;
@@ -1422,7 +1470,10 @@ int loadMedia(void) {
     || (pause = loadSurface("./images/pause.png")) == NULL
     || (buttonquit = loadSurface("./images/quitbutton.png")) == NULL
     || (optionsback = loadSurface("./images/optionsback.png")) == NULL
-    || (power_up = loadSurface("./images/powerup.png")) == NULL) {
+    || (optionsback1 = loadSurface("./images/optionsback1.png")) == NULL
+    || (power_up = loadSurface("./images/powerup.png")) == NULL
+    || (arrow_right = loadSurface("./images/arrow_right.png")) == NULL
+    || (arrow_left = loadSurface("./images/arrow_left.png")) == NULL) {
         error(ERR_IMG_LOAD);
         return false;
     }
