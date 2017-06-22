@@ -280,13 +280,13 @@ void game(void) {
 
                 case SDL_MOUSEBUTTONDOWN:
                     if(e.button.button == SDL_BUTTON_LEFT) {
-                        if(mouseX >= ((SCREEN_WIDTH - 200) + 40)
-                        && mouseX <= ((SCREEN_WIDTH - 200) + 40) + 50
-                        && mouseY >= 510
-                        && mouseY <= 510 + 50) {
+                        if(mouseX >= ((SCREEN_WIDTH - 200) + 80)
+                        && mouseX <= ((SCREEN_WIDTH - 200) + 80) + 50
+                        && mouseY >= 440
+                        && mouseY <= 440 + 50) {
                             gSound = !gSound;
-                        } else if(mouseX >= ((SCREEN_WIDTH - 200) + 120)
-                        && mouseX <= ((SCREEN_WIDTH - 200) + 120) + 50
+                        } else if(mouseX >= ((SCREEN_WIDTH - 200) + 80)
+                        && mouseX <= ((SCREEN_WIDTH - 200) + 80) + 50
                         && mouseY >= 510
                         && mouseY <= 510 + 50) {
                             gMusic = !gMusic;
@@ -410,10 +410,10 @@ void game(void) {
         // Draw sound icons
         if(drawOnScreen(sound, gSound ? 0 : 50, 0,
                         50, 50,
-                        (SCREEN_WIDTH - 200) + 40, 510) < 0
+                        (SCREEN_WIDTH - 200) + 80, 440) < 0
         || drawOnScreen(sound, gMusic ? 0 : 50, 50,
                         50, 50,
-                        (SCREEN_WIDTH - 200) + 120, 510) < 0
+                        (SCREEN_WIDTH - 200) + 80, 510) < 0
         || drawOnScreen(sound, gPause ? 0 : 50, 100,
                         50, 50,
                         (SCREEN_WIDTH - 200) + 80, 580) < 0) {
@@ -1027,7 +1027,7 @@ void collisionBrick(void) {
                             Mix_PlayChannel(-1, gBrickWAV, 0);
                         }
                         if (!gPowerUp) {
-                          gPowerUp = 1;
+                          gPowerUp = (rand())%100 < 11 ? 1:0;
                           powerup_x = current.posX + 29;
                           powerup_y = current.posY;
                         }
