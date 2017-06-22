@@ -186,6 +186,7 @@ unsigned time_left(void);
 void collisionBalls(void);
 void collisionBrick(void);
 void collisionRacket(void);
+void collisionPowerUp(void);
 
 // Print errors
 void error(int code);
