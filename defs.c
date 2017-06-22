@@ -463,9 +463,6 @@ void game(void) {
         // Collision between ball and racket
         if(ball_in_game) collisionRacket();
 
-        // Collision between ball and power up
-        if (gPowerUp) collisionPowerUp();
-
         // For testing purposes only
         if(_DEBUG && player.score != _temp_score) {
             printf("[Score: %d]\n", player.score);
@@ -508,7 +505,6 @@ void game(void) {
                   player._left = false;
                   player._right = false;
                   gameScreen = 0;
-                  gPowerUp = 0;
                   return;
             }
         } else {
@@ -1031,7 +1027,7 @@ void collisionBrick(void) {
                             Mix_PlayChannel(-1, gBrickWAV, 0);
                         }
                         if (!gPowerUp) {
-                          gPowerUp = (rand())%100 < 100 ? 1:0;
+                          gPowerUp = (rand())%100 < 11 ? 1:0;
                           powerup_x = current.posX + 29;
                           powerup_y = current.posY;
                         }
@@ -1191,24 +1187,6 @@ void collisionRacket(void) {
             }
         }
     }
-}
-
-void collisionPowerUp(void) {
-  int bottom_limit = powerup_y + 42 >= player.posY + 2;
-  int left_limit = powerup_x + 42 >= player.posX;
-  int right_limit = powerup_x <= player.posX + RACKET_WIDTH;
-
-  if (bottom_limit && left_limit && right_limit) {
-    gPowerUp = 0;
-
-    switch (rand()%1) {
-      case 0:
-        player.lives++;
-        break;
-      default:
-        break;
-    }
-  }
 }
 
 void newLevel(void) {
