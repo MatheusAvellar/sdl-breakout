@@ -388,6 +388,7 @@ void game(void) {
             }
         }
 
+        if (!levelClear) newLevel();
         // Draw bricks
         int blockX, blockY;
 
@@ -405,8 +406,6 @@ void game(void) {
                     error(ERR_BLIT);
                     quit = true;
                 }
-
-                if (!levelClear) newLevel();
             }
         }
 
@@ -1240,26 +1239,46 @@ void newLevel(void) {
     // Iteration variables
     int i, j, k;
 
-    for (k = 0; k < LEN; k++) {
-        player.score += 1000;
-        player.score += bonus;
-        player.aux_score += 1000;
-        player.aux_score += bonus;
+    player.score += 1000;
+    player.score += bonus;
+    player.aux_score += 1000;
+    player.aux_score += bonus;
+    ball_in_game = false;
 
+    for (k = 0; k < LEN; k++) {
         ball[k].posY = player.posY - BALL_HEIGHT;
         ball[k].posX = player.posX + RACKET_WIDTH / 2 - BALL_WIDTH / 2;
         ball[k].stepX = 0;
         ball[k].stepY = 0;
-        ball_in_game = false;
+    }
 
+    level++;
+    levelClear = COLUMNS * LINES;
+    gTime = time(0);
+
+
+    int resist_array[COLUMNS * LINES];
+    FILE *pFile;
+
+    pFile = fopen("./levels/1.lvl","rb");
+    if (!pFile || gGameMode == 1) {
+        if(_DEBUG && gGameMode == 2) printf("Unable to open file!");
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
                 brick[i][j].resist = 1;
             }
         }
-        levelClear = COLUMNS * LINES;
-        level++;
-        gTime = time(0);
+    } else {
+        fread(resist_array, sizeof(int), COLUMNS * LINES, pFile);
+        for (i = 0; i < COLUMNS; i++) {
+            for (j = 0; j < LINES; j++) {
+                if(_DEBUG) {
+                    printf("Resist[%d][%d]: %d\n",i,j,resist_array[i*LINES + j]);
+                }
+                brick[i][j].resist = resist_array[i*LINES + j];
+            }
+        }
+        fclose(pFile);
     }
 }
 
