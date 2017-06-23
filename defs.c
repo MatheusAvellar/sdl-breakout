@@ -82,85 +82,79 @@ void menu(void) {
                 case SDL_KEYDOWN:
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
+                case SDL_MOUSEBUTTONDOWN:
+                    if(e.button.button == SDL_BUTTON_LEFT) {
+                        if(mouseX >= buttonnew_x
+                        && mouseX <= buttonnew_x + buttonnew_w
+                        && mouseY >= buttonnew_y
+                        && mouseY <= buttonnew_y + buttonnew_h) {
+                            gameScreen = 4;
+                            return;
+                        } else if(mouseX >= buttonoptions_x
+                        && mouseX <= buttonoptions_x + buttonoptions_w
+                        && mouseY >= buttonoptions_y
+                        && mouseY <= buttonoptions_y + buttonoptions_h) {
+                            gameScreen = 2;
+                            return;
+                        } else if(mouseX >= buttonrankings_x
+                        && mouseX <= buttonrankings_x + buttonrankings_w
+                        && mouseY >= buttonrankings_y
+                        && mouseY <= buttonrankings_y + buttonrankings_h) {
+                            gameScreen = 3;
+                            return;
+                        }
+                    }
+                    break;
                 default:
                     // Supress warnings from [-Wswitch-default] flag
                     break;
             }
         }
 
+
         // Check if mouse is over buttonnew
-        if (mouseX >= buttonnew_x
-        && mouseX <= buttonnew_x + buttonnew_w
-        && mouseY >= buttonnew_y
-        && mouseY <= buttonnew_y + buttonnew_h) {
+        int is_hovering = (mouseX >= buttonnew_x
+                        && mouseX <= buttonnew_x + buttonnew_w
+                        && mouseY >= buttonnew_y
+                        && mouseY <= buttonnew_y + buttonnew_h);
 
-            SDL_SetColorKey(buttonnew, SDL_FALSE,
-                            SDL_MapRGB(buttonnew->format, 0x70, 0x92, 0xBE));
+        SDL_SetColorKey(buttonnew, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttonnew->format, 0x70, 0x92, 0xBE));
 
-            // Check if buttonnew is pressed
-            if (SDL_GetMouseState(NULL, NULL)
-                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                gameScreen = 4;
-                return;
-            }
-        } else {
-            SDL_SetColorKey(buttonnew, SDL_TRUE,
-                            SDL_MapRGB(buttonnew->format, 0x70, 0x92, 0xBE));
-        }
 
         // Check if mouse is over buttonoptions
-        if (mouseX >= buttonoptions_x
-        && mouseX <= buttonoptions_x + buttonoptions_w
-        && mouseY >= buttonoptions_y
-        && mouseY <= buttonoptions_y + buttonoptions_h) {
+        is_hovering = (mouseX >= buttonoptions_x
+                    && mouseX <= buttonoptions_x + buttonoptions_w
+                    && mouseY >= buttonoptions_y
+                    && mouseY <= buttonoptions_y + buttonoptions_h);
 
-            SDL_SetColorKey(buttonoptions, SDL_FALSE,
-                         SDL_MapRGB(buttonoptions->format, 0x70, 0x92, 0xBE));
+        SDL_SetColorKey(buttonoptions, is_hovering ? SDL_FALSE : SDL_TRUE,
+                     SDL_MapRGB(buttonoptions->format, 0x70, 0x92, 0xBE));
 
-            // Check if buttonoptions is pressed
-            if(SDL_GetMouseState(NULL, NULL)
-              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-              gameScreen = 2;
-              return;
-            }
-        } else {
-            SDL_SetColorKey(buttonoptions, SDL_TRUE,
-                         SDL_MapRGB(buttonoptions->format, 0x70, 0x92, 0xBE));
-        }
 
         // Check if mouse is over buttonrankings
-        if (mouseX >= buttonrankings_x
-        && mouseX <= buttonrankings_x + buttonrankings_w
-        && mouseY >= buttonrankings_y
-        && mouseY <= buttonrankings_y + buttonrankings_h) {
+        is_hovering = (mouseX >= buttonrankings_x
+                    && mouseX <= buttonrankings_x + buttonrankings_w
+                    && mouseY >= buttonrankings_y
+                    && mouseY <= buttonrankings_y + buttonrankings_h);
 
-            SDL_SetColorKey(buttonrankings, SDL_FALSE,
-                        SDL_MapRGB(buttonrankings->format, 0x70, 0x92, 0xBE));
+        SDL_SetColorKey(buttonrankings, is_hovering ? SDL_FALSE : SDL_TRUE,
+                    SDL_MapRGB(buttonrankings->format, 0x70, 0x92, 0xBE));
 
-            // Check if buttonrankings is pressed
-            if(SDL_GetMouseState(NULL, NULL)
-              && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-              gameScreen = 3;
-              return;
-            }
-        } else {
-            SDL_SetColorKey(buttonrankings, SDL_TRUE,
-                        SDL_MapRGB(buttonrankings->format, 0x70, 0x92, 0xBE));
-        }
 
         // Fill the surface with #000000 (black)
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
                                                     0x00, 0x00, 0x00));
 
         if(drawOnScreen(breakout, 0, 0,
-                         breakout_w, breakout_h,
-                         breakout_x, breakout_y) < 0
+                        breakout_w, breakout_h,
+                        breakout_x, breakout_y) < 0
         || drawOnScreen(buttonoptions, 0, 0,
-                         buttonoptions_w, buttonoptions_h,
-                         buttonoptions_x, buttonoptions_y) < 0
+                        buttonoptions_w, buttonoptions_h,
+                        buttonoptions_x, buttonoptions_y) < 0
         || drawOnScreen(buttonrankings, 0, 0,
-                         buttonrankings_w, buttonrankings_h,
-                         buttonrankings_x, buttonrankings_y) < 0
+                        buttonrankings_w, buttonrankings_h,
+                        buttonrankings_x, buttonrankings_y) < 0
         || drawOnScreen(buttonnew, 0, 0,
                         buttonnew_w, buttonnew_h,
                         buttonnew_x, buttonnew_y) < 0){
@@ -194,6 +188,12 @@ void game(void) {
     int finalTime, time_y_bonus;
     int time_max_bonus = (1.2*((LINES*COLUMNS)+(LINES+COLUMNS)))-4;
     int time_min_bonus = 1.5*time_max_bonus;
+
+    // Quit button dimensions
+    int buttonquit_x = 36*PROP;
+    int buttonquit_y = 31*PROP;
+    int buttonquit_w = 11.2*PROP;
+    int buttonquit_h = 5*PROP;
 
     ball_in_game = false;
 
@@ -289,14 +289,34 @@ void game(void) {
                         && mouseX <= ((SCREEN_WIDTH - 200) + 80) + 50
                         && mouseY >= 510
                         && mouseY <= 510 + 50) {
-                            gMusic = !gMusic;
-                            if(!gMusic) Mix_VolumeMusic(0);
-                            else Mix_VolumeMusic(MIX_MAX_VOLUME);
+                            if(!(gMusic = !gMusic)) {
+                                Mix_VolumeMusic(0);
+                            } else {
+                                Mix_VolumeMusic(MIX_MAX_VOLUME);
+                            }
                         } else if (mouseX >= ((SCREEN_WIDTH - 200) + 80)
                         && mouseX <= ((SCREEN_WIDTH - 200) + 80) + 50
                         && mouseY >= 580
                         && mouseY <= 580 + 50) {
                             gPause = !gPause;
+                        } else if (mouseX >= buttonquit_x
+                        && mouseX <= buttonquit_x + buttonquit_w
+                        && mouseY >= buttonquit_y
+                        && mouseY <= buttonquit_y + buttonquit_h) {
+                            newLevel();
+                            player.score = 0;
+                            player.aux_score = 0;
+                            player.lives = 3;
+                            level = 0;
+                            blocklevel = 0;
+                            blockscore = 0;
+                            blocklives = 0;
+                            blockbonus = 0;
+                            player._left = false;
+                            player._right = false;
+                            gameScreen = 0;
+                            gPowerUp = 0;
+                            return;
                         }
                     }
                     break;
@@ -480,37 +500,14 @@ void game(void) {
             player.aux_score -= 10000;
         }
 
-        int buttonquit_x = 36*PROP;
-        int buttonquit_y = 31*PROP;
-        int buttonquit_w = 11.2*PROP;
-        int buttonquit_h = 5*PROP;
-
         // Check if mouse is over button quit
-        if ((mouseX >= buttonquit_x
+        if(gPause
+        && mouseX >= buttonquit_x
         && mouseX <= buttonquit_x + buttonquit_w
         && mouseY >= buttonquit_y
-        && mouseY <= buttonquit_y + buttonquit_h) && (gPause)){
+        && mouseY <= buttonquit_y + buttonquit_h) {
             SDL_SetColorKey(buttonquit, SDL_FALSE,
                             SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
-
-            // Check if button home is pressed
-            if (SDL_GetMouseState(NULL, NULL)
-                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                  newLevel();
-                  player.score = 0;
-                  player.aux_score = 0;
-                  player.lives = 3;
-                  level = 0;
-                  blocklevel = 0;
-                  blockscore = 0;
-                  blocklives = 0;
-                  blockbonus = 0;
-                  player._left = false;
-                  player._right = false;
-                  gameScreen = 0;
-                  gPowerUp = 0;
-                  return;
-            }
         } else {
             SDL_SetColorKey(buttonquit, SDL_TRUE,
                             SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
@@ -614,6 +611,29 @@ void options(void) {
                 case SDL_KEYDOWN:
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
+                case SDL_MOUSEBUTTONDOWN:
+                    if(e.button.button == SDL_BUTTON_LEFT) {
+                        if(mouseX >= buttonhome_x
+                        && mouseX <= buttonhome_x + buttonhome_w
+                        && mouseY >= buttonhome_y
+                        && mouseY <= buttonhome_y + buttonhome_h) {
+                            gameScreen = 0;
+                            return;
+                        } else if(mouseX >= arrowr_x
+                        && mouseX <= arrowr_x + arrowr_w
+                        && mouseY >= arrowr_y
+                        && mouseY <= arrowr_y + arrowr_h) {
+                            if(gScreen < 1) gScreen++;
+                            return;
+                        } else if(mouseX >= arrowl_x
+                        && mouseX <= arrowl_x + arrowl_w
+                        && mouseY >= arrowl_y
+                        && mouseY <= arrowl_y + arrowl_h) {
+                            if (gScreen > 0) gScreen--;
+                            return;
+                        }
+                    }
+                    break;
                 default:
                     // Supress warnings from [-Wswitch-default] flag
                     break;
@@ -621,48 +641,13 @@ void options(void) {
         }
 
         // Check if mouse is over button home
-        if (mouseX >= buttonhome_x
-        && mouseX <= buttonhome_x + buttonhome_w
-        && mouseY >= buttonhome_y
-        && mouseY <= buttonhome_y + buttonhome_h) {
-            SDL_SetColorKey(buttonhome, SDL_FALSE,
-                            SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
+        int is_hovering = (mouseX >= buttonhome_x
+                        && mouseX <= buttonhome_x + buttonhome_w
+                        && mouseY >= buttonhome_y
+                        && mouseY <= buttonhome_y + buttonhome_h);
 
-            // Check if button home is pressed
-            if (SDL_GetMouseState(NULL, NULL)
-                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                gameScreen = 0;
-                return;
-            }
-        } else {
-            SDL_SetColorKey(buttonhome, SDL_TRUE,
-                            SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
-        }
-
-        // Check if mouse is over button home
-        if (mouseX >= arrowr_x
-        && mouseX <= arrowr_x + arrowr_w
-        && mouseY >= arrowr_y
-        && mouseY <= arrowr_y + arrowr_h) {
-            // Check if button home is pressed
-            if (SDL_GetMouseState(NULL, NULL)
-                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                  if (gScreen < 1) gScreen++;
-                return;
-            }
-        }
-
-        if (mouseX >= arrowl_x
-        && mouseX <= arrowl_x + arrowl_w
-        && mouseY >= arrowl_y
-        && mouseY <= arrowl_y + arrowl_h) {
-            // Check if button home is pressed
-            if (SDL_GetMouseState(NULL, NULL)
-                && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-                  if (gScreen > 0) gScreen--;
-                return;
-            }
-        }
+        SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
         // Fill the surface with #000000 (black)
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
@@ -674,19 +659,15 @@ void options(void) {
         SDL_SetColorKey(arrow_left, SDL_TRUE,
                         SDL_MapRGB(arrow_left->format, 0xff, 0xAE, 0xC9));
 
-        if(drawOnScreen(gScreen == 0? optionsback:optionsback1, 0, 0,
-              options_w, options_h,
-              options_x, options_y) < 0
-        || drawOnScreen(buttonhome, 0, 0,
-              buttonhome_w, buttonhome_h,
-              buttonhome_x, buttonhome_y) < 0
-        || drawOnScreen(arrow_right, 0, 0,
-              arrowr_w, arrowr_h,
-              arrowr_x, arrowr_y) < 0
-        || drawOnScreen(arrow_left, 0, 0,
-              arrowl_w, arrowl_h,
-              arrowl_x, arrowl_y) < 0){
-            /* TODO: Clean this if condition */
+        if(drawOnScreen(gScreen == 0 ? optionsback : optionsback1, 0, 0,
+                        options_w, options_h,
+                        options_x, options_y) < 0
+        || drawOnScreen(buttonhome, 0, 0, buttonhome_w, buttonhome_h,
+                        buttonhome_x, buttonhome_y) < 0
+        || drawOnScreen(arrow_right, 0, 0, arrowr_w, arrowr_h,
+                        arrowr_x, arrowr_y) < 0
+        || drawOnScreen(arrow_left, 0, 0, arrowl_w, arrowl_h,
+                        arrowl_x, arrowl_y) < 0) {
               error(ERR_BLIT);
               quit = true;
         }
@@ -701,7 +682,7 @@ void options(void) {
 }
 
 void ranking(void) {
-    /* TODO: struct all the things */
+    /* TODO: Please, struct all the things */
     int buttonhome_x = 5*PROP;
     int buttonhome_y = 5*PROP;
     int buttonhome_w = 11.2*PROP;
@@ -725,6 +706,17 @@ void ranking(void) {
                 case SDL_KEYDOWN:
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
+                case SDL_MOUSEBUTTONDOWN:
+                    if(e.button.button == SDL_BUTTON_LEFT) {
+                        if(mouseX >= buttonhome_x
+                        && mouseX <= buttonhome_x + buttonhome_w
+                        && mouseY >= buttonhome_y
+                        && mouseY <= buttonhome_y + buttonhome_h) {
+                            gameScreen = 0;
+                            return;
+                        }
+                    }
+                    break;
                 default:
                     // Supress warnings from [-Wswitch-default] flag
                     break;
@@ -739,14 +731,6 @@ void ranking(void) {
 
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
-
-        // Check if button home is pressed
-        if(is_hovering
-        && SDL_GetMouseState(NULL, NULL)
-        && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-            gameScreen = 0;
-            return;
-        }
 
         // Fill the surface with #000000 (black)
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
@@ -769,7 +753,7 @@ void ranking(void) {
 }
 
 void configuration(void) {
-    /* TODO: struct all the things */
+    /* TODO: Please, struct all the things */
     int buttonhome_x = 5*PROP;
     int buttonhome_y = 5*PROP;
     int buttonhome_w = 11.2*PROP;
@@ -816,20 +800,33 @@ void configuration(void) {
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    if(e.button.button == SDL_BUTTON_LEFT
-                    && mouseX >= gamemode_x
-                    && mouseX <= gamemode_x + gamemode_w
-                    && mouseY >= gamemode_y
-                    && mouseY <= gamemode_y + gamemode_h) {
-                        gGameMode = gGameMode == 1 ? 2 : 1;
+                    if(e.button.button == SDL_BUTTON_LEFT) {
+                        if(mouseX >= gamemode_x
+                        && mouseX <= gamemode_x + gamemode_w
+                        && mouseY >= gamemode_y
+                        && mouseY <= gamemode_y + gamemode_h) {
+                            gGameMode = gGameMode == 1 ? 2 : 1;
+                        } else if(mouseX >= physics_x
+                        && mouseX <= physics_x + physics_w
+                        && mouseY >= physics_y
+                        && mouseY <= physics_y + physics_h) {
+                            gPhysics = gPhysics == 1 ? 2 : 1;
+                        } else if(mouseX >= buttonplay_x
+                        && mouseX <= buttonplay_x + buttonplay_w
+                        && mouseY >= buttonplay_y
+                        && mouseY <= buttonplay_y + buttonplay_h) {
+                            gameScreen = 1;
+                            newLevel();
+                            return;
+                        } else if(mouseX >= buttonhome_x
+                        && mouseX <= buttonhome_x + buttonhome_w
+                        && mouseY >= buttonhome_y
+                        && mouseY <= buttonhome_y + buttonhome_h) {
+                            gameScreen = 0;
+                            return;
+                        }
                     }
-                    if(e.button.button == SDL_BUTTON_LEFT
-                    && mouseX >= physics_x
-                    && mouseX <= physics_x + physics_w
-                    && mouseY >= physics_y
-                    && mouseY <= physics_y + physics_h) {
-                        gPhysics = gPhysics == 1 ? 2 : 1;
-                    }
+                    break;
                 default:
                     // Supress warnings from [-Wswitch-default] flag
                     break;
@@ -845,14 +842,6 @@ void configuration(void) {
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
-        // Check if button home is pressed
-        if(is_hovering
-        && SDL_GetMouseState(NULL, NULL)
-        && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-            gameScreen = 0;
-            return;
-        }
-
         // Check if mouse is over button play
         is_hovering = (mouseX >= buttonplay_x
                     && mouseX <= buttonplay_x + buttonplay_w
@@ -861,15 +850,6 @@ void configuration(void) {
 
         SDL_SetColorKey(buttonplay, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonplay->format, 0x70, 0x92, 0xBE));
-
-        // Check if button home is pressed
-        if(is_hovering
-        && SDL_GetMouseState(NULL, NULL)
-        && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-            gameScreen = 1;
-            newLevel();
-            return;
-        }
 
         // Check if mouse is over button campaign/endless
         is_hovering = (mouseX >= gamemode_x
@@ -881,9 +861,7 @@ void configuration(void) {
                         SDL_MapRGB(buttoncampaign->format, 0x70, 0x92, 0xBE));
 
         SDL_SetColorKey(buttonendless, is_hovering ? SDL_FALSE : SDL_TRUE,
-                        SDL_MapRGB(buttonendless->format, 0x70,
-                                                          0x92,
-                                                          0xBE));
+                        SDL_MapRGB(buttonendless->format, 0x70, 0x92, 0xBE));
 
         // Check if mouse is over button campaign/endless
         is_hovering = (mouseX >= physics_x
@@ -929,7 +907,7 @@ void configuration(void) {
 }
 
 void end_game(void) {
-
+    /* TODO: Please, struct all the things */
     int buttonhome_x = 5*PROP;
     int buttonhome_y = 5*PROP;
     int buttonhome_w = 11.2*PROP;
@@ -955,9 +933,26 @@ void end_game(void) {
                 case SDL_KEYDOWN:
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
-                    default:
-                        // Supress warnings from [-Wswitch-default] flag
-                        break;
+                case SDL_MOUSEBUTTONDOWN:
+                    if(e.button.button == SDL_BUTTON_LEFT) {
+                        if(mouseX >= buttonhome_x
+                        && mouseX <= buttonhome_x + buttonhome_w
+                        && mouseY >= buttonhome_y
+                        && mouseY <= buttonhome_y + buttonhome_h) {
+                            gameScreen = 0;
+                            newLevel();
+                            blocklevel = 0;
+                            blockscore = 0;
+                            player.score = 0;
+                            player.aux_score = 0;
+                            player.lives = 3;
+                            level = 0;
+                            return;
+                        }
+                    }
+                default:
+                    // Supress warnings from [-Wswitch-default] flag
+                    break;
                 }
             }
 
@@ -970,59 +965,44 @@ void end_game(void) {
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
-        // Check if button home is pressed
-        if(is_hovering
-        && SDL_GetMouseState(NULL, NULL)
-        && SDL_BUTTON(SDL_BUTTON_LEFT)) {
-            gameScreen = 0;
-            newLevel();
-            blocklevel = 0;
-            blockscore = 0;
-            player.score = 0;
-            player.aux_score = 0;
-            player.lives = 3;
-            level = 0;
-            return;
-        }
-
         // Fill the surface with #000000 (black)
         SDL_FillRect(gScreenSurface, NULL,
-          SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+                     SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
         if (drawOnScreen(buttonhome, 0, 0,
-            buttonhome_w, buttonhome_h,
-            buttonhome_x, buttonhome_y) < 0) {
-              error(ERR_BLIT);
-              quit = true;
-            }
+                         buttonhome_w, buttonhome_h,
+                         buttonhome_x, buttonhome_y) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+        }
 
-            SDL_Color yellow = { 180, 180, 0, 255 };
+        SDL_Color yellow = { 180, 180, 0, 255 };
 
-            char strlevel[10];
-            if((level != contalevel) || (!blocklevel)) {
-              sprintf(strlevel, "Level: %d", level);
-              contalevel = level;
-              blocklevel = 1;
-              if(_DEBUG) printf("TTF end_level\n");
-            }
-            drawTextOnScreen(strlevel, SCREEN_WIDTH-260, 75, yellow);
+        char strlevel[10];
+        if(level != contalevel || !blocklevel) {
+            sprintf(strlevel, "Level: %d", level);
+            contalevel = level;
+            blocklevel = 1;
+            if(_DEBUG) printf("TTF end_level\n");
+        }
+        drawTextOnScreen(strlevel, SCREEN_WIDTH-260, 75, yellow);
 
-            char strscore[18];
-            if((player.score != contascore) || (!blockscore)) {
-              sprintf(strscore, "Score: %d", player.score);
-              contascore = player.score;
-              blockscore = 1;
-              if(_DEBUG) printf("TTF end_score\n");
-            }
-            drawTextOnScreen(strscore, SCREEN_WIDTH-260, 160, yellow);
+        char strscore[18];
+        if((player.score != contascore) || (!blockscore)) {
+            sprintf(strscore, "Score: %d", player.score);
+            contascore = player.score;
+            blockscore = 1;
+            if(_DEBUG) printf("TTF end_score\n");
+        }
+        drawTextOnScreen(strscore, SCREEN_WIDTH-260, 160, yellow);
 
-            // Update the surface
-            SDL_UpdateWindowSurface(gWindow);
+        // Update the surface
+        SDL_UpdateWindowSurface(gWindow);
 
-            // Normalize framerate
-            SDL_Delay(time_left());
-            next_time += TICK_INTERVAL;
-  }
+        // Normalize framerate
+        SDL_Delay(time_left());
+        next_time += TICK_INTERVAL;
+    }
 }
 
 void collisionBalls(void) {
@@ -1037,7 +1017,7 @@ void collisionBalls(void) {
             int deltaX = ball[i].posX - ball[j].posX;
             int deltaY = ball[i].posY - ball[j].posY;
 
-            if (deltaX * deltaX + deltaY * deltaY < BALL_WIDTH * BALL_WIDTH) {
+            if(deltaX * deltaX + deltaY * deltaY < BALL_WIDTH * BALL_WIDTH) {
                 temp = ball[i].stepX;
                 ball[i].stepX = ball[j].stepX;
                 ball[j].stepX = temp;
@@ -1142,7 +1122,7 @@ void collisionRacket(void) {
             int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
             //int right_side = ball[i].posX >= player.posX + RACKET_WIDTH/2;
 
-            if (top_limit && bottom_limit && left_limit && right_limit) {
+            if(top_limit && bottom_limit && left_limit && right_limit) {
                 ball[i].stepY = -absolute(ball[i].stepY);
 
                 float left_edge = player.posX;
@@ -1234,29 +1214,25 @@ void collisionRacket(void) {
                     ball[i].stepX = BALL_MAX_SPEED;
                 }
                 if(_DEBUG) printf("[FINAL] stepX = %d\n", ball[i].stepX);
-                if(gSound) Mix_PlayChannel(-1, gBrickWAV, 0);
-                if(gSound) Mix_PlayChannel(-1, gRacketWAV, 0);
+                if(gSound) {
+                    Mix_PlayChannel(-1, gBrickWAV, 0);
+                    Mix_PlayChannel(-1, gRacketWAV, 0);
+                }
             }
         }
     }
 }
 
 void collisionPowerUp(void) {
-  int bottom_limit = powerup_y + 42 >= player.posY + 2;
-  int left_limit = powerup_x + 42 >= player.posX;
-  int right_limit = powerup_x <= player.posX + RACKET_WIDTH;
+    int bottom_limit = powerup_y + 42 >= player.posY + 2;
+    int left_limit = powerup_x + 42 >= player.posX;
+    int right_limit = powerup_x <= player.posX + RACKET_WIDTH;
 
-  if (bottom_limit && left_limit && right_limit) {
-    gPowerUp = 0;
+    if(bottom_limit && left_limit && right_limit) {
+        gPowerUp = 0;
 
-    switch (rand()%1) {
-      case 0:
-        player.lives++;
-        break;
-      default:
-        break;
+        if(rand()%1 == 0) player.lives++;
     }
-  }
 }
 
 
@@ -1305,10 +1281,6 @@ int moveNPC(NPC *p) {
     // invert the direction and reset the position to a valid one
     if (p->posY + BALL_HEIGHT > SCREEN_HEIGHT) {
         return 1;
-        /*
-         * p->stepY = -absolute(p->stepY);
-         * p->posY = SCREEN_HEIGHT - BALL_HEIGHT;
-         */
     } else if (p->posY < 0) {
         p->stepY = absolute(p->stepY);
         p->posY = 0;
