@@ -29,6 +29,9 @@ int can_music_play = 1;
 int gPowerUp;
 int powerup_x;
 int powerup_y;
+int controlInverter = 0;
+int bigracket = 0;
+int smallracket = 0;
 
 // Bonus time
 int gTime;
@@ -53,6 +56,8 @@ SDL_Surface* gBRICKSurface = NULL;
 
 // Current displayed PNG image (racket)
 SDL_Surface* gPLAYERSurface = NULL;
+SDL_Surface* gPLAYERSMALLSurface = NULL;
+SDL_Surface* gPLAYERLARGESurface = NULL;
 
 // Icon image
 SDL_Surface* gIcon = NULL;

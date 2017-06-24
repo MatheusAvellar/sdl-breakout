@@ -26,8 +26,8 @@ const int BALL_HEIGHT = 3 * PROP;
 const int BLOCK_WIDTH = 10 * PROP;
 const int BLOCK_HEIGHT = 5 * PROP;
 
-const int RACKET_WIDTH = 13 * PROP;
-const int RACKET_HEIGHT = 2 * PROP;
+int RACKET_WIDTH = 13 * PROP;
+int RACKET_HEIGHT = 2 * PROP;
 
 /* Fixed framerate
  * ---------------
@@ -248,13 +248,24 @@ void game(void) {
                 case SDL_KEYDOWN:
                     if(e.key.keysym.sym == SDLK_ESCAPE) quit = true;
 
-                    player._left = player._left
-                                || e.key.keysym.sym == SDLK_LEFT
-                                || e.key.keysym.sym == SDLK_a;
+                    if (!controlInverter) {
+                      player._left = player._left
+                                  || e.key.keysym.sym == SDLK_LEFT
+                                  || e.key.keysym.sym == SDLK_a;
 
-                    player._right = player._right
-                                || e.key.keysym.sym == SDLK_RIGHT
-                                || e.key.keysym.sym == SDLK_d;
+                      player._right = player._right
+                                  || e.key.keysym.sym == SDLK_RIGHT
+                                  || e.key.keysym.sym == SDLK_d;
+                    }
+                    if (controlInverter) {
+                      player._left = player._left
+                                  || e.key.keysym.sym == SDLK_RIGHT
+                                  || e.key.keysym.sym == SDLK_d;
+
+                      player._right = player._right
+                                  || e.key.keysym.sym == SDLK_LEFT
+                                  || e.key.keysym.sym == SDLK_a;
+                    }
 
                     if(e.key.keysym.sym == SDLK_SPACE
                     && !ball_in_game && !gPause) {
@@ -269,11 +280,20 @@ void game(void) {
                     }
                     break;
                 case SDL_KEYUP:
-                    if(e.key.keysym.sym == SDLK_a
-                    || e.key.keysym.sym == SDLK_LEFT) player._left = false;
+                    if (!controlInverter) {
+                        if(e.key.keysym.sym == SDLK_a
+                        || e.key.keysym.sym == SDLK_LEFT) player._left = false;
 
-                    if (e.key.keysym.sym == SDLK_d
-                    || e.key.keysym.sym == SDLK_RIGHT) player._right = false;
+                        if (e.key.keysym.sym == SDLK_d
+                        || e.key.keysym.sym == SDLK_RIGHT) player._right = false;
+                    }
+                    if (controlInverter) {
+                        if(e.key.keysym.sym == SDLK_a
+                        || e.key.keysym.sym == SDLK_LEFT) player._right = false;
+
+                        if (e.key.keysym.sym == SDLK_d
+                        || e.key.keysym.sym == SDLK_RIGHT) player._left = false;
+                    }
 
                     if (e.key.keysym.sym == SDLK_p) gPause = !gPause;
                     break;
@@ -315,7 +335,6 @@ void game(void) {
                             player._left = false;
                             player._right = false;
                             gameScreen = 0;
-                            gPowerUp = 0;
                             return;
                         }
                     }
@@ -410,6 +429,19 @@ void game(void) {
         }
 
         // Draw pad
+        if (smallracket) {
+          player.image = gPLAYERSMALLSurface;
+          RACKET_WIDTH = 10.4*PROP;
+        }
+        else if (bigracket) {
+          player.image = gPLAYERLARGESurface;
+          RACKET_WIDTH = 15.6*PROP;
+        }
+        else {
+          player.image = gPLAYERSurface;
+          RACKET_WIDTH = 13*PROP;
+        }
+
         if(drawOnScreen(player.image, 0, 0,
                         RACKET_WIDTH, RACKET_HEIGHT,
                         player.posX, player.posY) < 0) {
@@ -1058,7 +1090,7 @@ void collisionBrick(void) {
                             Mix_PlayChannel(-1, gBrickWAV, 0);
                         }
                         if (!gPowerUp) {
-                          gPowerUp = (rand())%100 < 11 ? 1:0;
+                          gPowerUp = (rand())%100 < 100 ? 1:0;
                           powerup_x = current.posX + 29;
                           powerup_y = current.posY;
                         }
@@ -1230,7 +1262,31 @@ void collisionPowerUp(void) {
     if(bottom_limit && left_limit && right_limit) {
         gPowerUp = 0;
 
-        if(rand()%1 == 0) player.lives++;
+        switch((rand())%4) {
+          case 0:
+            player.lives++;
+            controlInverter = 0;
+            bigracket = 0;
+            smallracket = 0;
+            break;
+          case 1:
+            controlInverter = 1;
+            bigracket = 0;
+            smallracket = 0;
+            break;
+          case 2:
+            controlInverter = 0;
+            bigracket = 1;
+            smallracket = 0;
+            break;
+          case 3:
+            controlInverter = 0;
+            bigracket = 0;
+            smallracket = 1;
+            break;
+          default:
+            break;
+        }
     }
 }
 
@@ -1260,7 +1316,7 @@ void newLevel(void) {
     int resist_array[COLUMNS * LINES];
     FILE *pFile;
 
-    pFile = fopen("./levels/1.lvl","rb");
+    pFile = fopen("./levels/2.lvl","rb");
     if (!pFile || gGameMode == 1) {
         if(_DEBUG && gGameMode == 2) printf("Unable to open file!");
         for (i = 0; i < COLUMNS; i++) {
@@ -1280,6 +1336,12 @@ void newLevel(void) {
         }
         fclose(pFile);
     }
+
+    // Reset power up
+    gPowerUp = 0;
+    controlInverter = 0;
+    bigracket = 0;
+    smallracket = 0;
 }
 
 int moveNPC(NPC *p) {
@@ -1445,6 +1507,8 @@ int loadMedia(void) {
     if((gBall = loadSurface("./images/circle.png")) == NULL
     || (gBRICKSurface = loadSurface("./images/brick.png")) == NULL
     || (gPLAYERSurface = loadSurface("./images/racket.png")) == NULL
+    || (gPLAYERSMALLSurface = loadSurface("./images/racketsmall.png")) == NULL
+    || (gPLAYERLARGESurface = loadSurface("./images/racketlarge.png")) == NULL
     || (buttonnew = loadSurface("./images/newgamebutton.png")) == NULL
     || (buttonoptions = loadSurface("./images/optionsbutton.png")) == NULL
     || (buttonrankings = loadSurface("./images/rankingbutton.png")) == NULL
@@ -1474,6 +1538,10 @@ int loadMedia(void) {
                     SDL_MapRGB(gBall->format, 0xff, 0xAE, 0xC9));
     SDL_SetColorKey(gPLAYERSurface, SDL_TRUE,
                     SDL_MapRGB(gPLAYERSurface->format, 0xff, 0xAE, 0xC9));
+    SDL_SetColorKey(gPLAYERSMALLSurface, SDL_TRUE,
+                    SDL_MapRGB(gPLAYERSMALLSurface->format, 0xff, 0xAE, 0xC9));
+    SDL_SetColorKey(gPLAYERLARGESurface, SDL_TRUE,
+                    SDL_MapRGB(gPLAYERLARGESurface->format, 0xff, 0xAE, 0xC9));
     SDL_SetColorKey(sound, SDL_TRUE,
                     SDL_MapRGB(sound->format, 0xff, 0xAE, 0xC9));
     SDL_SetColorKey(power_up, SDL_TRUE,
@@ -1510,10 +1578,11 @@ int loadMedia(void) {
 void closef() {
     // Free loaded image
     SDL_FreeSurface(gBall), SDL_FreeSurface(gBRICKSurface),
-    SDL_FreeSurface(gPLAYERSurface), SDL_FreeSurface(buttonnew),
+    SDL_FreeSurface(gPLAYERSurface), SDL_FreeSurface(gPLAYERSMALLSurface),
+    SDL_FreeSurface(gPLAYERLARGESurface), SDL_FreeSurface(buttonnew),
     SDL_FreeSurface(buttonoptions), SDL_FreeSurface(buttonrankings),
     SDL_FreeSurface(side_bar);
-    gBall = gBRICKSurface = gPLAYERSurface = NULL;
+    gBall = gBRICKSurface = gPLAYERSurface = gPLAYERSMALLSurface = gPLAYERLARGESurface = NULL;
     buttonnew = buttonoptions = buttonrankings = side_bar = NULL;
 
     // Destroy window

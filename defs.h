@@ -56,8 +56,8 @@ extern const int BALL_HEIGHT;
 extern const int BLOCK_WIDTH;
 extern const int BLOCK_HEIGHT;
 
-extern const int RACKET_WIDTH;
-extern const int RACKET_HEIGHT;
+extern int RACKET_WIDTH;
+extern int RACKET_HEIGHT;
 
 /* Fixed framerate
  * ---------------

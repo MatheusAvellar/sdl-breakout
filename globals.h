@@ -15,6 +15,9 @@ extern int gMusic;
 extern int gPowerUp;
 extern int powerup_x;
 extern int powerup_y;
+extern int controlInverter;
+extern int bigracket;
+extern int smallracket;
 
 // Bonus time
 extern int gTime;
@@ -47,6 +50,8 @@ extern SDL_Surface* gBRICKSurface;
 
 // Current displayed PNG image (racket)
 extern SDL_Surface* gPLAYERSurface;
+extern SDL_Surface* gPLAYERSMALLSurface;
+extern SDL_Surface* gPLAYERLARGESurface;
 
 // Icon image
 extern SDL_Surface* gIcon;
