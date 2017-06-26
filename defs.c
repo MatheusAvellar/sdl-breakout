@@ -36,7 +36,7 @@ int RACKET_HEIGHT = 2 * PROP;
  * TICK_INTERVAL = 17 (~58 fps)
  * TICK_INTERVAL = 33 (~30 fps)
  */
-const unsigned int TICK_INTERVAL = 17;
+const unsigned int TICK_INTERVAL = 20;
 
 // Speed multiplier
 const int BALL_SPEED = 9;
@@ -481,7 +481,7 @@ void game(void) {
             anim_time = 0;
           }
 
-          powerup_y += 3;
+          if(!gPause) powerup_y += 3;
 
           if (anim_frame > 11)
             anim_frame = 0;
@@ -1090,7 +1090,12 @@ void collisionBrick(void) {
                             Mix_PlayChannel(-1, gBrickWAV, 0);
                         }
                         if (!gPowerUp) {
-                          gPowerUp = (rand())%100 < 100 ? 1:0;
+                          gPowerUp = (rand())%100 < 11 ? 1:0;
+                          if (gPowerUp) {
+                            controlInverter = 0;
+                            bigracket = 0;
+                            smallracket = 0;
+                          }
                           powerup_x = current.posX + 29;
                           powerup_y = current.posY;
                         }
@@ -1265,24 +1270,19 @@ void collisionPowerUp(void) {
         switch((rand())%4) {
             case 0:
                 player.lives++;
-                controlInverter = 0;
-                bigracket = 0;
-                smallracket = 0;
+                if (_DEBUG) printf("VIDA\n");
                 break;
             case 1:
                 controlInverter = 1;
-                bigracket = 0;
-                smallracket = 0;
+                if (_DEBUG) printf("INVERTER\n");
                 break;
             case 2:
-                controlInverter = 0;
                 bigracket = 1;
-                smallracket = 0;
+                if (_DEBUG) printf("BIG\n");
                 break;
             case 3:
-                controlInverter = 0;
-                bigracket = 0;
                 smallracket = 1;
+                if (_DEBUG) printf("SMALL\n");
                 break;
             default:
                 break;
