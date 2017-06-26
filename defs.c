@@ -559,38 +559,38 @@ void game(void) {
         SDL_Color black = { 0, 0, 0, 255 };
 
         char strbonus[4];
-        if((bonus != contabonus) || (!blockbonus)) {
-          sprintf(strbonus, "%d", bonus);
-          contabonus = bonus;
-          blockbonus = 1;
-          if(_DEBUG) printf("TTF bonus\n");
+        if(bonus != contabonus || !blockbonus) {
+            sprintf(strbonus, "%d", bonus);
+            contabonus = bonus;
+            blockbonus = 1;
+            if(_DEBUG) printf("TTF bonus\n");
         }
         drawTextOnScreen(strbonus, SCREEN_WIDTH-160, 340, black);
 
         char strlevel[4];
-        if((level != contalevel) || (!blocklevel)) {
-          sprintf(strlevel, "%d", level);
-          contalevel = level;
-          blocklevel = 1;
-          if(_DEBUG) printf("TTF level\n");
+        if(level != contalevel || !blocklevel) {
+            sprintf(strlevel, "%d", level);
+            contalevel = level;
+            blocklevel = 1;
+            if(_DEBUG) printf("TTF level\n");
         }
         drawTextOnScreen(strlevel, SCREEN_WIDTH-160, 75, black);
 
         char strscore[10];
-        if((player.score != contascore) || (!blockscore)) {
-          sprintf(strscore, "%d", player.score);
-          contascore = player.score;
-          blockscore = 1;
-          if(_DEBUG) printf("TTF score\n");
+        if(player.score != contascore || !blockscore) {
+            sprintf(strscore, "%d", player.score);
+            contascore = player.score;
+            blockscore = 1;
+            if(_DEBUG) printf("TTF score\n");
         }
         drawTextOnScreen(strscore, SCREEN_WIDTH-160, 160, black);
 
         char strlives[3];
-        if((player.lives != contalives) || (!blocklives)) {
-          sprintf(strlives, "%d", player.lives);
-          contalives = player.lives;
-          blocklives = 1;
-          if(_DEBUG) printf("TTF balls left\n");
+        if(player.lives != contalives || !blocklives) {
+            sprintf(strlives, "%d", player.lives);
+            contalives = player.lives;
+            blocklives = 1;
+            if(_DEBUG) printf("TTF balls left\n");
         }
         drawTextOnScreen(strlives, SCREEN_WIDTH-160, 250, black);
 
@@ -1263,29 +1263,29 @@ void collisionPowerUp(void) {
         gPowerUp = 0;
 
         switch((rand())%4) {
-          case 0:
-            player.lives++;
-            controlInverter = 0;
-            bigracket = 0;
-            smallracket = 0;
-            break;
-          case 1:
-            controlInverter = 1;
-            bigracket = 0;
-            smallracket = 0;
-            break;
-          case 2:
-            controlInverter = 0;
-            bigracket = 1;
-            smallracket = 0;
-            break;
-          case 3:
-            controlInverter = 0;
-            bigracket = 0;
-            smallracket = 1;
-            break;
-          default:
-            break;
+            case 0:
+                player.lives++;
+                controlInverter = 0;
+                bigracket = 0;
+                smallracket = 0;
+                break;
+            case 1:
+                controlInverter = 1;
+                bigracket = 0;
+                smallracket = 0;
+                break;
+            case 2:
+                controlInverter = 0;
+                bigracket = 1;
+                smallracket = 0;
+                break;
+            case 3:
+                controlInverter = 0;
+                bigracket = 0;
+                smallracket = 1;
+                break;
+            default:
+                break;
         }
     }
 }
@@ -1308,32 +1308,48 @@ void newLevel(void) {
         ball[k].stepY = 0;
     }
 
+    levelClear = 0;
     level++;
-    levelClear = COLUMNS * LINES;
     gTime = time(0);
 
 
     int resist_array[COLUMNS * LINES];
     FILE *pFile;
+    char level_string[15];
 
-    pFile = fopen("./levels/2.lvl","rb");
-    if (!pFile || gGameMode == 1) {
-        if(_DEBUG && gGameMode == 2) printf("Unable to open file!");
+    if(level > 0 && level < 10) {
+        sprintf(level_string, "./levels/%d.lvl", level-1);
+    } else {
+        sprintf(level_string, "./levels/1.lvl");
+    }
+
+    pFile = fopen(level_string,"rb");
+
+    /* gGameMode == 1 -> campaign
+     * gGameMode == 2 -> endless */
+    // If there is an error loading the file, or if the gamemode is 'endless'
+    if (!pFile || gGameMode == 2) {
+        if(_DEBUG && gGameMode == 1) printf("Unable to open file!");
+        else if(!!pFile) fclose(pFile);
+
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
+                // Load all blocks with resist 1
                 brick[i][j].resist = 1;
             }
         }
+        levelClear = COLUMNS * LINES;
+        if(_DEBUG) printf("Level clear set to %d\n", levelClear);
     } else {
         fread(resist_array, sizeof(int), COLUMNS * LINES, pFile);
+        if(_DEBUG) printf("Reading level %d from file\n", level-1);
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
-                if(_DEBUG) {
-                    printf("Resist[%d][%d]: %d\n",i,j,resist_array[i*LINES + j]);
-                }
                 brick[i][j].resist = resist_array[i*LINES + j];
+                levelClear += resist_array[i*LINES + j];
             }
         }
+        if(_DEBUG) printf("Level clear set to %d\n", levelClear);
         fclose(pFile);
     }
 
