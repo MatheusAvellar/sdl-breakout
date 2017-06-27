@@ -36,10 +36,10 @@ int RACKET_HEIGHT = 2 * PROP;
  * TICK_INTERVAL = 17 (~58 fps)
  * TICK_INTERVAL = 33 (~30 fps)
  */
-const unsigned int TICK_INTERVAL = 20;
+const unsigned int TICK_INTERVAL = 17;
 
 // Speed multiplier
-const int BALL_SPEED = 9;
+const int BALL_SPEED = 9; //MUDAR AQUI
 const int BALL_MAX_SPEED = 11;
 
 void menu(void) {
@@ -369,7 +369,7 @@ void game(void) {
             if (levelClear) {
                 // Ball hit bottom of screen
                 if(!gPause && moveNPC(&ball[i])) {
-                    player.lives -= 1;
+                    player.lives -= 0; //MUDAR AQUI
                     if(_DEBUG) printf("[Lives] %d\n", player.lives);
 
                     ball[i].posY = player.posY - BALL_HEIGHT;
@@ -411,12 +411,53 @@ void game(void) {
         // Draw bricks
         int blockX, blockY;
 
+        if (gGameMode == 2) {
+          for (i = 0; i < COLUMNS; i++) {
+              for (j = 0; j < LINES; j++) {
+                  blockX = j % 2 ? BLOCK_WIDTH : 0;
+                  blockY = j == 1 || j == 2 ? 0 : BLOCK_HEIGHT;
+                  if(j == 4) blockY *= 2;
+
+                  if(brick[i][j].resist
+                  && drawOnScreen(brick[i][j].image,
+                                  blockX, blockY,
+                                  BLOCK_WIDTH, BLOCK_HEIGHT,
+                                  brick[i][j].posX, brick[i][j].posY) < 0) {
+                      error(ERR_BLIT);
+                      quit = true;
+                  }
+              }
+          }
+      }
+      else if (gGameMode == 1) {
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
-                blockX = j % 2 ? BLOCK_WIDTH : 0;
-                blockY = j == 1 || j == 2 ? 0 : BLOCK_HEIGHT;
-                if(j == 4) blockY *= 2;
-
+              switch (brick[i][j].resist) {
+                case 1:
+                  blockX = 0;
+                  blockY = 0;
+                  break;
+                case 2:
+                  blockX = BLOCK_WIDTH;
+                  blockY = 0;
+                  break;
+                case 3:
+                  blockX = 0;
+                  blockY = BLOCK_HEIGHT;
+                  break;
+                case 4:
+                  blockX = BLOCK_WIDTH;
+                  blockY = BLOCK_HEIGHT;
+                  break;
+                case 5:
+                  blockX = 0;
+                  blockY = 2*BLOCK_HEIGHT;
+                  break;
+                default:
+                  blockX = BLOCK_WIDTH;
+                  blockY = 2*BLOCK_HEIGHT;
+                  break;
+              }
                 if(brick[i][j].resist
                 && drawOnScreen(brick[i][j].image,
                                 blockX, blockY,
@@ -427,6 +468,7 @@ void game(void) {
                 }
             }
         }
+      }
 
         // Draw pad
         if (smallracket) {
@@ -1078,14 +1120,16 @@ void collisionBrick(void) {
                     if(current.resist < 0) {
                         brick[j][k].resist = 0;
                     } else {
-                        if(current.resist > 0){
+                        if(current.resist > 0 && current.resist < 6){
                             player.score += 100;
                             player.aux_score += 100;
                             levelClear--;
                         }
-                        brick[j][k].resist = current.resist-1 < 0
-                                    ? 0
-                                    : current.resist-1;
+                        if (current.resist < 6) {
+                          brick[j][k].resist = current.resist-1 < 0
+                                      ? 0
+                                      : current.resist-1;
+                        }
                         if(!brick[j][k].resist && gSound) {
                             Mix_PlayChannel(-1, gBrickWAV, 0);
                         }
@@ -1346,7 +1390,8 @@ void newLevel(void) {
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
                 brick[i][j].resist = resist_array[i*LINES + j];
-                levelClear += resist_array[i*LINES + j];
+                if (brick[i][j].resist < 6)
+                  levelClear += resist_array[i*LINES + j];
             }
         }
         if(_DEBUG) printf("Level clear set to %d\n", levelClear);
