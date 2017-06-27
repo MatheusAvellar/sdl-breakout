@@ -736,13 +736,24 @@ void options(void) {
                         options_w, options_h,
                         options_x, options_y) < 0
         || drawOnScreen(buttonhome, 0, 0, buttonhome_w, buttonhome_h,
-                        buttonhome_x, buttonhome_y) < 0
-        || drawOnScreen(arrow_right, 0, 0, arrowr_w, arrowr_h,
-                        arrowr_x, arrowr_y) < 0
-        || drawOnScreen(arrow_left, 0, 0, arrowl_w, arrowl_h,
-                        arrowl_x, arrowl_y) < 0) {
+                        buttonhome_x, buttonhome_y) < 0) {
               error(ERR_BLIT);
               quit = true;
+        }
+
+        if (gScreen) {
+          if (drawOnScreen(arrow_left, 0, 0, arrowl_w, arrowl_h,
+                          arrowl_x, arrowl_y) < 0) {
+                error(ERR_BLIT);
+                quit = true;
+          }
+        }
+        else {
+          if (drawOnScreen(arrow_right, 0, 0, arrowr_w, arrowr_h,
+                          arrowr_x, arrowr_y) < 0) {
+                error(ERR_BLIT);
+                quit = true;
+          }
         }
 
         // Update the surface
