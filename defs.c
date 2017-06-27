@@ -36,10 +36,10 @@ int RACKET_HEIGHT = 2 * PROP;
  * TICK_INTERVAL = 17 (~58 fps)
  * TICK_INTERVAL = 33 (~30 fps)
  */
-const unsigned int TICK_INTERVAL = 20;
+const unsigned int TICK_INTERVAL = 17;
 
 // Speed multiplier
-const int BALL_SPEED = 9;
+const int BALL_SPEED = 9; //MUDAR AQUI
 const int BALL_MAX_SPEED = 11;
 
 void menu(void) {
@@ -456,9 +456,9 @@ void game(void) {
                 // If game is not paused and ball hit bottom of screen
                 // (moveNPC returns 1 when ball is lost)
                 if(!gPause && moveNPC(&ball[i])) {
-                    // Decrese from player life counter
-                    player.lives -= 1;
-                    if(_DEBUG) printf("[Lives] %d\n", player.lives);
+
+                    // Decrease from player life counter
+                    if(!_DEBUG) player.lives -= 1;
 
                     // Reset the position of the ball to the top of the paddle
                     ball[i].posY = player.posY - BALL_HEIGHT;
@@ -510,13 +510,47 @@ void game(void) {
         // Draw bricks
         int blockX, blockY;
 
-        // For each block on the grid
+        // For every block
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
-                /* TODO: Change this mess so colors reperesent resistance */
-                blockX = j % 2 ? BLOCK_WIDTH : 0;
-                blockY = j == 1 || j == 2 ? 0 : BLOCK_HEIGHT;
-                if(j == 4) blockY *= 2;
+
+                // If gamemode is 'endless'
+                if(gGameMode == 2) {
+                    // Colorful blocks
+                    blockX = j % 2 ? BLOCK_WIDTH : 0;
+                    blockY = j == 1 || j == 2 ? 0 : BLOCK_HEIGHT;
+                    if(j == 4) blockY *= 2;
+                }
+                // If gamemode is 'campaign'
+                else if (gGameMode == 1) {
+                    // Colors reflect each block's resistance
+                    switch (brick[i][j].resist) {
+                        case 1:
+                            blockX = 0;
+                            blockY = 0;
+                            break;
+                        case 2:
+                            blockX = BLOCK_WIDTH;
+                            blockY = 0;
+                            break;
+                        case 3:
+                            blockX = 0;
+                            blockY = BLOCK_HEIGHT;
+                            break;
+                        case 4:
+                            blockX = BLOCK_WIDTH;
+                            blockY = BLOCK_HEIGHT;
+                            break;
+                        case 5:
+                            blockX = 0;
+                            blockY = 2*BLOCK_HEIGHT;
+                            break;
+                        default:
+                            blockX = BLOCK_WIDTH;
+                            blockY = 2*BLOCK_HEIGHT;
+                            break;
+                    }
+                }
 
                 if(brick[i][j].resist
                 && drawOnScreen(brick[i][j].image,
@@ -834,13 +868,24 @@ void options(void) {
                         options_w, options_h,
                         options_x, options_y) < 0
         || drawOnScreen(buttonhome, 0, 0, buttonhome_w, buttonhome_h,
-                        buttonhome_x, buttonhome_y) < 0
-        || drawOnScreen(arrow_right, 0, 0, arrowr_w, arrowr_h,
-                        arrowr_x, arrowr_y) < 0
-        || drawOnScreen(arrow_left, 0, 0, arrowl_w, arrowl_h,
-                        arrowl_x, arrowl_y) < 0) {
+                        buttonhome_x, buttonhome_y) < 0) {
               error(ERR_BLIT);
               quit = true;
+        }
+
+        if (gScreen) {
+          if (drawOnScreen(arrow_left, 0, 0, arrowl_w, arrowl_h,
+                          arrowl_x, arrowl_y) < 0) {
+                error(ERR_BLIT);
+                quit = true;
+          }
+        }
+        else {
+          if (drawOnScreen(arrow_right, 0, 0, arrowr_w, arrowr_h,
+                          arrowr_x, arrowr_y) < 0) {
+                error(ERR_BLIT);
+                quit = true;
+          }
         }
 
         // Update the surface
@@ -1273,16 +1318,19 @@ void collisionBrick(void) {
                     // Resistance must be positive
                     else {
                         // You can't ever be too sure, right?
-                        if(current.resist > 0) {
+                        if(current.resist > 0 && current.resist < 6) {
                             player.score += 100;
                             player.aux_score += 100;
                             levelClear--;
                         }
+
                         // If resist minus 1 is lesser than 0, then resist
                         // becomes 0; Otherwise, it becomes itself minus one
-                        brick[j][k].resist = current.resist-1 < 0
-                                    ? 0
-                                    : current.resist-1;
+                        if (current.resist < 6) {
+                            brick[j][k].resist = current.resist-1 < 0
+                                        ? 0
+                                        : current.resist-1;
+                        }
 
                         // If block was broken and sounds are on
                         if(!brick[j][k].resist && gSound) {
@@ -1552,7 +1600,8 @@ void newLevel(void) {
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
                 brick[i][j].resist = resist_array[i*LINES + j];
-                levelClear += resist_array[i*LINES + j];
+                if (brick[i][j].resist < 6)
+                  levelClear += resist_array[i*LINES + j];
             }
         }
         if(_DEBUG) printf("Level clear set to %d\n", levelClear);
