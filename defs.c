@@ -80,23 +80,30 @@ void menu(void) {
                     quit = true;
                     break;
                 case SDL_KEYDOWN:
+                    // If user pressed the 'ESCAPE' key
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
+                    // If the user has clicked with the left mouse button
                     if(e.button.button == SDL_BUTTON_LEFT) {
+                        // If the mouse is over the 'New Game' button
                         if(mouseX >= buttonnew_x
                         && mouseX <= buttonnew_x + buttonnew_w
                         && mouseY >= buttonnew_y
                         && mouseY <= buttonnew_y + buttonnew_h) {
                             gameScreen = 4;
                             return;
-                        } else if(mouseX >= buttonoptions_x
+                        }
+                        // If the mouse is over the 'Options' button
+                        else if(mouseX >= buttonoptions_x
                         && mouseX <= buttonoptions_x + buttonoptions_w
                         && mouseY >= buttonoptions_y
                         && mouseY <= buttonoptions_y + buttonoptions_h) {
                             gameScreen = 2;
                             return;
-                        } else if(mouseX >= buttonrankings_x
+                        }
+                        // If the mouse is over the 'Ranking' button
+                        else if(mouseX >= buttonrankings_x
                         && mouseX <= buttonrankings_x + buttonrankings_w
                         && mouseY >= buttonrankings_y
                         && mouseY <= buttonrankings_y + buttonrankings_h) {
@@ -118,6 +125,7 @@ void menu(void) {
                         && mouseY >= buttonnew_y
                         && mouseY <= buttonnew_y + buttonnew_h);
 
+        // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonnew, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonnew->format, 0x70, 0x92, 0xBE));
 
@@ -128,6 +136,7 @@ void menu(void) {
                     && mouseY >= buttonoptions_y
                     && mouseY <= buttonoptions_y + buttonoptions_h);
 
+        // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonoptions, is_hovering ? SDL_FALSE : SDL_TRUE,
                      SDL_MapRGB(buttonoptions->format, 0x70, 0x92, 0xBE));
 
@@ -138,6 +147,7 @@ void menu(void) {
                     && mouseY >= buttonrankings_y
                     && mouseY <= buttonrankings_y + buttonrankings_h);
 
+        // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonrankings, is_hovering ? SDL_FALSE : SDL_TRUE,
                     SDL_MapRGB(buttonrankings->format, 0x70, 0x92, 0xBE));
 
@@ -146,6 +156,7 @@ void menu(void) {
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
                                                     0x00, 0x00, 0x00));
 
+        // If there's an error loading any of the buttons
         if(drawOnScreen(breakout, 0, 0,
                         breakout_w, breakout_h,
                         breakout_x, breakout_y) < 0
@@ -157,8 +168,7 @@ void menu(void) {
                         buttonrankings_x, buttonrankings_y) < 0
         || drawOnScreen(buttonnew, 0, 0,
                         buttonnew_w, buttonnew_h,
-                        buttonnew_x, buttonnew_y) < 0){
-            /* TODO: Clean this if condition */
+                        buttonnew_x, buttonnew_y) < 0) {
             error(ERR_BLIT);
             quit = true;
         }
@@ -173,10 +183,9 @@ void menu(void) {
 }
 
 void game(void) {
-    // Iteration variables
-    int i, j, l, m, z;
-
-    int _temp_score = 0;
+    // Iteration and control variables
+    int i, j, l, m, z,
+        _temp_score = 0;
 
     // Mouse position
     int mouseX, mouseY;
@@ -185,7 +194,7 @@ void game(void) {
     SDL_Event e;
 
     // Time for bonus
-    int finalTime, time_y_bonus;
+    int time_y_bonus;
     int time_max_bonus = (1.2*((LINES*COLUMNS)+(LINES+COLUMNS)))-4;
     int time_min_bonus = 1.5*time_max_bonus;
 
@@ -209,24 +218,30 @@ void game(void) {
     l = 2;
     m = 33;
     z = 75; // = 42 + 42 - (4-(4/2²))² (magic number)
-    player = createRACKET (RACKET_WIDTH * l + z,  // int posX
-                              RACKET_HEIGHT * m,  // int posY
-                                   (BALL_SPEED),  // int stepX
-                                 gPLAYERSurface,  // SDL_Surface *image
-                                              0,  // int score
-                                              0,  // int aux_score
-                                              3,  // int lives
-                                           2.2);  // float factor
+    player = createRACKET(RACKET_WIDTH * l + z,  // int posX
+                             RACKET_HEIGHT * m,  // int posY
+                                    BALL_SPEED,  // int stepX
+                                gPLAYERSurface,  // SDL_Surface *image
+                                             0,  // int score
+                                             0,  // int aux_score
+                                             3,  // int lives
+                                           2.2); // float factor
+
+    // Initialize 'pressing key state' to false
     player._left = false;
     player._right = false;
+
+    // Initialize pause mode to false
     gPause = false;
+    // Initialize music and sound to default, true
     gSound = true;
     gMusic = true;
 
-    // Create NPC
+    // Initialize ball positions
     int _posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
     int _posY = player.posY - BALL_HEIGHT;
 
+    // 'for' in case of multiball (not implemented yet)
     for (i= 0; i < LEN; i++) {
         ball[i] = createNPC(_posX, _posY, 0, 0, gBall);
     }
@@ -246,84 +261,135 @@ void game(void) {
                     quit = true;
                     break;
                 case SDL_KEYDOWN:
+                    // If user pressed the 'ESCAPE' key
                     if(e.key.keysym.sym == SDLK_ESCAPE) quit = true;
 
+                    // If 'control inverter' powerdown is inactive
                     if (!controlInverter) {
-                      player._left = player._left
-                                  || e.key.keysym.sym == SDLK_LEFT
-                                  || e.key.keysym.sym == SDLK_a;
+                        // Player is pressing left, go left
+                        player._left = player._left
+                                      || e.key.keysym.sym == SDLK_LEFT
+                                      || e.key.keysym.sym == SDLK_a;
 
-                      player._right = player._right
-                                  || e.key.keysym.sym == SDLK_RIGHT
-                                  || e.key.keysym.sym == SDLK_d;
+                        // Player is pressing right, go right
+                        player._right = player._right
+                                      || e.key.keysym.sym == SDLK_RIGHT
+                                      || e.key.keysym.sym == SDLK_d;
                     }
-                    if (controlInverter) {
-                      player._left = player._left
-                                  || e.key.keysym.sym == SDLK_RIGHT
-                                  || e.key.keysym.sym == SDLK_d;
+                    // If 'control inverter' powerdown is active
+                    else {
+                        // Player is pressing left, go right
+                        player._left = player._left
+                                      || e.key.keysym.sym == SDLK_RIGHT
+                                      || e.key.keysym.sym == SDLK_d;
 
-                      player._right = player._right
-                                  || e.key.keysym.sym == SDLK_LEFT
-                                  || e.key.keysym.sym == SDLK_a;
+                        // Player is pressing right, go left
+                        player._right = player._right
+                                      || e.key.keysym.sym == SDLK_LEFT
+                                      || e.key.keysym.sym == SDLK_a;
                     }
 
+                    // If user presses space, the ball is not already in game
+                    // and the game is not paused
                     if(e.key.keysym.sym == SDLK_SPACE
                     && !ball_in_game && !gPause) {
+                        // For every ball (multiball, not implemented yet)
                         for (i = 0; i < LEN; i++) {
-                            float r = rand() % 4;
-                            ball[i].stepX = !(int)r ? 1 : r;
+                            // Pick a random direction from 0 to 4
+                            float dir = rand() % 4;
+
+                            // If the direction is 0, set it to 1
+                            ball[i].stepX = !(int)dir ? 1 : dir;
+
+                            // Flip a coin, if it's 1, then invert ball's
+                            // direction. Otherwise, leave it as is
                             if(rand() % 2) ball[i].stepX *= -1;
 
+                            // Ball is moving upwards at first
                             ball[i].stepY = -1;
+
+                            // Ball is now in game
                             ball_in_game = true;
                         }
                     }
                     break;
                 case SDL_KEYUP:
-                    if (!controlInverter) {
+                    // If 'control inverter' powerdown is inactive
+                    if(!controlInverter) {
+                        // Player unpressed left, stop going left
                         if(e.key.keysym.sym == SDLK_a
-                        || e.key.keysym.sym == SDLK_LEFT) player._left = false;
+                        || e.key.keysym.sym == SDLK_LEFT) {
+                            player._left = false;
+                        }
 
+                        // Player unpressed right, stop going right
                         if (e.key.keysym.sym == SDLK_d
-                        || e.key.keysym.sym == SDLK_RIGHT) player._right = false;
+                        || e.key.keysym.sym == SDLK_RIGHT) {
+                            player._right = false;
+                        }
                     }
-                    if (controlInverter) {
+                    // If 'control inverter' powerdown is active
+                    else {
+                        // Player unpressed left, stop going right
                         if(e.key.keysym.sym == SDLK_a
-                        || e.key.keysym.sym == SDLK_LEFT) player._right = false;
+                        || e.key.keysym.sym == SDLK_LEFT) {
+                            player._right = false;
+                        }
 
+                        // Player unpressed right, stop going left
                         if (e.key.keysym.sym == SDLK_d
-                        || e.key.keysym.sym == SDLK_RIGHT) player._left = false;
+                        || e.key.keysym.sym == SDLK_RIGHT) {
+                            player._left = false;
+                        }
                     }
 
+                    // Player unpressed P, invert pause state
                     if (e.key.keysym.sym == SDLK_p) gPause = !gPause;
                     break;
-
                 case SDL_MOUSEBUTTONDOWN:
+                    // If the user has clicked with the left mouse button
                     if(e.button.button == SDL_BUTTON_LEFT) {
+                        // If mouse is over sound button
                         if(mouseX >= ((SCREEN_WIDTH - 200) + 80)
                         && mouseX <= ((SCREEN_WIDTH - 200) + 80) + 50
                         && mouseY >= 440
                         && mouseY <= 440 + 50) {
+                            // Invert sound state
                             gSound = !gSound;
-                        } else if(mouseX >= ((SCREEN_WIDTH - 200) + 80)
+                        }
+                        // If mouse is over music button
+                        else if(mouseX >= ((SCREEN_WIDTH - 200) + 80)
                         && mouseX <= ((SCREEN_WIDTH - 200) + 80) + 50
                         && mouseY >= 510
                         && mouseY <= 510 + 50) {
+                            // Invert music state, if it becomes false
                             if(!(gMusic = !gMusic)) {
+                                // Mute music
                                 Mix_VolumeMusic(0);
-                            } else {
+                            }
+                            // Otherwise, if it becomes true
+                            else {
+                                // Unmute music
                                 Mix_VolumeMusic(MIX_MAX_VOLUME);
                             }
-                        } else if (mouseX >= ((SCREEN_WIDTH - 200) + 80)
+                        }
+                        // If mouse is over pause button
+                        else if (mouseX >= ((SCREEN_WIDTH - 200) + 80)
                         && mouseX <= ((SCREEN_WIDTH - 200) + 80) + 50
                         && mouseY >= 580
                         && mouseY <= 580 + 50) {
+                            // Invert pause state
                             gPause = !gPause;
-                        } else if (mouseX >= buttonquit_x
+                        }
+                        // If mouse is over quit button
+                        else if (gPause
+                        && mouseX >= buttonquit_x
                         && mouseX <= buttonquit_x + buttonquit_w
                         && mouseY >= buttonquit_y
                         && mouseY <= buttonquit_y + buttonquit_h) {
+                            // Start a new level
                             newLevel();
+                            // Reset variables
                             player.score = 0;
                             player.aux_score = 0;
                             player.lives = 3;
@@ -349,53 +415,81 @@ void game(void) {
         SDL_FillRect(gScreenSurface, NULL,
                     SDL_MapRGB(gScreenSurface->format, 0x99, 0xD9, 0xEA));
 
+        // If game is not paused
         if(!gPause) {
+            // If player should be going left (pressing left or pressing right
+            // with 'control inverter' powerdown active)
             if(player._left) {
+                // Horizontal speed becomes the absolute value of the
+                // horizontal speed, times -1
                 player.stepX = -absolute(player.stepX);
 
+                // If position is greater than 0, then position is itself plus
+                // horizontal speed. Otherwise, something is wrong, so reset
+                // the position to 0
                 player.posX = player.posX > 0
                             ? player.posX + player.stepX
                             : 0;
-            } else if(player._right) {
+            }
+            // If player should be going right (pressing right or pressing
+            // left with 'control inverter' powerdown active)
+            else if(player._right) {
+                // Horizontal speed becomes the absolute value of the
+                // horizontal speed
                 player.stepX = absolute(player.stepX);
 
-                player.posX = player.posX < (SCREEN_WIDTH - 200) - RACKET_WIDTH
+                // If position is lesser than the screen width minus the left
+                // border and minus the paddle width, then position is itself
+                // plus horizontal speed. Otherwise, something is wrong, so
+                // reset the position to the screen width minus the left
+                // border and minus the paddde width
+                player.posX = player.posX < SCREEN_WIDTH - 200 - RACKET_WIDTH
                             ? player.posX + player.stepX
-                            : (SCREEN_WIDTH - 200) - RACKET_WIDTH;
+                            : SCREEN_WIDTH - 200 - RACKET_WIDTH;
             }
         }
 
+        // For every ball (multiball, not implemented yet)
         for (i= 0; i < LEN; i++) {
+            // If there are still blocks to be broken
             if (levelClear) {
-                // Ball hit bottom of screen
+                // If game is not paused and ball hit bottom of screen
+                // (moveNPC returns 1 when ball is lost)
                 if(!gPause && moveNPC(&ball[i])) {
+                    // Decrese from player life counter
                     player.lives -= 1;
                     if(_DEBUG) printf("[Lives] %d\n", player.lives);
 
+                    // Reset the position of the ball to the top of the paddle
                     ball[i].posY = player.posY - BALL_HEIGHT;
                     ball[i].posX = player.posX + RACKET_WIDTH/2 - BALL_WIDTH/2;
+                    // Reset ball's speed to 0
                     ball[i].stepX = 0;
                     ball[i].stepY = 0;
 
+                    // Ball is no longer in game
                     ball_in_game = false;
 
+                    // If player is out of lives
                     if(player.lives <= 0) {
-                        /* TODO: Player is out of lives -- Game over */
                         if(_DEBUG) {
                             printf("[Player is out of lives!] %d\n",
                                     player.lives);
                         }
+                        // Reset variables
                         blocklevel = 0;
                         blockscore = 0;
                         blocklives = 0;
                         blockbonus = 0;
                         player._left = false;
                         player._right = false;
+                        // Game screen is no longer 'game'
                         gameScreen = 5;
                         return;
                     }
                 }
 
+                // If there's an error loading the ball images
                 if(drawOnScreen(ball[i].image, 0, 0,
                             BALL_WIDTH,
                             BALL_HEIGHT,
@@ -407,12 +501,19 @@ void game(void) {
             }
         }
 
-        if (!levelClear) newLevel();
+        // If there are no more blocks to be broken
+        if (!levelClear) {
+            // Start a new level
+            newLevel();
+        }
+
         // Draw bricks
         int blockX, blockY;
 
+        // For each block on the grid
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
+                /* TODO: Change this mess so colors reperesent resistance */
                 blockX = j % 2 ? BLOCK_WIDTH : 0;
                 blockY = j == 1 || j == 2 ? 0 : BLOCK_HEIGHT;
                 if(j == 4) blockY *= 2;
@@ -428,20 +529,26 @@ void game(void) {
             }
         }
 
-        // Draw pad
+        // If 'small racket' powerdown is active
         if (smallracket) {
-          player.image = gPLAYERSMALLSurface;
-          RACKET_WIDTH = 10.4*PROP;
+            // Draw small paddle
+            player.image = gPLAYERSMALLSurface;
+            RACKET_WIDTH = 10.4*PROP;
         }
+        // If 'big racket' powerup is active
         else if (bigracket) {
-          player.image = gPLAYERLARGESurface;
-          RACKET_WIDTH = 15.6*PROP;
+            // Draw big paddle
+            player.image = gPLAYERLARGESurface;
+            RACKET_WIDTH = 15.6*PROP;
         }
+        // If neither 'small' nor 'bit racket' buffers are active
         else {
-          player.image = gPLAYERSurface;
-          RACKET_WIDTH = 13*PROP;
+            // Draw regular paddle
+            player.image = gPLAYERSurface;
+            RACKET_WIDTH = 13*PROP;
         }
 
+        // If there's an error loading the paddle
         if(drawOnScreen(player.image, 0, 0,
                         RACKET_WIDTH, RACKET_HEIGHT,
                         player.posX, player.posY) < 0) {
@@ -450,7 +557,7 @@ void game(void) {
         }
 
 
-        // Draw side_bar
+        // If there's an error loading the side bar
         if(drawOnScreen(side_bar, 0, 0,
                         200, 700,
                         SCREEN_WIDTH - 200, 0) < 0) {
@@ -458,7 +565,7 @@ void game(void) {
             quit = true;
         }
 
-        // Draw sound icons
+        // If there's an error loading any of the side bar icons
         if(drawOnScreen(sound, gSound ? 0 : 50, 0,
                         50, 50,
                         (SCREEN_WIDTH - 200) + 80, 440) < 0
@@ -472,40 +579,49 @@ void game(void) {
             quit = true;
         }
 
-        // Power up animation
-        if (gPowerUp) {
-          anim_time++;
+        // If there's a powerup/down on screen
+        if(gPowerUp) {
+            // Increase animation counter
+            anim_time++;
 
-          if (anim_time > 5) {
-            anim_frame++;
-            anim_time = 0;
-          }
+            // If 5 game frames have passed
+            if(anim_time > 5) {
+                // Change animation frame
+                anim_frame++;
+                // Reset animation counter
+                anim_time = 0;
+            }
 
-          if(!gPause) powerup_y += 3;
+            // If game isn't paused
+            if(!gPause) {
+                // Lower the powerup's position
+                powerup_y += 3;
+            }
 
-          if (anim_frame > 11)
-            anim_frame = 0;
+            // If animation frame is greater than 11
+            if(anim_frame > 11) {
+                // Reset animation
+                anim_frame = 0;
+            }
 
-          // Draw power up
-          if(drawOnScreen(power_up, 42*anim_frame, 0,
-                          42, 42,
-                          powerup_x, powerup_y) < 0) {
-              error(ERR_BLIT);
-              quit = true;
-          }
+            // If there's an error loading the powerup
+            if(drawOnScreen(power_up, 42*anim_frame, 0,
+                            42, 42,
+                            powerup_x, powerup_y) < 0) {
+                error(ERR_BLIT);
+                quit = true;
+            }
 
-          if (powerup_y > SCREEN_HEIGHT)
-            gPowerUp = 0;
+            // If powerup is no longer on screen
+            if(powerup_y > SCREEN_HEIGHT) gPowerUp = 0;
         }
 
-        //Bonus time
-
-        finalTime = time(0);
-        time_y_bonus = finalTime - gTime;
-        bonus = (((time_min_bonus - time_y_bonus) * 1200) / time_max_bonus);
+        // Current time minus the time the level started
+        time_y_bonus = time(0) - gTime;
+        bonus = ((time_min_bonus - time_y_bonus) * 1200) / time_max_bonus;
         bonus = bonus > 600 ? 600 : bonus < 0 ? 0 : bonus;
 
-        // Collision between balls
+        // If there is more than one ball, check collision between balls
         if(LEN > 1) collisionBalls();
 
         // Collision between ball and brick
@@ -520,45 +636,49 @@ void game(void) {
         // For testing purposes only
         if(_DEBUG && player.score != _temp_score) {
             printf("[Score: %d]\n", player.score);
-            //player.aux_score = player.score;
+            // player.aux_score = player.score;
         }
+        // If temp_score is outdated
         if(player.score > _temp_score || player.score == 0) {
             _temp_score = player.score;
-            //player.aux_score = player.score;
+            // player.aux_score = player.score;
         }
         if(player.aux_score >= 10000) {
             player.lives += 1;
             player.aux_score -= 10000;
         }
 
-        // Check if mouse is over button quit
-        if(gPause
-        && mouseX >= buttonquit_x
-        && mouseX <= buttonquit_x + buttonquit_w
-        && mouseY >= buttonquit_y
-        && mouseY <= buttonquit_y + buttonquit_h) {
-            SDL_SetColorKey(buttonquit, SDL_FALSE,
-                            SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
-        } else {
-            SDL_SetColorKey(buttonquit, SDL_TRUE,
-                            SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
-        }
-
+        // If game is paused
         if(gPause) {
-          if ((drawOnScreen(pause, 0, 0,
-                      28.8*PROP, 14.2*PROP,
-                      30*PROP, 24*PROP) < 0)
-              || (drawOnScreen(buttonquit, 0, 0,
-                          buttonquit_w, buttonquit_h,
-                          buttonquit_x, buttonquit_y) < 0)) {
-              error(ERR_BLIT);
-              quit = true;
+            // Check if mouse is over 'quit' button
+            if(mouseX >= buttonquit_x
+            && mouseX <= buttonquit_x + buttonquit_w
+            && mouseY >= buttonquit_y
+            && mouseY <= buttonquit_y + buttonquit_h) {
+                SDL_SetColorKey(buttonquit, SDL_FALSE,
+                            SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
+            } else {
+                SDL_SetColorKey(buttonquit, SDL_TRUE,
+                            SDL_MapRGB(buttonquit->format, 0x70, 0x92, 0xBE));
+            }
+
+            // If there's an error loading the pause screen or 'quit' button
+            if(drawOnScreen(pause, 0, 0,
+                            28.8*PROP, 14.2*PROP,
+                            30*PROP, 24*PROP) < 0
+            || drawOnScreen(buttonquit, 0, 0,
+                            buttonquit_w, buttonquit_h,
+                            buttonquit_x, buttonquit_y) < 0) {
+                error(ERR_BLIT);
+                quit = true;
             }
         }
 
+        // R: 0, G: 0, B: 0, alpha: 255
         SDL_Color black = { 0, 0, 0, 255 };
 
         char strbonus[4];
+        // Only update bonus text if it has changed
         if(bonus != contabonus || !blockbonus) {
             sprintf(strbonus, "%d", bonus);
             contabonus = bonus;
@@ -568,6 +688,7 @@ void game(void) {
         drawTextOnScreen(strbonus, SCREEN_WIDTH-160, 340, black);
 
         char strlevel[4];
+        // Only update level text if it has changed
         if(level != contalevel || !blocklevel) {
             sprintf(strlevel, "%d", level);
             contalevel = level;
@@ -577,6 +698,7 @@ void game(void) {
         drawTextOnScreen(strlevel, SCREEN_WIDTH-160, 75, black);
 
         char strscore[10];
+        // Only update score text if it has changed
         if(player.score != contascore || !blockscore) {
             sprintf(strscore, "%d", player.score);
             contascore = player.score;
@@ -586,6 +708,7 @@ void game(void) {
         drawTextOnScreen(strscore, SCREEN_WIDTH-160, 160, black);
 
         char strlives[3];
+        // Only update lives text if it has changed
         if(player.lives != contalives || !blocklives) {
             sprintf(strlives, "%d", player.lives);
             contalives = player.lives;
@@ -604,21 +727,26 @@ void game(void) {
 }
 
 void options(void) {
+
+    // Home button variables
     int buttonhome_x = 5*PROP;
     int buttonhome_y = 5*PROP;
     int buttonhome_w = 11.2*PROP;
     int buttonhome_h = 5*PROP;
 
+    // Option button variables
     int options_x = 0;
     int options_y = 0;
     int options_w = 100*PROP;
     int options_h = 70*PROP;
 
+    // Right arrow variables
     int arrowr_x = 82*PROP;
     int arrowr_y = 60*PROP;
     int arrowr_w = 5.4*PROP;
     int arrowr_h = 5.4*PROP;
 
+    // Left arrow variables
     int arrowl_x = 72*PROP;
     int arrowl_y = 60*PROP;
     int arrowl_w = 5.4*PROP;
@@ -640,26 +768,36 @@ void options(void) {
                     quit = true;
                     break;
                 case SDL_KEYDOWN:
+                    // If user pressed the 'ESCAPE' key
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
+                    // If the user has clicked with the left mouse button
                     if(e.button.button == SDL_BUTTON_LEFT) {
+                        // If mouse is over 'home' button
                         if(mouseX >= buttonhome_x
                         && mouseX <= buttonhome_x + buttonhome_w
                         && mouseY >= buttonhome_y
                         && mouseY <= buttonhome_y + buttonhome_h) {
+                            // Game screen is 'home'
                             gameScreen = 0;
                             return;
-                        } else if(mouseX >= arrowr_x
+                        }
+                        // If mouse is over right arrow
+                        else if(mouseX >= arrowr_x
                         && mouseX <= arrowr_x + arrowr_w
                         && mouseY >= arrowr_y
                         && mouseY <= arrowr_y + arrowr_h) {
+                            // Change information screen
                             if(gScreen < 1) gScreen++;
                             return;
-                        } else if(mouseX >= arrowl_x
+                        }
+                        // If mouse is over left arrow
+                        else if(mouseX >= arrowl_x
                         && mouseX <= arrowl_x + arrowl_w
                         && mouseY >= arrowl_y
                         && mouseY <= arrowl_y + arrowl_h) {
+                            // Change information screen
                             if (gScreen > 0) gScreen--;
                             return;
                         }
@@ -671,12 +809,13 @@ void options(void) {
             }
         }
 
-        // Check if mouse is over button home
+        // If mouse is over 'home' button
         int is_hovering = (mouseX >= buttonhome_x
                         && mouseX <= buttonhome_x + buttonhome_w
                         && mouseY >= buttonhome_y
                         && mouseY <= buttonhome_y + buttonhome_h);
 
+        // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
@@ -684,12 +823,13 @@ void options(void) {
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
                                                       0x00, 0x00, 0x00));
 
-        // KeyColor for arrows
+        // Color key is always enabled for arrows
         SDL_SetColorKey(arrow_right, SDL_TRUE,
                         SDL_MapRGB(arrow_right->format, 0xff, 0xAE, 0xC9));
         SDL_SetColorKey(arrow_left, SDL_TRUE,
                         SDL_MapRGB(arrow_left->format, 0xff, 0xAE, 0xC9));
 
+        // If there's an error loading any of the buttons
         if(drawOnScreen(gScreen == 0 ? optionsback : optionsback1, 0, 0,
                         options_w, options_h,
                         options_x, options_y) < 0
@@ -713,7 +853,8 @@ void options(void) {
 }
 
 void ranking(void) {
-    /* TODO: Please, struct all the things */
+
+    // Home button variables
     int buttonhome_x = 5*PROP;
     int buttonhome_y = 5*PROP;
     int buttonhome_w = 11.2*PROP;
@@ -735,14 +876,18 @@ void ranking(void) {
                     quit = true;
                     break;
                 case SDL_KEYDOWN:
+                    // If user pressed the 'ESCAPE' key
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
+                    // If the user has clicked with the left mouse button
                     if(e.button.button == SDL_BUTTON_LEFT) {
+                        // If mouse is over 'home' button
                         if(mouseX >= buttonhome_x
                         && mouseX <= buttonhome_x + buttonhome_w
                         && mouseY >= buttonhome_y
                         && mouseY <= buttonhome_y + buttonhome_h) {
+                            // Game screen is now 'home'
                             gameScreen = 0;
                             return;
                         }
@@ -754,12 +899,13 @@ void ranking(void) {
               }
         }
 
-        // Check if mouse is over button home
+        // If mouse is over 'home' button
         int is_hovering = (mouseX >= buttonhome_x
                         && mouseX <= buttonhome_x + buttonhome_w
                         && mouseY >= buttonhome_y
                         && mouseY <= buttonhome_y + buttonhome_h);
 
+        // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
@@ -767,9 +913,10 @@ void ranking(void) {
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
                                                       0x00, 0x00, 0x00));
 
+        // If there's an error loading the home button
         if(drawOnScreen(buttonhome, 0, 0,
-          buttonhome_w, buttonhome_h,
-          buttonhome_x, buttonhome_y) < 0) {
+                        buttonhome_w, buttonhome_h,
+                        buttonhome_x, buttonhome_y) < 0) {
             error(ERR_BLIT);
             quit = true;
         }
@@ -784,27 +931,32 @@ void ranking(void) {
 }
 
 void configuration(void) {
-    /* TODO: Please, struct all the things */
+
+    // Home button variables
     int buttonhome_x = 5*PROP;
     int buttonhome_y = 5*PROP;
     int buttonhome_w = 11.2*PROP;
     int buttonhome_h = 5*PROP;
 
+    // Play button variables
     int buttonplay_x = 5*PROP;
     int buttonplay_y = 60*PROP;
     int buttonplay_w = 11.2*PROP;
     int buttonplay_h = 5*PROP;
 
+    // Game Mode button variables
     int gamemode_x = 5*PROP;
     int gamemode_y = 25*PROP;
     int gamemode_w = 35*PROP;
     int gamemode_h = 5*PROP;
 
+    // Game Physics button variables
     int physics_x = 5*PROP;
     int physics_y = 40*PROP;
     int physics_w = 35*PROP;
     int physics_h = 5*PROP;
 
+    // Configuration button variables
     int config_x = 0;
     int config_y = 0;
     int config_w = 100*PROP;
@@ -828,78 +980,96 @@ void configuration(void) {
                     quit = true;
                     break;
                 case SDL_KEYDOWN:
+                    // If user pressed the 'ESCAPE' key
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
+                    // If the user has clicked with the left mouse button
                     if(e.button.button == SDL_BUTTON_LEFT) {
+                        // If mouse is over 'game mode' button
                         if(mouseX >= gamemode_x
                         && mouseX <= gamemode_x + gamemode_w
                         && mouseY >= gamemode_y
                         && mouseY <= gamemode_y + gamemode_h) {
+                            // Change gamemode from 1 to 2, or from 2 to 1
                             gGameMode = gGameMode == 1 ? 2 : 1;
-                        } else if(mouseX >= physics_x
+                        }
+                        // If mouse is over 'game physics' button
+                        else if(mouseX >= physics_x
                         && mouseX <= physics_x + physics_w
                         && mouseY >= physics_y
                         && mouseY <= physics_y + physics_h) {
+                            // Change gamemode physics from 1 to 2, or from 2
+                            // to 1
                             gPhysics = gPhysics == 1 ? 2 : 1;
-                        } else if(mouseX >= buttonplay_x
+                        }
+                        // If mouse is over 'play' button
+                        else if(mouseX >= buttonplay_x
                         && mouseX <= buttonplay_x + buttonplay_w
                         && mouseY >= buttonplay_y
                         && mouseY <= buttonplay_y + buttonplay_h) {
+                            // Game screen is now 'game'
                             gameScreen = 1;
+                            // Start a new level
                             newLevel();
                             return;
-                        } else if(mouseX >= buttonhome_x
+                        }
+                        // If mouse is over 'home' button
+                        else if(mouseX >= buttonhome_x
                         && mouseX <= buttonhome_x + buttonhome_w
                         && mouseY >= buttonhome_y
                         && mouseY <= buttonhome_y + buttonhome_h) {
+                            // Game screen is now 'home'
                             gameScreen = 0;
                             return;
                         }
                     }
                     break;
                 default:
-                    // Supress warnings from [-Wswitch-default] flag
-                    break;
+                // Supress warnings from [-Wswitch-default] flag
+                break;
             }
         }
 
-        // Check if mouse is over button home
+        // If mouse is over 'home' button
         is_hovering = (mouseX >= buttonhome_x
                     && mouseX <= buttonhome_x + buttonhome_w
                     && mouseY >= buttonhome_y
                     && mouseY <= buttonhome_y + buttonhome_h);
 
+        // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
-        // Check if mouse is over button play
+        // If mouse is over 'play' button
         is_hovering = (mouseX >= buttonplay_x
                     && mouseX <= buttonplay_x + buttonplay_w
                     && mouseY >= buttonplay_y
                     && mouseY <= buttonplay_y + buttonplay_h);
 
+        // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonplay, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonplay->format, 0x70, 0x92, 0xBE));
 
-        // Check if mouse is over button campaign/endless
+        // If mouse is over 'gamemode' button
         is_hovering = (mouseX >= gamemode_x
                     && mouseX <= gamemode_x + gamemode_w
                     && mouseY >= gamemode_y
                     && mouseY <= gamemode_y + gamemode_h);
 
+        // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttoncampaign, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttoncampaign->format, 0x70, 0x92, 0xBE));
-
         SDL_SetColorKey(buttonendless, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonendless->format, 0x70, 0x92, 0xBE));
 
-        // Check if mouse is over button campaign/endless
+        // If mouse is over 'game physics' button
         is_hovering = (mouseX >= physics_x
                     && mouseX <= physics_x + physics_w
                     && mouseY >= physics_y
                     && mouseY <= physics_y + physics_h);
 
+        // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonclassic, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonclassic->format, 0x70, 0x92, 0xBE));
         SDL_SetColorKey(buttonalternate, is_hovering ? SDL_FALSE : SDL_TRUE,
@@ -909,6 +1079,7 @@ void configuration(void) {
         SDL_FillRect(gScreenSurface, NULL,
                         SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
+        // If there's an error loading any of the buttons
         if(drawOnScreen(config, 0, 0,
                         config_w, config_h,
                         config_x, config_y) < 0
@@ -938,7 +1109,8 @@ void configuration(void) {
 }
 
 void end_game(void) {
-    /* TODO: Please, struct all the things */
+
+    // Home button variables
     int buttonhome_x = 5*PROP;
     int buttonhome_y = 5*PROP;
     int buttonhome_w = 11.2*PROP;
@@ -962,16 +1134,20 @@ void end_game(void) {
                     quit = true;
                     break;
                 case SDL_KEYDOWN:
+                    // If user pressed the 'ESCAPE' key
                     if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
+                    // If the user has clicked with the left mouse button
                     if(e.button.button == SDL_BUTTON_LEFT) {
+                        // If mouse is over 'home' button
                         if(mouseX >= buttonhome_x
                         && mouseX <= buttonhome_x + buttonhome_w
                         && mouseY >= buttonhome_y
                         && mouseY <= buttonhome_y + buttonhome_h) {
+                            // Game screen is now 'menu'
                             gameScreen = 0;
-                            newLevel();
+                            // Reset variables
                             blocklevel = 0;
                             blockscore = 0;
                             player.score = 0;
@@ -987,12 +1163,13 @@ void end_game(void) {
                 }
             }
 
-        // Check if mouse is over button home
+        // If mouse is over 'home' button
         is_hovering = (mouseX >= buttonhome_x
                     && mouseX <= buttonhome_x + buttonhome_w
                     && mouseY >= buttonhome_y
                     && mouseY <= buttonhome_y + buttonhome_h);
 
+        // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
@@ -1000,6 +1177,7 @@ void end_game(void) {
         SDL_FillRect(gScreenSurface, NULL,
                      SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
+        // If there's an error loading the 'home' button
         if (drawOnScreen(buttonhome, 0, 0,
                          buttonhome_w, buttonhome_h,
                          buttonhome_x, buttonhome_y) < 0) {
@@ -1007,9 +1185,11 @@ void end_game(void) {
             quit = true;
         }
 
+        // R: 180, G: 180, B: 0, alpha: 255
         SDL_Color yellow = { 180, 180, 0, 255 };
 
         char strlevel[10];
+        // Only update level text if it has changed
         if(level != contalevel || !blocklevel) {
             sprintf(strlevel, "Level: %d", level);
             contalevel = level;
@@ -1019,6 +1199,7 @@ void end_game(void) {
         drawTextOnScreen(strlevel, SCREEN_WIDTH-260, 75, yellow);
 
         char strscore[18];
+        // Only update score text if it has changed
         if((player.score != contascore) || (!blockscore)) {
             sprintf(strscore, "Score: %d", player.score);
             contascore = player.score;
@@ -1043,15 +1224,21 @@ void collisionBalls(void) {
     // Temporary variable for 2 way value swapping
     int temp;
 
+    // For every ball (multiball, not implemented yet)
     for (i= 0; i < LEN; i++) {
         for (j = i + 1; j < LEN; j++) {
+            // Distance X
             int deltaX = ball[i].posX - ball[j].posX;
+            // Distance Y
             int deltaY = ball[i].posY - ball[j].posY;
 
+            // If dx² + dy² < width², balls are colliding
             if(deltaX * deltaX + deltaY * deltaY < BALL_WIDTH * BALL_WIDTH) {
+                // Swap balls' horizontal speeds
                 temp = ball[i].stepX;
                 ball[i].stepX = ball[j].stepX;
                 ball[j].stepX = temp;
+                // Swap balls' vertical speeds
                 temp = ball[i].stepY;
                 ball[i].stepY = ball[j].stepY;
                 ball[j].stepY = temp;
@@ -1064,7 +1251,9 @@ void collisionBrick(void) {
     // Iteraion variables
     int i, j, k;
 
+    // For every ball (multiball, not implemented yet)
     for (i = 0; i < LEN; i++) {
+        // For every brick
         for (j = 0; j < COLUMNS; j++) {
             for (k = 0; k < LINES; k++) {
                 BLOCK current = brick[j][k];
@@ -1074,33 +1263,52 @@ void collisionBrick(void) {
                 int left = ball[i].posX <= current.posX + BLOCK_WIDTH;
                 int right = ball[i].posX + BALL_WIDTH >= current.posX;
 
+                // If ball is colliding with a brick with resistance different
+                // from 0 (greater or lesser than 0)
                 if(current.resist && over && under && left && right) {
+                    // If resistance is lesser than 0
                     if(current.resist < 0) {
                         brick[j][k].resist = 0;
-                    } else {
-                        if(current.resist > 0){
+                    }
+                    // Resistance must be positive
+                    else {
+                        // You can't ever be too sure, right?
+                        if(current.resist > 0) {
                             player.score += 100;
                             player.aux_score += 100;
                             levelClear--;
                         }
+                        // If resist minus 1 is lesser than 0, then resist
+                        // becomes 0; Otherwise, it becomes itself minus one
                         brick[j][k].resist = current.resist-1 < 0
                                     ? 0
                                     : current.resist-1;
+
+                        // If block was broken and sounds are on
                         if(!brick[j][k].resist && gSound) {
+                            // Play brick breaking sound
                             Mix_PlayChannel(-1, gBrickWAV, 0);
                         }
-                        if (!gPowerUp) {
-                          gPowerUp = (rand())%100 < 11 ? 1:0;
-                          if (gPowerUp) {
-                            controlInverter = 0;
-                            bigracket = 0;
-                            smallracket = 0;
-                          }
-                          powerup_x = current.posX + 29;
-                          powerup_y = current.posY;
+
+                        // If there are no powerups
+                        if(!gPowerUp) {
+                            // 11% chance of a powerup
+                            gPowerUp = rand() % 100 < 11 ? 1 : 0;
+                            // If player should get a powerup
+                            if(gPowerUp) {
+                                // Reset powerups
+                                controlInverter = 0;
+                                bigracket = 0;
+                                smallracket = 0;
+                            }
+                            // Update powerup position
+                            powerup_x = current.posX + 29;
+                            powerup_y = current.posY;
                         }
 
-                        // Check collision side
+                        // Collision side checking
+                        // Adapted from:
+                        // https://gamedev.stackexchange.com/a/29796
                         int ball_half_x = ball[i].posX + BALL_WIDTH / 2;
                         int ball_half_y = ball[i].posY + BLOCK_HEIGHT / 2;
                         int brick_half_x = current.posX + BLOCK_WIDTH / 2;
@@ -1118,22 +1326,22 @@ void collisionBrick(void) {
                         int cross_width = avg_width * center_dist_y;
                         int cross_height = avg_height * center_dist_x;
 
-                        if (abs_dist_x <= avg_width
-                         && abs_dist_y <= avg_height) {
-                            if (cross_width > cross_height) {
-                                if (cross_width > -cross_height) {
-                                    // BOTTOM
+                        if(abs_dist_x <= avg_width
+                        && abs_dist_y <= avg_height) {
+                            if(cross_width > cross_height) {
+                                if(cross_width > -cross_height) {
+                                    // Ball hit the bottom of the brick
                                     ball[i].stepY = absolute(ball[i].stepY);
                                 } else {
-                                    // LEFT
+                                    // Ball hit the left side of the brick
                                     ball[i].stepX = -absolute(ball[i].stepX);
                                 }
                             } else {
                                 if(cross_width > -cross_height) {
-                                    // RIGHT
+                                    // Ball hit the right side of the brick
                                     ball[i].stepX = absolute(ball[i].stepX);
                                 } else {
-                                    // TOP
+                                    // Ball hit the top of the brick
                                     ball[i].stepY = -absolute(ball[i].stepY);
                                 }
                             }
@@ -1146,17 +1354,18 @@ void collisionBrick(void) {
 }
 
 void collisionRacket(void) {
-    if (gPhysics == 1) {
-        // Iteration variable
-        int i;
+    // Iteration variable
+    int i;
 
-        for (i = 0; i < LEN; i++) {
+    // For every ball (multiball, not implemented yet)
+    for (i = 0; i < LEN; i++) {
+        // If 'classic' physics
+        if (gPhysics == 1) {
             int top_limit = ball[i].posY + BALL_HEIGHT >= player.posY;
             // 2 pixels of tolerance
             int bottom_limit = ball[i].posY + BALL_HEIGHT <= player.posY + 2;
             int left_limit = ball[i].posX + BALL_WIDTH >= player.posX;
             int right_limit = ball[i].posX <= player.posX + RACKET_WIDTH;
-            //int right_side = ball[i].posX >= player.posX + RACKET_WIDTH/2;
 
             if(top_limit && bottom_limit && left_limit && right_limit) {
                 ball[i].stepY = -absolute(ball[i].stepY);
@@ -1186,11 +1395,8 @@ void collisionRacket(void) {
                 if(_DEBUG) printf("[FINAL] stepX = %d\n", ball[i].stepX);
             }
         }
-    } else if(gPhysics == 2) {
-        // Iteration variable
-        int i;
-
-        for (i = 0; i < LEN; i++) {
+        // If 'alternate' physics
+        else if(gPhysics == 2) {
             int top_limit = ball[i].posY + BALL_HEIGHT >= player.posY;
             // 2 pixels of tolerance
             int bottom_limit = ball[i].posY + BALL_HEIGHT <= player.posY + 2;
