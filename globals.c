@@ -131,3 +131,6 @@ int blockpower = 0;
 
 // Global ranking
 RANKED gRankedVector[5];
+RANKED gRankedVector2[5];
+RANKED gRankedVector3[5];
+RANKED gRankedVector4[5];

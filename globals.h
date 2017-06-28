@@ -125,3 +125,6 @@ extern int blockpower;
 
 // Global ranking
 extern RANKED gRankedVector[5];
+extern RANKED gRankedVector2[5];
+extern RANKED gRankedVector3[5];
+extern RANKED gRankedVector4[5];

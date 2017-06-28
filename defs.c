@@ -405,6 +405,7 @@ void game(void) {
                             player._left = false;
                             player._right = false;
                             gameScreen = 0;
+                            gPowerUpId = 5;
                             return;
                         }
                     }
@@ -490,14 +491,49 @@ void game(void) {
 
                         // If player score is greater than the lowest ranked
                         // person, then the player should now be ranked
-                        if((unsigned)player.score > gRankedVector[4].score) {
-                            if(_DEBUG) printf("[RANKED] New record!\n");
-                            gRankedVector[4].score = player.score;
-                            // Game screen is now 'name input'
-                            gameScreen = 6;
-                        } else {
-                            // Game screen is now 'game over'
-                            gameScreen = 5;
+                        if (gGameMode == 1 && gPhysics == 1) {
+                          if((unsigned)player.score > gRankedVector[4].score) {
+                              if(_DEBUG) printf("[RANKED] New record!\n");
+                              gRankedVector[4].score = player.score;
+                              // Game screen is now 'name input'
+                              gameScreen = 6;
+                          } else {
+                              // Game screen is now 'game over'
+                              gameScreen = 5;
+                          }
+                        }
+                        if (gGameMode == 1 && gPhysics == 2) {
+                          if((unsigned)player.score > gRankedVector2[4].score) {
+                              if(_DEBUG) printf("[RANKED] New record!\n");
+                              gRankedVector2[4].score = player.score;
+                              // Game screen is now 'name input'
+                              gameScreen = 6;
+                          } else {
+                              // Game screen is now 'game over'
+                              gameScreen = 5;
+                          }
+                        }
+                        if (gGameMode == 2 && gPhysics == 1) {
+                          if((unsigned)player.score > gRankedVector3[4].score) {
+                              if(_DEBUG) printf("[RANKED] New record!\n");
+                              gRankedVector3[4].score = player.score;
+                              // Game screen is now 'name input'
+                              gameScreen = 6;
+                          } else {
+                              // Game screen is now 'game over'
+                              gameScreen = 5;
+                          }
+                        }
+                        if (gGameMode == 2 && gPhysics == 2) {
+                          if((unsigned)player.score > gRankedVector4[4].score) {
+                              if(_DEBUG) printf("[RANKED] New record!\n");
+                              gRankedVector4[4].score = player.score;
+                              // Game screen is now 'name input'
+                              gameScreen = 6;
+                          } else {
+                              // Game screen is now 'game over'
+                              gameScreen = 5;
+                          }
                         }
                         return;
                     }
@@ -1020,6 +1056,27 @@ void ranking(void) {
                             SCREEN_WIDTH/2-250,
                             SCREEN_HEIGHT/4+25*(r+1),
                             black);
+            sprintf(strrank, "%s: %u",
+                    gRankedVector2[r].name,
+                    gRankedVector2[r].score);
+            drawTextOnScreen(strrank,
+                            SCREEN_WIDTH/2,
+                            SCREEN_HEIGHT/4+25*(r+1),
+                            black);
+            sprintf(strrank, "%s: %u",
+                    gRankedVector3[r].name,
+                    gRankedVector3[r].score);
+            drawTextOnScreen(strrank,
+                            SCREEN_WIDTH/2-250,
+                            SCREEN_HEIGHT/4+25*(r+1) + 200,
+                            black);
+            sprintf(strrank, "%s: %u",
+                    gRankedVector4[r].name,
+                    gRankedVector4[r].score);
+            drawTextOnScreen(strrank,
+                            SCREEN_WIDTH/2,
+                            SCREEN_HEIGHT/4+25*(r+1) + 200,
+                            black);
         }
 
 
@@ -1448,6 +1505,7 @@ void name_input(void) {
 
                         // If user presses [ENTER] key
                         case SDLK_RETURN:case SDLK_RETURN2:case SDLK_KP_ENTER:
+                          if (gGameMode == 1 && gPhysics == 1) {
                             if(_DEBUG) {
                                 printf("[Inserted name %s with score %u]\n",
                                     letters, gRankedVector[4].score);
@@ -1467,6 +1525,70 @@ void name_input(void) {
                                 fclose(pFile);
                                 gameScreen = 3;
                             }
+                          }
+                          else if (gGameMode == 1 && gPhysics == 2) {
+                            if(_DEBUG) {
+                                printf("[Inserted name %s with score %u]\n",
+                                    letters, gRankedVector2[4].score);
+                            }
+                            // Set the username to input
+                            sprintf(gRankedVector2[4].name, letters);
+
+                            // Sort ranked players
+                            unsigned _s = sizeof(RANKED);
+                            qsort(gRankedVector2, 5, _s, compare_score);
+                            pFile = fopen("./ranking2","wb");
+                            if (!pFile) {
+                                printf("Unable to open file!");
+                                gameScreen = 0;
+                            } else {
+                                fwrite(gRankedVector2, sizeof(RANKED), 5, pFile);
+                                fclose(pFile);
+                                gameScreen = 3;
+                            }
+                          }
+                          else if (gGameMode == 2 && gPhysics == 1) {
+                            if(_DEBUG) {
+                                printf("[Inserted name %s with score %u]\n",
+                                    letters, gRankedVector3[4].score);
+                            }
+                            // Set the username to input
+                            sprintf(gRankedVector3[4].name, letters);
+
+                            // Sort ranked players
+                            unsigned _s = sizeof(RANKED);
+                            qsort(gRankedVector3, 5, _s, compare_score);
+                            pFile = fopen("./ranking3","wb");
+                            if (!pFile) {
+                                printf("Unable to open file!");
+                                gameScreen = 0;
+                            } else {
+                                fwrite(gRankedVector3, sizeof(RANKED), 5, pFile);
+                                fclose(pFile);
+                                gameScreen = 3;
+                            }
+                          }
+                          else if (gGameMode == 2 && gPhysics == 2) {
+                            if(_DEBUG) {
+                                printf("[Inserted name %s with score %u]\n",
+                                    letters, gRankedVector4[4].score);
+                            }
+                            // Set the username to input
+                            sprintf(gRankedVector4[4].name, letters);
+
+                            // Sort ranked players
+                            unsigned _s = sizeof(RANKED);
+                            qsort(gRankedVector4, 5, _s, compare_score);
+                            pFile = fopen("./ranking4","wb");
+                            if (!pFile) {
+                                printf("Unable to open file!");
+                                gameScreen = 0;
+                            } else {
+                                fwrite(gRankedVector4, sizeof(RANKED), 5, pFile);
+                                fclose(pFile);
+                                gameScreen = 3;
+                            }
+                          }
                             return;
                         default: break;
                     }
@@ -2048,6 +2170,33 @@ int init(void) {
         return false;
     } else {
         fread(gRankedVector, sizeof(RANKED), 5, pFile);
+        fclose(pFile);
+    }
+
+    pFile = fopen("./ranking2","rb");
+    if(!pFile) {
+        error(ERR_RANK);
+        return false;
+    } else {
+        fread(gRankedVector2, sizeof(RANKED), 5, pFile);
+        fclose(pFile);
+    }
+
+    pFile = fopen("./ranking3","rb");
+    if(!pFile) {
+        error(ERR_RANK);
+        return false;
+    } else {
+        fread(gRankedVector3, sizeof(RANKED), 5, pFile);
+        fclose(pFile);
+    }
+
+    pFile = fopen("./ranking4","rb");
+    if(!pFile) {
+        error(ERR_RANK);
+        return false;
+    } else {
+        fread(gRankedVector4, sizeof(RANKED), 5, pFile);
         fclose(pFile);
     }
 
