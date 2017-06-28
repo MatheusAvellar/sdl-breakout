@@ -402,6 +402,7 @@ void game(void) {
                             blockscore = 0;
                             blocklives = 0;
                             blockbonus = 0;
+                            blockpower = 0;
                             player._left = false;
                             player._right = false;
                             gameScreen = 0;
@@ -486,6 +487,7 @@ void game(void) {
                         blockscore = 0;
                         blocklives = 0;
                         blockbonus = 0;
+                        blockpower = 0;
                         player._left = false;
                         player._right = false;
 
@@ -820,7 +822,7 @@ void game(void) {
                 sprintf(strpower, "Small");
                 break;
               default:
-                sprintf(strpower, "Nothing ");
+                sprintf(strpower, "Nothing");
                 break;
             }
             contapower = gPowerUpId;
