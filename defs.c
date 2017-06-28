@@ -992,6 +992,11 @@ void ranking(void) {
     int buttonhome_w = 11.2*PROP;
     int buttonhome_h = 5*PROP;
 
+    int back_x = 0;
+    int back_y = 0;
+    int back_w = 100*PROP;
+    int back_h = 70*PROP;
+
     // Mouse position
     int mouseX, mouseY;
 
@@ -1045,6 +1050,17 @@ void ranking(void) {
         SDL_FillRect(gScreenSurface, NULL,
                     SDL_MapRGB(gScreenSurface->format, 0x99, 0xD9, 0xEA));
 
+        // If there's an error loading the home button
+        if (drawOnScreen(rankback, 0, 0,
+                           back_w, back_h,
+                           back_x, back_y) < 0
+          || drawOnScreen(buttonhome, 0, 0,
+                          buttonhome_w, buttonhome_h,
+                          buttonhome_x, buttonhome_y) < 0) {
+          error(ERR_BLIT);
+          quit = true;
+        }
+
         // R: 0, G: 0, B: 0, alpha: 255
         SDL_Color black = { 0, 0, 0, 255 };
 
@@ -1055,39 +1071,30 @@ void ranking(void) {
                     gRankedVector[r].name,
                     gRankedVector[r].score);
             drawTextOnScreen(strrank,
-                            SCREEN_WIDTH/2-250,
+                            SCREEN_WIDTH/2-200,
                             SCREEN_HEIGHT/4+25*(r+1),
                             black);
             sprintf(strrank, "%s: %u",
                     gRankedVector2[r].name,
                     gRankedVector2[r].score);
             drawTextOnScreen(strrank,
-                            SCREEN_WIDTH/2,
+                            SCREEN_WIDTH/2+100,
                             SCREEN_HEIGHT/4+25*(r+1),
                             black);
             sprintf(strrank, "%s: %u",
                     gRankedVector3[r].name,
                     gRankedVector3[r].score);
             drawTextOnScreen(strrank,
-                            SCREEN_WIDTH/2-250,
-                            SCREEN_HEIGHT/4+25*(r+1) + 200,
+                            SCREEN_WIDTH/2-200,
+                            SCREEN_HEIGHT/4+25*(r+1) + 300,
                             black);
             sprintf(strrank, "%s: %u",
                     gRankedVector4[r].name,
                     gRankedVector4[r].score);
             drawTextOnScreen(strrank,
-                            SCREEN_WIDTH/2,
-                            SCREEN_HEIGHT/4+25*(r+1) + 200,
+                            SCREEN_WIDTH/2+100,
+                            SCREEN_HEIGHT/4+25*(r+1) + 300,
                             black);
-        }
-
-
-        // If there's an error loading the home button
-        if(drawOnScreen(buttonhome, 0, 0,
-                        buttonhome_w, buttonhome_h,
-                        buttonhome_x, buttonhome_y) < 0) {
-            error(ERR_BLIT);
-            quit = true;
         }
 
         // Update the surface
@@ -1355,28 +1362,30 @@ void end_game(void) {
             quit = true;
         }
 
-        // R: 180, G: 180, B: 0, alpha: 255
-        SDL_Color yellow = { 180, 180, 0, 255 };
+        // R: 0, G: 0, B: 0, alpha: 255
+        SDL_Color black = { 0, 0, 0, 255 };
 
-        char strlevel[10];
+        drawTextOnScreen("Game Over: You ran out of balls", 260, 75, black);
+
+        char strlevel[25];
         // Only update level text if it has changed
         if(level != contalevel || !blocklevel) {
-            sprintf(strlevel, "Level: %d", level);
+            sprintf(strlevel, "You reached level %d", level);
             contalevel = level;
             blocklevel = 1;
             if(_DEBUG) printf("TTF end_level\n");
         }
-        drawTextOnScreen(strlevel, SCREEN_WIDTH-260, 75, yellow);
+        drawTextOnScreen(strlevel, 260, 160, black);
 
-        char strscore[18];
+        char strscore[30];
         // Only update score text if it has changed
         if((player.score != contascore) || (!blockscore)) {
-            sprintf(strscore, "Score: %d", player.score);
+            sprintf(strscore, "You scored %d points", player.score);
             contascore = player.score;
             blockscore = 1;
             if(_DEBUG) printf("TTF end_score\n");
         }
-        drawTextOnScreen(strscore, SCREEN_WIDTH-260, 160, yellow);
+        drawTextOnScreen(strscore, 260, 190, black);
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -1591,6 +1600,13 @@ void name_input(void) {
                                 gameScreen = 3;
                             }
                           }
+                            // Reset variables
+                            blocklevel = 0;
+                            blockscore = 0;
+                            player.score = 0;
+                            player.aux_score = 0;
+                            player.lives = 3;
+                            level = 0;
                             return;
                         default: break;
                     }
@@ -1627,8 +1643,13 @@ void name_input(void) {
         SDL_Color black = { 0, 0, 0, 255 };
 
         cursor = cursor > 2 ? 0 : cursor < 0 ? 2 : cursor;
-        drawTextOnScreen(letters, SCREEN_WIDTH/2, 160, black);
-        drawTextOnScreen("^", SCREEN_WIDTH/2 + cursor*15, 180, black);
+        drawTextOnScreen("Congratulations!", SCREEN_WIDTH/2 - 300, 120, black);
+        drawTextOnScreen("You are among the five best players of",
+                          SCREEN_WIDTH/2 - 300, 150, black);
+        drawTextOnScreen("SDL BREAKOUT!", SCREEN_WIDTH/2 - 300, 180, black);
+        drawTextOnScreen("Enter your name:", SCREEN_WIDTH/2 - 300, 220, black);
+        drawTextOnScreen(letters, SCREEN_WIDTH/2, 220, black);
+        drawTextOnScreen("^", SCREEN_WIDTH/2 + cursor*15, 240, black);
 
 
         // Update the surface
@@ -2230,6 +2251,7 @@ int loadMedia(void) {
     || (optionsback = loadSurface("./images/optionsback.png")) == NULL
     || (optionsback1 = loadSurface("./images/optionsback1.png")) == NULL
     || (optionsback2 = loadSurface("./images/optionsback2.png")) == NULL
+    || (rankback = loadSurface("./images/rankback.png")) == NULL
     || (power_up = loadSurface("./images/powerup.png")) == NULL
     || (arrow_right = loadSurface("./images/arrow_right.png")) == NULL
     || (arrow_left = loadSurface("./images/arrow_left.png")) == NULL) {
@@ -2270,7 +2292,7 @@ int loadMedia(void) {
     }
 
     // Play music
-    if(can_music_play /*&& Mix_PlayMusic(gMusicWAV, -1)==-1*/) {
+    if(can_music_play && Mix_PlayMusic(gMusicWAV, -1)==-1) {
         // There is no music, but the game is still playable
         printf("Failed to load music!\n%s\n", Mix_GetError());
     }

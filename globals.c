@@ -78,6 +78,7 @@ SDL_Surface* config = NULL;
 SDL_Surface* optionsback = NULL;
 SDL_Surface* optionsback1 = NULL;
 SDL_Surface* optionsback2 = NULL;
+SDL_Surface* rankback = NULL;
 SDL_Surface* pause = NULL;
 SDL_Surface* buttonquit = NULL;
 SDL_Surface* arrow_right = NULL;

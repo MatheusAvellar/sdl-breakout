@@ -74,6 +74,7 @@ extern SDL_Surface* buttonquit;
 extern SDL_Surface* optionsback;
 extern SDL_Surface* optionsback1;
 extern SDL_Surface* optionsback2;
+extern SDL_Surface* rankback;
 extern SDL_Surface* arrow_right;
 extern SDL_Surface* arrow_left;
 
