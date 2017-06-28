@@ -36,6 +36,11 @@ typedef struct _RACKET {
     float factor;
 } RACKET;
 
+typedef struct _RANKED {
+    char name[4];
+    unsigned int score;
+} RANKED;
+
 typedef int _0;
 #endif
 
@@ -79,6 +84,9 @@ extern const int BALL_MAX_SPEED;
 // Debug mode
 #ifndef _DEBUG
 #define _DEBUG 1
+#endif
+#ifndef _GODMODE
+#define _GODMODE 0
 #endif
 
 // Constants of proportion
@@ -126,6 +134,9 @@ extern const int BALL_MAX_SPEED;
 #ifndef ERR_FONT_LOAD
 #define ERR_FONT_LOAD 7
 #endif
+#ifndef ERR_RANK
+#define ERR_RANK 8
+#endif
 #ifndef ERR_EST_EGG
 #define ERR_EST_EGG -99
 #endif
@@ -150,6 +161,7 @@ void options(void);
 void ranking(void);
 void configuration(void);
 void end_game(void);
+void name_input(void);
 
 // Loads individual image
 SDL_Surface* loadSurface(char *path);
@@ -193,6 +205,9 @@ void error(int code);
 
 // Helper functions
 int absolute(int n);
+
+// Compare score between RANKED structs
+int compare_score(const void *a, const void *b);
 
 // New Level
 void newLevel(void);

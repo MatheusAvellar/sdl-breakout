@@ -115,3 +115,6 @@ extern int blocklevel;
 extern int blockscore;
 extern int blocklives;
 extern int blockbonus;
+
+// Global ranking
+extern RANKED gRankedVector[5];

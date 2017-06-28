@@ -121,3 +121,6 @@ int blocklevel = 0;
 int blockscore = 0;
 int blocklives = 0;
 int blockbonus = 0;
+
+// Global ranking
+RANKED gRankedVector[5];

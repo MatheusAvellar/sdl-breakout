@@ -118,6 +118,10 @@ void menu(void) {
             }
         }
 
+        // Fill the surface with #99d9ea (light blue)
+        SDL_FillRect(gScreenSurface, NULL,
+                    SDL_MapRGB(gScreenSurface->format, 0x99, 0xD9, 0xEA));
+
 
         // Check if mouse is over buttonnew
         int is_hovering = (mouseX >= buttonnew_x
@@ -150,11 +154,6 @@ void menu(void) {
         // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonrankings, is_hovering ? SDL_FALSE : SDL_TRUE,
                     SDL_MapRGB(buttonrankings->format, 0x70, 0x92, 0xBE));
-
-
-        // Fill the surface with #000000 (black)
-        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
-                                                    0x00, 0x00, 0x00));
 
         // If there's an error loading any of the buttons
         if(drawOnScreen(breakout, 0, 0,
@@ -458,7 +457,7 @@ void game(void) {
                 if(!gPause && moveNPC(&ball[i])) {
 
                     // Decrease from player life counter
-                    if(!_DEBUG) player.lives -= 1;
+                    if(!_GODMODE) player.lives -= 1;
 
                     // Reset the position of the ball to the top of the paddle
                     ball[i].posY = player.posY - BALL_HEIGHT;
@@ -483,8 +482,16 @@ void game(void) {
                         blockbonus = 0;
                         player._left = false;
                         player._right = false;
-                        // Game screen is no longer 'game'
-                        gameScreen = 5;
+
+                        if((unsigned)player.score > gRankedVector[4].score) {
+                            if(_DEBUG) printf("[RANKED] New record!\n");
+                            gRankedVector[4].score = player.score;
+                            // Game screen is now 'name input'
+                            gameScreen = 6;
+                        } else {
+                            // Game screen is now 'game over'
+                            gameScreen = 5;
+                        }
                         return;
                     }
                 }
@@ -843,6 +850,10 @@ void options(void) {
             }
         }
 
+        // Fill the surface with #99d9ea (light blue)
+        SDL_FillRect(gScreenSurface, NULL,
+                    SDL_MapRGB(gScreenSurface->format, 0x99, 0xD9, 0xEA));
+
         // If mouse is over 'home' button
         int is_hovering = (mouseX >= buttonhome_x
                         && mouseX <= buttonhome_x + buttonhome_w
@@ -852,10 +863,6 @@ void options(void) {
         // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
-
-        // Fill the surface with #000000 (black)
-        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
-                                                      0x00, 0x00, 0x00));
 
         // Color key is always enabled for arrows
         SDL_SetColorKey(arrow_right, SDL_TRUE,
@@ -954,9 +961,25 @@ void ranking(void) {
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
-        // Fill the surface with #000000 (black)
-        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format,
-                                                      0x00, 0x00, 0x00));
+        // Fill the surface with #99d9ea (light blue)
+        SDL_FillRect(gScreenSurface, NULL,
+                    SDL_MapRGB(gScreenSurface->format, 0x99, 0xD9, 0xEA));
+
+        // R: 0, G: 0, B: 0, alpha: 255
+        SDL_Color black = { 0, 0, 0, 255 };
+
+        int r;
+        char strrank[13];
+        for (r = 0; r < 5; r++) {
+            sprintf(strrank, "%s: %u",
+                    gRankedVector[r].name,
+                    gRankedVector[r].score);
+            drawTextOnScreen(strrank,
+                            SCREEN_WIDTH/2-250,
+                            SCREEN_HEIGHT/4+25*(r+1),
+                            black);
+        }
+
 
         // If there's an error loading the home button
         if(drawOnScreen(buttonhome, 0, 0,
@@ -1076,6 +1099,10 @@ void configuration(void) {
             }
         }
 
+        // Fill the surface with #99d9ea (light blue)
+        SDL_FillRect(gScreenSurface, NULL,
+                    SDL_MapRGB(gScreenSurface->format, 0x99, 0xD9, 0xEA));
+
         // If mouse is over 'home' button
         is_hovering = (mouseX >= buttonhome_x
                     && mouseX <= buttonhome_x + buttonhome_w
@@ -1119,10 +1146,6 @@ void configuration(void) {
                         SDL_MapRGB(buttonclassic->format, 0x70, 0x92, 0xBE));
         SDL_SetColorKey(buttonalternate, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonalternate->format, 0x70, 0x92,0xBE));
-
-        // Fill the surface with #000000 (black)
-        SDL_FillRect(gScreenSurface, NULL,
-                        SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
         // If there's an error loading any of the buttons
         if(drawOnScreen(config, 0, 0,
@@ -1202,11 +1225,16 @@ void end_game(void) {
                             return;
                         }
                     }
+                    break;
                 default:
                     // Supress warnings from [-Wswitch-default] flag
                     break;
-                }
             }
+        }
+
+        // Fill the surface with #99d9ea (light blue)
+        SDL_FillRect(gScreenSurface, NULL,
+                    SDL_MapRGB(gScreenSurface->format, 0x99, 0xD9, 0xEA));
 
         // If mouse is over 'home' button
         is_hovering = (mouseX >= buttonhome_x
@@ -1217,10 +1245,6 @@ void end_game(void) {
         // If mouse is over button, color key is disabled; Otherwise, enabled
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
-
-        // Fill the surface with #000000 (black)
-        SDL_FillRect(gScreenSurface, NULL,
-                     SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
         // If there's an error loading the 'home' button
         if (drawOnScreen(buttonhome, 0, 0,
@@ -1252,6 +1276,194 @@ void end_game(void) {
             if(_DEBUG) printf("TTF end_score\n");
         }
         drawTextOnScreen(strscore, SCREEN_WIDTH-260, 160, yellow);
+
+        // Update the surface
+        SDL_UpdateWindowSurface(gWindow);
+
+        // Normalize framerate
+        SDL_Delay(time_left());
+        next_time += TICK_INTERVAL;
+    }
+}
+
+void name_input(void) {
+
+    // Home button variables
+    int buttonhome_x = 5*PROP;
+    int buttonhome_y = 5*PROP;
+    int buttonhome_w = 11.2*PROP;
+    int buttonhome_h = 5*PROP;
+
+    // Mouse position
+    int mouseX, mouseY;
+
+    int is_hovering;
+
+    // Cursor for writing name
+    int cursor;
+
+    // Username letters
+    char letters[] = { 'Z', 'Z', 'Z', '\0' };
+
+    FILE *pFile;
+
+    // Event handler
+    SDL_Event e;
+
+    while (!quit) {
+        // Get current mouse position
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        while (SDL_PollEvent(&e) != 0) {
+            switch (e.type) {
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN:
+                    // If user pressed the 'ESCAPE' key
+                    if (e.key.keysym.sym == SDLK_ESCAPE) quit = true;
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    // If the user has clicked with the left mouse button
+                    if(e.button.button == SDL_BUTTON_LEFT) {
+                        // If mouse is over 'home' button
+                        if(mouseX >= buttonhome_x
+                        && mouseX <= buttonhome_x + buttonhome_w
+                        && mouseY >= buttonhome_y
+                        && mouseY <= buttonhome_y + buttonhome_h) {
+                            // Game screen is now 'menu'
+                            gameScreen = 0;
+                            // Reset variables
+                            blocklevel = 0;
+                            blockscore = 0;
+                            player.score = 0;
+                            player.aux_score = 0;
+                            player.lives = 3;
+                            level = 0;
+                            return;
+                        }
+                    }
+                    break;
+                case SDL_KEYUP:
+                    switch(e.key.keysym.sym) {
+                        case SDLK_a: letters[cursor++] = 'A'; break;
+                        case SDLK_b: letters[cursor++] = 'B'; break;
+                        case SDLK_c: letters[cursor++] = 'C'; break;
+                        case SDLK_d: letters[cursor++] = 'D'; break;
+                        case SDLK_e: letters[cursor++] = 'E'; break;
+                        case SDLK_f: letters[cursor++] = 'F'; break;
+                        case SDLK_g: letters[cursor++] = 'G'; break;
+                        case SDLK_h: letters[cursor++] = 'H'; break;
+                        case SDLK_i: letters[cursor++] = 'I'; break;
+                        case SDLK_j: letters[cursor++] = 'J'; break;
+                        case SDLK_k: letters[cursor++] = 'K'; break;
+                        case SDLK_l: letters[cursor++] = 'L'; break;
+                        case SDLK_m: letters[cursor++] = 'M'; break;
+                        case SDLK_n: letters[cursor++] = 'N'; break;
+                        case SDLK_o: letters[cursor++] = 'O'; break;
+                        case SDLK_p: letters[cursor++] = 'P'; break;
+                        case SDLK_q: letters[cursor++] = 'Q'; break;
+                        case SDLK_r: letters[cursor++] = 'R'; break;
+                        case SDLK_s: letters[cursor++] = 'S'; break;
+                        case SDLK_t: letters[cursor++] = 'T'; break;
+                        case SDLK_u: letters[cursor++] = 'U'; break;
+                        case SDLK_v: letters[cursor++] = 'V'; break;
+                        case SDLK_w: letters[cursor++] = 'W'; break;
+                        case SDLK_x: letters[cursor++] = 'X'; break;
+                        case SDLK_y: letters[cursor++] = 'Y'; break;
+                        case SDLK_z: letters[cursor++] = 'Z'; break;
+                        case SDLK_KP_0: case SDLK_KP_00: case SDLK_KP_000:
+                        case SDLK_0: letters[cursor++] = '0'; break;
+                        case SDLK_KP_1:
+                        case SDLK_1: letters[cursor++] = '1'; break;
+                        case SDLK_KP_2:
+                        case SDLK_2: letters[cursor++] = '2'; break;
+                        case SDLK_KP_3:
+                        case SDLK_3: letters[cursor++] = '3'; break;
+                        case SDLK_KP_4:
+                        case SDLK_4: letters[cursor++] = '4'; break;
+                        case SDLK_KP_5:
+                        case SDLK_5: letters[cursor++] = '5'; break;
+                        case SDLK_KP_6:
+                        case SDLK_6: letters[cursor++] = '6'; break;
+                        case SDLK_KP_7:
+                        case SDLK_7: letters[cursor++] = '7'; break;
+                        case SDLK_KP_8:
+                        case SDLK_8: letters[cursor++] = '8'; break;
+                        case SDLK_KP_9:
+                        case SDLK_9: letters[cursor++] = '9'; break;
+                        case SDLK_PERIOD: case SDLK_KP_PERIOD:
+                                     letters[cursor++] = '.'; break;
+                        case SDLK_COMMA: case SDLK_KP_COMMA:
+                                     letters[cursor++] = ','; break;
+                        case SDLK_F12: error(ERR_EST_EGG);    break;
+                        case SDLK_LEFT:
+                            cursor = --cursor < 0 ? 2 : cursor;
+                            break;
+                        case SDLK_RIGHT:
+                            cursor = ++cursor > 2 ? 0 : cursor;
+                            break;
+
+                        // If user presses [ENTER] key
+                        case SDLK_RETURN:case SDLK_RETURN2:case SDLK_KP_ENTER:
+                            if(_DEBUG) {
+                                printf("[Inserted name %s with score %u]\n",
+                                    letters, gRankedVector[4].score);
+                            }
+                            // Set the username to input
+                            sprintf(gRankedVector[4].name, letters);
+
+                            // Sort ranked players
+                            unsigned _s = sizeof(RANKED);
+                            qsort(gRankedVector, 5, _s, compare_score);
+                            pFile = fopen("./ranking","wb");
+                            if (!pFile) {
+                                printf("Unable to open file!");
+                                gameScreen = 0;
+                            } else {
+                                fwrite(gRankedVector, sizeof(RANKED), 5, pFile);
+                                fclose(pFile);
+                                gameScreen = 3;
+                            }
+                            return;
+                        default: break;
+                    }
+                    break;
+                default:
+                    // Supress warnings from [-Wswitch-default] flag
+                    break;
+            }
+        }
+
+        // Fill the surface with #99d9ea (light blue)
+        SDL_FillRect(gScreenSurface, NULL,
+                    SDL_MapRGB(gScreenSurface->format, 0x99, 0xD9, 0xEA));
+
+        // If mouse is over 'home' button
+        is_hovering = (mouseX >= buttonhome_x
+                    && mouseX <= buttonhome_x + buttonhome_w
+                    && mouseY >= buttonhome_y
+                    && mouseY <= buttonhome_y + buttonhome_h);
+
+        // If mouse is over button, color key is disabled; Otherwise, enabled
+        SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
+                        SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
+
+        // If there's an error loading the 'home' button
+        if (drawOnScreen(buttonhome, 0, 0,
+                         buttonhome_w, buttonhome_h,
+                         buttonhome_x, buttonhome_y) < 0) {
+            error(ERR_BLIT);
+            quit = true;
+        }
+
+        // R: 0, G: 0, B: 0, alpha: 255
+        SDL_Color black = { 0, 0, 0, 255 };
+
+        cursor = cursor > 2 ? 0 : cursor < 0 ? 2 : cursor;
+        drawTextOnScreen(letters, SCREEN_WIDTH/2, 160, black);
+        drawTextOnScreen("^", SCREEN_WIDTH/2 + cursor*15, 180, black);
+
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -1770,6 +1982,17 @@ int init(void) {
     // Get window surface
     gScreenSurface = SDL_GetWindowSurface(gWindow);
 
+    FILE *pFile;
+
+    pFile = fopen("./ranking","rb");
+    if(!pFile) {
+        error(ERR_RANK);
+        return false;
+    } else {
+        fread(gRankedVector, sizeof(RANKED), 5, pFile);
+        fclose(pFile);
+    }
+
     return true;
 }
 
@@ -1979,4 +2202,12 @@ void error(int code) {
 
 int absolute(int n) {
     return n < 0 ? -n : n;
+}
+
+int compare_score(const void *a, const void *b) {
+    RANKED *x = (RANKED *) a;
+    RANKED *y = (RANKED *) b;
+    if(x->score > y->score) return-1;
+    if(x->score < y->score) return 1;
+    return 0;
 }

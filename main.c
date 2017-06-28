@@ -39,6 +39,7 @@ int main(int argc, char* args[]) {
             case 3: ranking(); break;
             case 4: configuration(); break;
             case 5: end_game(); break;
+            case 6: name_input(); break;
             default:
                 printf("Error: game screen is invalid\n");
                 return 1;
