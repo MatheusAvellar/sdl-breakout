@@ -4,6 +4,8 @@
  * Global Variables
  */
 
+extern float gGameVersion;
+
 extern int quit;
 
 // Pause variable
@@ -77,6 +79,8 @@ extern SDL_Surface* optionsback2;
 extern SDL_Surface* rankback;
 extern SDL_Surface* arrow_right;
 extern SDL_Surface* arrow_left;
+extern SDL_Surface* minus;
+extern SDL_Surface* plus;
 
 // Image for power up
 extern SDL_Surface* power_up;
@@ -108,6 +112,9 @@ extern Mix_Chunk* gRacketWAV;
 
 // Game music
 extern Mix_Music* gMusicWAV;
+
+// Volume
+extern int soundVolume;
 
 // Game font
 extern TTF_Font* gFont;

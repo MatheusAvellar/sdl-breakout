@@ -172,6 +172,14 @@ void menu(void) {
             quit = true;
         }
 
+
+        SDL_Color black = { 0, 0, 0, 255 };
+
+        char strversion[13];
+
+        sprintf(strversion, "v.%.1f", gGameVersion);
+        drawTextOnScreen(strversion, 360, SCREEN_HEIGHT/4+65, black);
+
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
 
@@ -871,6 +879,17 @@ void options(void) {
     int arrowl_w = 5.4*PROP;
     int arrowl_h = 5.4*PROP;
 
+    // Minus and Plus variables
+    int minus_x = 38*PROP;
+    int minus_y = 21*PROP;
+    int minus_w = 2.1*PROP;
+    int minus_h = 2.0*PROP;
+
+    int plus_x = 38*PROP;
+    int plus_y = 18.7*PROP;
+    int plus_w = 2.1*PROP;
+    int plus_h = 2.0*PROP;
+
     // Mouse position
     int mouseX, mouseY;
 
@@ -920,6 +939,28 @@ void options(void) {
                             if (gScreen > 0) gScreen--;
                             return;
                         }
+
+                        // If mouse is over minus
+                        else if(mouseX >= minus_x
+                        && mouseX <= minus_x + minus_w
+                        && mouseY >= minus_y
+                        && mouseY <= minus_y + minus_h) {
+                            soundVolume -= 10;
+                            soundVolume = soundVolume < 0 ? 0 : soundVolume;
+                            Mix_VolumeMusic(soundVolume);
+                            return;
+                        }
+
+                        // If mouse is over plus
+                        else if(mouseX >= plus_x
+                        && mouseX <= plus_x + plus_w
+                        && mouseY >= plus_y
+                        && mouseY <= plus_y + plus_h) {
+                            soundVolume += 10;
+                            soundVolume = soundVolume > 128 ? 128 : soundVolume;
+                            Mix_VolumeMusic(soundVolume);
+                            return;
+                        }
                     }
                     break;
                 default:
@@ -942,11 +983,15 @@ void options(void) {
         SDL_SetColorKey(buttonhome, is_hovering ? SDL_FALSE : SDL_TRUE,
                         SDL_MapRGB(buttonhome->format, 0x70, 0x92, 0xBE));
 
-        // Color key is always enabled for arrows
+        // Color key is always enabled for arrows and sound buttons
         SDL_SetColorKey(arrow_right, SDL_TRUE,
                         SDL_MapRGB(arrow_right->format, 0xff, 0xAE, 0xC9));
         SDL_SetColorKey(arrow_left, SDL_TRUE,
                         SDL_MapRGB(arrow_left->format, 0xff, 0xAE, 0xC9));
+        SDL_SetColorKey(minus, SDL_TRUE,
+                        SDL_MapRGB(minus->format, 0xff, 0xAE, 0xC9));
+        SDL_SetColorKey(plus, SDL_TRUE,
+                        SDL_MapRGB(minus->format, 0xff, 0xAE, 0xC9));
 
         // If there's an error loading any of the buttons
         if(drawOnScreen(gScreen == 0 ? optionsback : gScreen == 1 ?
@@ -954,7 +999,11 @@ void options(void) {
                         options_w, options_h,
                         options_x, options_y) < 0
         || drawOnScreen(buttonhome, 0, 0, buttonhome_w, buttonhome_h,
-                        buttonhome_x, buttonhome_y) < 0) {
+                        buttonhome_x, buttonhome_y) < 0
+        || drawOnScreen(minus, 0, 0, minus_w, minus_h,
+                        minus_x, minus_y) < 0
+        || drawOnScreen(plus, 0, 0, plus_w,plus_h,
+                        plus_x, plus_y) < 0) {
               error(ERR_BLIT);
               quit = true;
         }
@@ -974,6 +1023,16 @@ void options(void) {
                 quit = true;
           }
         }
+
+        SDL_Color black = { 0, 0, 0, 255 };
+
+        char strvol[13];
+
+        sprintf(strvol, "Music Volume: %.0f %%", (soundVolume*1.0/MIX_MAX_VOLUME)*100 );
+        drawTextOnScreen(strvol,
+                        50,
+                        SCREEN_HEIGHT/4+25,
+                        black);
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -2254,7 +2313,9 @@ int loadMedia(void) {
     || (rankback = loadSurface("./images/rankback.png")) == NULL
     || (power_up = loadSurface("./images/powerup.png")) == NULL
     || (arrow_right = loadSurface("./images/arrow_right.png")) == NULL
-    || (arrow_left = loadSurface("./images/arrow_left.png")) == NULL) {
+    || (arrow_left = loadSurface("./images/arrow_left.png")) == NULL
+    || (minus = loadSurface("./images/minus.png")) == NULL
+    || (plus = loadSurface("./images/plus.png")) == NULL) {
         error(ERR_IMG_LOAD);
         return false;
     }

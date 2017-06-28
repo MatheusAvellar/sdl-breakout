@@ -8,6 +8,8 @@
 /*
  * Global Variables
  */
+// Game version
+float gGameVersion = 1.0;
 
 // Main loop flag
 int quit = 0;
@@ -83,6 +85,8 @@ SDL_Surface* pause = NULL;
 SDL_Surface* buttonquit = NULL;
 SDL_Surface* arrow_right = NULL;
 SDL_Surface* arrow_left = NULL;
+SDL_Surface* minus = NULL;
+SDL_Surface* plus = NULL;
 
 //Image for power up
 SDL_Surface* power_up = NULL;
@@ -114,6 +118,9 @@ Mix_Chunk* gRacketWAV;
 
 // Game music
 Mix_Music* gMusicWAV;
+
+// Volume
+int soundVolume = 128;
 
 // Game font
 TTF_Font* gFont;
