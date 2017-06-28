@@ -194,8 +194,12 @@ void game(void) {
 
     // Time for bonus
     int time_y_bonus;
-    int time_max_bonus = (1.2*((LINES*COLUMNS)+(LINES+COLUMNS)))-4;
-    int time_min_bonus = 1.5*time_max_bonus;
+
+    int time_max_bonus = 1.2 * (LINES * COLUMNS + LINES + COLUMNS) - 4;
+    time_max_bonus *= avg_resist;
+
+    int time_min_bonus = 1.5 * time_max_bonus;
+
 
     // Quit button dimensions
     int buttonquit_x = 36*PROP;
@@ -370,6 +374,7 @@ void game(void) {
                             else {
                                 // Unmute music
                                 Mix_VolumeMusic(MIX_MAX_VOLUME);
+                                printf("%d\n", MIX_MAX_VOLUME);
                             }
                         }
                         // If mouse is over pause button
@@ -483,6 +488,8 @@ void game(void) {
                         player._left = false;
                         player._right = false;
 
+                        // If player score is greater than the lowest ranked
+                        // person, then the player should now be ranked
                         if((unsigned)player.score > gRankedVector[4].score) {
                             if(_DEBUG) printf("[RANKED] New record!\n");
                             gRankedVector[4].score = player.score;
@@ -1531,8 +1538,6 @@ void collisionBrick(void) {
                     else {
                         // You can't ever be too sure, right?
                         if(current.resist > 0 && current.resist < 6) {
-                            player.score += 100;
-                            player.aux_score += 100;
                             levelClear--;
                         }
 
@@ -1542,28 +1547,34 @@ void collisionBrick(void) {
                             brick[j][k].resist = current.resist-1 < 0
                                         ? 0
                                         : current.resist-1;
-                        }
 
-                        // If block was broken and sounds are on
-                        if(!brick[j][k].resist && gSound) {
-                            // Play brick breaking sound
-                            Mix_PlayChannel(-1, gBrickWAV, 0);
-                        }
+                            // If block was broken
+                            if(!brick[j][k].resist ) {
+                                player.score += 100;
+                                player.aux_score += 100;
 
-                        // If there are no powerups
-                        if(!gPowerUp) {
-                            // 11% chance of a powerup
-                            gPowerUp = rand() % 100 < 11 ? 1 : 0;
-                            // If player should get a powerup
-                            if(gPowerUp) {
-                                // Reset powerups
-                                controlInverter = 0;
-                                bigracket = 0;
-                                smallracket = 0;
+                                // If sounds are on
+                                if(gSound) {
+                                    // Play brick breaking sound
+                                    Mix_PlayChannel(-1, gBrickWAV, 0);
+                                }
+
+                                // If there are no powerups
+                                if(!gPowerUp) {
+                                    // 11% chance of a powerup
+                                    gPowerUp = rand() % 100 < 11 ? 1 : 0;
+                                    // If player should get a powerup
+                                    if(gPowerUp) {
+                                        // Reset powerups
+                                        controlInverter = 0;
+                                        bigracket = 0;
+                                        smallracket = 0;
+                                    }
+                                    // Update powerup position
+                                    powerup_x = current.posX + 29;
+                                    powerup_y = current.posY;
+                                }
                             }
-                            // Update powerup position
-                            powerup_x = current.posX + 29;
-                            powerup_y = current.posY;
                         }
 
                         // Collision side checking
@@ -1805,17 +1816,23 @@ void newLevel(void) {
             }
         }
         levelClear = COLUMNS * LINES;
+        avg_resist = 1;
         if(_DEBUG) printf("Level clear set to %d\n", levelClear);
     } else {
         fread(resist_array, sizeof(int), COLUMNS * LINES, pFile);
         if(_DEBUG) printf("Reading level %d from file\n", level-1);
+        int c = 0;
         for (i = 0; i < COLUMNS; i++) {
             for (j = 0; j < LINES; j++) {
                 brick[i][j].resist = resist_array[i*LINES + j];
-                if (brick[i][j].resist < 6)
-                  levelClear += resist_array[i*LINES + j];
+                if (brick[i][j].resist < 6) {
+                    c++;
+                    levelClear += resist_array[i*LINES + j];
+                    avg_resist += resist_array[i*LINES + j];
+                }
             }
         }
+        avg_resist /= c;
         if(_DEBUG) printf("Level clear set to %d\n", levelClear);
         fclose(pFile);
     }

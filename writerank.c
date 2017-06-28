@@ -8,19 +8,19 @@ int main() {
     RANKED player_vector[5];
 
     sprintf(player_vector[0].name, "AAA");
-    player_vector[0].score = 4000000000;
+    player_vector[0].score = 15000;
 
     sprintf(player_vector[1].name, "ADR");
-    player_vector[1].score = 100000;
+    player_vector[1].score = 10000;
 
     sprintf(player_vector[2].name, "POS");
-    player_vector[2].score = 300;
+    player_vector[2].score = 5000;
 
     sprintf(player_vector[3].name, "DIA");
-    player_vector[3].score = 100;
+    player_vector[3].score = 1000;
 
-    sprintf(player_vector[4].name, "COL");
-    player_vector[4].score = 42;
+    sprintf(player_vector[4].name, "AVL");
+    player_vector[4].score = 100;
 
     FILE *pFile;
     pFile = fopen("./ranking","wb");

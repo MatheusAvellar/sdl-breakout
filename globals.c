@@ -100,6 +100,9 @@ int level = 0;
 // Check if ball is in game
 int ball_in_game;
 
+// Average block resistance
+int avg_resist;
+
 // Brick breaking sound
 Mix_Chunk* gBrickWAV;
 

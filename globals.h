@@ -94,6 +94,9 @@ extern int level;
 // Check if ball is in game
 extern int ball_in_game;
 
+// Average block resistance
+extern int avg_resist;
+
 // Brick breaking sound
 extern Mix_Chunk* gBrickWAV;
 
