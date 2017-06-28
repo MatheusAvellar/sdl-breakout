@@ -27,6 +27,7 @@ int can_music_play = 1;
 
 //Power up
 int gPowerUp;
+int gPowerUpId = 5;
 int powerup_x;
 int powerup_y;
 int controlInverter = 0;
@@ -76,6 +77,7 @@ SDL_Surface* breakout = NULL;
 SDL_Surface* config = NULL;
 SDL_Surface* optionsback = NULL;
 SDL_Surface* optionsback1 = NULL;
+SDL_Surface* optionsback2 = NULL;
 SDL_Surface* pause = NULL;
 SDL_Surface* buttonquit = NULL;
 SDL_Surface* arrow_right = NULL;
@@ -120,10 +122,12 @@ int contalevel = 1;
 int contascore = 0;
 int contalives = 3;
 int contabonus = 600;
+int contapower = 5;
 int blocklevel = 0;
 int blockscore = 0;
 int blocklives = 0;
 int blockbonus = 0;
+int blockpower = 0;
 
 // Global ranking
 RANKED gRankedVector[5];

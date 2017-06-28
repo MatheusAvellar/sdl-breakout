@@ -13,6 +13,7 @@ extern int gMusic;
 
 // Power up
 extern int gPowerUp;
+extern int gPowerUpId;
 extern int powerup_x;
 extern int powerup_y;
 extern int controlInverter;
@@ -72,6 +73,7 @@ extern SDL_Surface* pause;
 extern SDL_Surface* buttonquit;
 extern SDL_Surface* optionsback;
 extern SDL_Surface* optionsback1;
+extern SDL_Surface* optionsback2;
 extern SDL_Surface* arrow_right;
 extern SDL_Surface* arrow_left;
 
@@ -114,10 +116,12 @@ extern int contalevel;
 extern int contascore;
 extern int contalives;
 extern int contabonus;
+extern int contapower;
 extern int blocklevel;
 extern int blockscore;
 extern int blocklives;
 extern int blockbonus;
+extern int blockpower;
 
 // Global ranking
 extern RANKED gRankedVector[5];

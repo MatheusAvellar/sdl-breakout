@@ -724,6 +724,8 @@ void game(void) {
 
         // R: 0, G: 0, B: 0, alpha: 255
         SDL_Color black = { 0, 0, 0, 255 };
+        SDL_Color red = { 255, 0, 0, 255 };
+        SDL_Color green = { 0, 174, 0, 255 };
 
         char strbonus[4];
         // Only update bonus text if it has changed
@@ -764,6 +766,37 @@ void game(void) {
             if(_DEBUG) printf("TTF balls left\n");
         }
         drawTextOnScreen(strlives, SCREEN_WIDTH-160, 250, black);
+
+        char strpower[20];
+        // Only update power up text if it has changed
+        if(gPowerUpId != contapower || !blockpower) {
+            switch (gPowerUpId) {
+              case 0:
+                sprintf(strpower, "1 up");
+                break;
+              case 1:
+                sprintf(strpower, "Inverter");
+                break;
+              case 2:
+                sprintf(strpower, "Large");
+                break;
+              case 3:
+                sprintf(strpower, "Small");
+                break;
+              default:
+                sprintf(strpower, "Nothing ");
+                break;
+            }
+            contapower = gPowerUpId;
+            blockpower = 1;
+            if(_DEBUG) printf("TTF power up\n");
+        }
+        if (gPowerUpId == 0 || gPowerUpId == 2)
+          drawTextOnScreen(strpower, SCREEN_WIDTH-160, 380, green);
+        if (gPowerUpId == 1 || gPowerUpId == 3)
+          drawTextOnScreen(strpower, SCREEN_WIDTH-160, 380, red);
+        if (gPowerUpId == 5)
+          drawTextOnScreen(strpower, SCREEN_WIDTH-160, 380, black);
 
         // Update the surface
         SDL_UpdateWindowSurface(gWindow);
@@ -837,7 +870,7 @@ void options(void) {
                         && mouseY >= arrowr_y
                         && mouseY <= arrowr_y + arrowr_h) {
                             // Change information screen
-                            if(gScreen < 1) gScreen++;
+                            if(gScreen < 2) gScreen++;
                             return;
                         }
                         // If mouse is over left arrow
@@ -878,7 +911,8 @@ void options(void) {
                         SDL_MapRGB(arrow_left->format, 0xff, 0xAE, 0xC9));
 
         // If there's an error loading any of the buttons
-        if(drawOnScreen(gScreen == 0 ? optionsback : optionsback1, 0, 0,
+        if(drawOnScreen(gScreen == 0 ? optionsback : gScreen == 1 ?
+                                      optionsback1 : optionsback2, 0, 0,
                         options_w, options_h,
                         options_x, options_y) < 0
         || drawOnScreen(buttonhome, 0, 0, buttonhome_w, buttonhome_h,
@@ -887,14 +921,15 @@ void options(void) {
               quit = true;
         }
 
-        if (gScreen) {
+        //Draw arrows
+        if (gScreen > 0) {
           if (drawOnScreen(arrow_left, 0, 0, arrowl_w, arrowl_h,
                           arrowl_x, arrowl_y) < 0) {
                 error(ERR_BLIT);
                 quit = true;
           }
         }
-        else {
+        if (gScreen < 2) {
           if (drawOnScreen(arrow_right, 0, 0, arrowr_w, arrowr_h,
                           arrowr_x, arrowr_y) < 0) {
                 error(ERR_BLIT);
@@ -1566,6 +1601,7 @@ void collisionBrick(void) {
                                     // If player should get a powerup
                                     if(gPowerUp) {
                                         // Reset powerups
+                                        gPowerUpId = 5;
                                         controlInverter = 0;
                                         bigracket = 0;
                                         smallracket = 0;
@@ -1747,18 +1783,22 @@ void collisionPowerUp(void) {
         switch((rand())%4) {
             case 0:
                 player.lives++;
+                gPowerUpId = 0;
                 if (_DEBUG) printf("VIDA\n");
                 break;
             case 1:
                 controlInverter = 1;
+                gPowerUpId = 1;
                 if (_DEBUG) printf("INVERTER\n");
                 break;
             case 2:
                 bigracket = 1;
+                gPowerUpId = 2;
                 if (_DEBUG) printf("BIG\n");
                 break;
             case 3:
                 smallracket = 1;
+                gPowerUpId = 3;
                 if (_DEBUG) printf("SMALL\n");
                 break;
             default:
@@ -1839,6 +1879,7 @@ void newLevel(void) {
 
     // Reset power up
     gPowerUp = 0;
+    gPowerUpId = 5;
     controlInverter = 0;
     bigracket = 0;
     smallracket = 0;
@@ -2037,6 +2078,7 @@ int loadMedia(void) {
     || (buttonquit = loadSurface("./images/quitbutton.png")) == NULL
     || (optionsback = loadSurface("./images/optionsback.png")) == NULL
     || (optionsback1 = loadSurface("./images/optionsback1.png")) == NULL
+    || (optionsback2 = loadSurface("./images/optionsback2.png")) == NULL
     || (power_up = loadSurface("./images/powerup.png")) == NULL
     || (arrow_right = loadSurface("./images/arrow_right.png")) == NULL
     || (arrow_left = loadSurface("./images/arrow_left.png")) == NULL) {
@@ -2077,7 +2119,7 @@ int loadMedia(void) {
     }
 
     // Play music
-    if(can_music_play && Mix_PlayMusic(gMusicWAV, -1)==-1) {
+    if(can_music_play /*&& Mix_PlayMusic(gMusicWAV, -1)==-1*/) {
         // There is no music, but the game is still playable
         printf("Failed to load music!\n%s\n", Mix_GetError());
     }
