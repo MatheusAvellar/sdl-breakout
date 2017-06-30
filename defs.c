@@ -1026,7 +1026,7 @@ void options(void) {
 
         SDL_Color black = { 0, 0, 0, 255 };
 
-        char strvol[13];
+        char strvol[20];
 
         sprintf(strvol, "Music Volume: %.0f %%", (soundVolume*1.0/MIX_MAX_VOLUME)*100 );
         drawTextOnScreen(strvol,
