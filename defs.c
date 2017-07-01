@@ -203,7 +203,7 @@ void game(void) {
     // Time for bonus
     int time_y_bonus;
 
-    int time_max_bonus = 1.2 * (LINES * COLUMNS + LINES + COLUMNS) - 4;
+    int time_max_bonus = 1.2 * (LINES * COLUMNS + LINES + COLUMNS);
     time_max_bonus *= avg_resist;
 
     int time_min_bonus = 1.5 * time_max_bonus;
@@ -2346,7 +2346,7 @@ int loadMedia(void) {
         return false;
     }
 
-    gMusicWAV = Mix_LoadMUS("./sounds/music.wav");
+    gMusicWAV = Mix_LoadMUS("./sounds/music.mp3");
     if(!gMusicWAV) {
         error(ERR_WAV_LOAD);
         return false;
